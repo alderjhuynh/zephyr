@@ -1,0 +1,29 @@
+{
+	"required": true,
+	"package": "com.zephyr.client.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"ExampleClientMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	},
+	"mixins": [
+		"ClientConnectionMixin",
+		"ClientPlayNetworkHandlerMixin",
+		"ClientPlayerInteractionManagerMixin",
+		"FireworkRocketItemMixin",
+		"TridentItemMixin",
+		"OptionsScreenMixin",
+		"PlayerMoveC2SPacketAccessor",
+		"DeathScreenMixin",
+		"BlockCollisionShapeMixin",
+		"ClientPlayerEntityInvoker",
+		"ClientWorldAccessor",
+		"LivingEntityJumpMixin",
+		"CurrentBreakingPosAccessor"
+	]
+}
