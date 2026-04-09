@@ -30,17 +30,20 @@ public final class Aerodynamics {
             if (!enabled || player == null || player.isOnGround()) {return;}
         }
 
-        Vec3d direction = getBoostDirection(player);
-        if (direction.lengthSquared() < 1.0E-6D) {
-            return;
-        }
+        if (player.isSprinting()) {
 
-        player.addVelocity(
-                direction.x * acceleration,
-                direction.y * acceleration,
-                direction.z * acceleration
-        );
-        player.velocityModified = true;
+            Vec3d direction = getBoostDirection(player);
+            if (direction.lengthSquared() < 1.0E-6D) {
+                return;
+            }
+
+            player.addVelocity(
+                    direction.x * acceleration,
+                    direction.y * acceleration,
+                    direction.z * acceleration
+            );
+            player.velocityModified = true;
+        }
     }
 
     public static double getAcceleration() {
