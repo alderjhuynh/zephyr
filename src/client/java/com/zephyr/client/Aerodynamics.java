@@ -30,7 +30,7 @@ public final class Aerodynamics {
             if (!enabled || player == null || player.isOnGround()) {return;}
         }
 
-        if (player.isSprinting()) {
+        if (player.isSprinting() || (player.isFallFlying() && AllowElytra && client.options.sprintKey.isPressed())) {
 
             Vec3d direction = getBoostDirection(player);
             if (direction.lengthSquared() < 1.0E-6D) {
