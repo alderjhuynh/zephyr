@@ -9,6 +9,7 @@ public final class Aerodynamics {
     private static final double MIN_ACCELERATION = 0.005D;
     private static final double MAX_ACCELERATION = 0.15D;
     private static final double DEFAULT_ACCELERATION = 0.04D;
+    private static final boolean AllowElytra = true;
 
     public static boolean enabled = false;
 
@@ -19,8 +20,14 @@ public final class Aerodynamics {
 
     public static void tick(MinecraftClient client) {
         ClientPlayerEntity player = client.player;
-        if (!enabled || player == null || player.isOnGround() || player.isFallFlying()) {
-            return;
+        if (!AllowElytra) {
+            if (!enabled || player == null || player.isOnGround() || player.isFallFlying()) {
+                return;
+            }
+        }
+
+        if (AllowElytra) {
+            if (!enabled || player == null || player.isOnGround()) {return;}
         }
 
         Vec3d direction = getBoostDirection(player);
