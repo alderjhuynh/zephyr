@@ -24,6 +24,7 @@
 		"ClientPlayerEntityInvoker",
 		"ClientWorldAccessor",
 		"LivingEntityJumpMixin",
-		"CurrentBreakingPosAccessor"
+		"CurrentBreakingPosAccessor",
+		"ClientPlayerEntityMixin"
 	]
 }
