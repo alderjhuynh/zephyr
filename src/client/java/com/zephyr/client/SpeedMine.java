@@ -119,7 +119,11 @@ public class SpeedMine {
     }
 
     public static void cycleMode() {
-        mode = mode.next();
+        setMode(mode.next());
+    }
+
+    public static void setMode(Mode value) {
+        mode = value == null ? Mode.OFF : value;
         if (mode != Mode.DAMAGE) {
             resetDamageState();
         }

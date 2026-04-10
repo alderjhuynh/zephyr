@@ -94,6 +94,7 @@ public final class PearlBoost {
 
     public static void setBoostVelocity(double velocity) {
         boostVelocity = MathHelper.clamp(velocity, MIN_BOOST_VELOCITY, MAX_BOOST_VELOCITY);
+        ZephyrConfig.saveCurrentState();
     }
 
     public static double getMinBoostVelocity() {

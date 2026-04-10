@@ -38,12 +38,23 @@ public final class LongJump {
         wasJumpPressed = false;
     }
 
+    public static void setEnabled(boolean value) {
+        enabled = value;
+        if (enabled) {
+            onEnable();
+            return;
+        }
+
+        wasJumpPressed = false;
+    }
+
     public static double getMomentum() {
         return momentum;
     }
 
     public static void setMomentum(double value) {
         momentum = clamp(value, MIN_MOMENTUM, MAX_MOMENTUM);
+        ZephyrConfig.saveCurrentState();
     }
 
     public static double getMinMomentum() {

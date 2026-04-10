@@ -8,6 +8,8 @@ import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.function.Supplier;
+
 public class ZephyrMenuScreen extends Screen {
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_MAX_WIDTH = 220;
@@ -49,127 +51,85 @@ public class ZephyrMenuScreen extends Screen {
 
         yLeft = this.addMenuButton(
                 getAutoRespawnText(),
-                b -> {
-                    AutoRespawn.enabled = !AutoRespawn.enabled;
-                    b.setMessage(getAutoRespawnText());
-                },
+                b -> applyMenuChange(b, () -> AutoRespawn.enabled = !AutoRespawn.enabled, ZephyrMenuScreen::getAutoRespawnText),
                 leftX, yLeft, buttonWidth, gap
         );
 
         yLeft = this.addMenuButton(
                 getStepText(),
-                b -> {
-                    Step.setEnabled(!Step.isEnabled());
-                    b.setMessage(getStepText());
-                },
+                b -> applyMenuChange(b, () -> Step.setEnabled(!Step.isEnabled()), ZephyrMenuScreen::getStepText),
                 leftX, yLeft, buttonWidth, gap
         );
 
         yLeft = this.addMenuButton(
                 getSprintText(),
-                b -> {
-                    Sprint.enabled = !Sprint.enabled;
-                    b.setMessage(getSprintText());
-                },
+                b -> applyMenuChange(b, () -> Sprint.enabled = !Sprint.enabled, ZephyrMenuScreen::getSprintText),
                 leftX, yLeft, buttonWidth, gap
         );
 
         yLeft = this.addMenuButton(
                 getAntiHungerText(),
-                b -> {
-                    AntiHunger.enabled = !AntiHunger.enabled;
-                    b.setMessage(getAntiHungerText());
-                },
+                b -> applyMenuChange(b, () -> AntiHunger.enabled = !AntiHunger.enabled, ZephyrMenuScreen::getAntiHungerText),
                 leftX, yLeft, buttonWidth, gap
         );
 
         yLeft = this.addMenuButton(
                 getElytraBoostText(),
-                b -> {
-                    ElytraBoost.enabled = !ElytraBoost.enabled;
-                    b.setMessage(getElytraBoostText());
-                },
+                b -> applyMenuChange(b, () -> ElytraBoost.enabled = !ElytraBoost.enabled, ZephyrMenuScreen::getElytraBoostText),
                 leftX, yLeft, buttonWidth, gap
         );
 
         yLeft = this.addMenuButton(
                 getNoFallText(),
-                b -> {
-                    NoFall.enabled = !NoFall.enabled;
-                    b.setMessage(getNoFallText());
-                },
+                b -> applyMenuChange(b, () -> NoFall.enabled = !NoFall.enabled, ZephyrMenuScreen::getNoFallText),
                 leftX, yLeft, buttonWidth, gap
         );
 
         yLeft = this.addMenuButton(
                 getItemRestockText(),
-                b -> {
-                    ItemRestock.enabled = !ItemRestock.enabled;
-                    b.setMessage(getItemRestockText());
-                },
+                b -> applyMenuChange(b, () -> ItemRestock.enabled = !ItemRestock.enabled, ZephyrMenuScreen::getItemRestockText),
                 leftX, yLeft, buttonWidth, gap
         );
 
         yRight = this.addMenuButton(
                 getTridentBoostText(),
-                b -> {
-                    TridentBoost.enabled = !TridentBoost.enabled;
-                    b.setMessage(getTridentBoostText());
-                },
+                b -> applyMenuChange(b, () -> TridentBoost.enabled = !TridentBoost.enabled, ZephyrMenuScreen::getTridentBoostText),
                 rightX, yRight, buttonWidth, gap
         );
 
         yRight = this.addMenuButton(
                 getBlinkText(),
-                b -> {
-                    Blink.CanUseKeybind = !Blink.CanUseKeybind;
-                    b.setMessage(getBlinkText());
-                },
+                b -> applyMenuChange(b, () -> Blink.CanUseKeybind = !Blink.CanUseKeybind, ZephyrMenuScreen::getBlinkText),
                 rightX, yRight, buttonWidth, gap
         );
 
         yRight = this.addMenuButton(
                 getAirJumpText(),
-                b -> {
-                    AirJump.enabled = !AirJump.enabled;
-                    b.setMessage(getAirJumpText());
-                },
+                b -> applyMenuChange(b, () -> AirJump.setEnabled(!AirJump.enabled), ZephyrMenuScreen::getAirJumpText),
                 rightX, yRight, buttonWidth, gap
         );
 
         yRight = this.addMenuButton(
                 getFlightText(),
-                b -> {
-                    Flight.enabled = !Flight.enabled;
-                    b.setMessage(getFlightText());
-                },
+                b -> applyMenuChange(b, () -> Flight.setEnabled(!Flight.enabled), ZephyrMenuScreen::getFlightText),
                 rightX, yRight, buttonWidth, gap
         );
 
         yRight = this.addMenuButton(
                 getSpeedMineText(),
-                b -> {
-                    SpeedMine.cycleMode();
-                    b.setMessage(getSpeedMineText());
-                },
+                b -> applyMenuChange(b, SpeedMine::cycleMode, ZephyrMenuScreen::getSpeedMineText),
                 rightX, yRight, buttonWidth, gap
         );
 
         yRight = this.addMenuButton(
                 getCriticalsText(),
-                b -> {
-                    Criticals.enabled = !Criticals.enabled;
-                    b.setMessage(getCriticalsText());
-                },
+                b -> applyMenuChange(b, () -> Criticals.enabled = !Criticals.enabled, ZephyrMenuScreen::getCriticalsText),
                 rightX, yRight, buttonWidth, gap
         );
 
         yRight = this.addMenuButton(
                 getJesusText(),
-                b -> {
-                    Jesus.enabled = !Jesus.enabled;
-                    b.setMessage(getJesusText());
-                },
+                b -> applyMenuChange(b, () -> Jesus.enabled = !Jesus.enabled, ZephyrMenuScreen::getJesusText),
                 rightX, yRight, buttonWidth, gap
         );
 
@@ -181,10 +141,7 @@ public class ZephyrMenuScreen extends Screen {
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 getPearlBoostText(),
-                                b -> {
-                                    PearlBoost.enabled = !PearlBoost.enabled;
-                                    b.setMessage(getPearlBoostText());
-                                }
+                                b -> applyMenuChange(b, () -> PearlBoost.enabled = !PearlBoost.enabled, ZephyrMenuScreen::getPearlBoostText)
                         )
                         .dimensions(pearlRowX, pearlRowY, pearlButtonWidth, BUTTON_HEIGHT)
                         .build()
@@ -204,10 +161,7 @@ public class ZephyrMenuScreen extends Screen {
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 getHighJumpText(),
-                                b -> {
-                                    HighJump.enabled = !HighJump.enabled;
-                                    b.setMessage(getHighJumpText());
-                                }
+                                b -> applyMenuChange(b, () -> HighJump.enabled = !HighJump.enabled, ZephyrMenuScreen::getHighJumpText)
                         )
                         .dimensions(highJumpRowX, highJumpRowY, highJumpButtonWidth, BUTTON_HEIGHT)
                         .build()
@@ -228,13 +182,7 @@ public class ZephyrMenuScreen extends Screen {
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 getLongJumpText(),
-                                b -> {
-                                    LongJump.enabled = !LongJump.enabled;
-                                    if (LongJump.enabled) {
-                                        LongJump.onEnable();
-                                    }
-                                    b.setMessage(getLongJumpText());
-                                }
+                                b -> applyMenuChange(b, () -> LongJump.setEnabled(!LongJump.enabled), ZephyrMenuScreen::getLongJumpText)
                         )
                         .dimensions(longJumpRowX, longJumpRowY, longJumpButtonWidth, BUTTON_HEIGHT)
                         .build()
@@ -255,10 +203,7 @@ public class ZephyrMenuScreen extends Screen {
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 getAerodynamicsText(),
-                                b -> {
-                                    Aerodynamics.enabled = !Aerodynamics.enabled;
-                                    b.setMessage(getAerodynamicsText());
-                                }
+                                b -> applyMenuChange(b, () -> Aerodynamics.enabled = !Aerodynamics.enabled, ZephyrMenuScreen::getAerodynamicsText)
                         )
                         .dimensions(aerodynamicsRowX, aerodynamicsRowY, aerodynamicsButtonWidth, BUTTON_HEIGHT)
                         .build()
@@ -289,6 +234,12 @@ public class ZephyrMenuScreen extends Screen {
     private int addMenuButton(Text text, ButtonWidget.PressAction onPress, int x, int y, int width, int gap) {
         this.addDrawableChild(ButtonWidget.builder(text, onPress).dimensions(x, y, width, BUTTON_HEIGHT).build());
         return y + BUTTON_HEIGHT + gap;
+    }
+
+    private static void applyMenuChange(ButtonWidget button, Runnable change, Supplier<Text> textSupplier) {
+        change.run();
+        ZephyrConfig.saveCurrentState();
+        button.setMessage(textSupplier.get());
     }
 
     private static Text getSprintText() {

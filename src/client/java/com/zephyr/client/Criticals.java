@@ -15,6 +15,7 @@ public class Criticals {
 
     public static void setSpoofHeight(double spoofHeight) {
         Criticals.spoofHeight = Math.max(0.0, spoofHeight);
+        ZephyrConfig.saveCurrentState();
     }
 
     public static void onAttack() {

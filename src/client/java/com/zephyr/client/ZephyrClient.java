@@ -12,6 +12,8 @@ public class ZephyrClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		ZephyrConfig.load();
+
 		//keybind registering
 		KeyBinding blinkKey = KeyBindingHelper.registerKeyBinding(
 				new KeyBinding(
@@ -42,6 +44,7 @@ public class ZephyrClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> Jesus.tick());
 		ClientTickEvents.END_CLIENT_TICK.register(client -> Flight.tick());
 		ClientTickEvents.END_CLIENT_TICK.register(client -> SpeedMine.tick());
+		ClientTickEvents.END_CLIENT_TICK.register(client -> Speed.tick());
 		ClientTickEvents.END_CLIENT_TICK.register(ItemRestock::tick);
 	}
 }

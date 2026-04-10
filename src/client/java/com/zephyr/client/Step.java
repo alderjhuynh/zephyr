@@ -36,6 +36,7 @@ public final class Step {
 
     public static void setStepHeight(double value) {
         stepHeight = value;
+        ZephyrConfig.saveCurrentState();
 
         if (!enabled || mc.player == null) return;
 

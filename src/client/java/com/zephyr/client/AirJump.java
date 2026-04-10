@@ -10,6 +10,16 @@ public class AirJump {
 
     private static boolean wasJumpPressed = false;
 
+    public static void setEnabled(boolean value) {
+        enabled = value;
+        if (enabled) {
+            onEnable(MinecraftClient.getInstance());
+            return;
+        }
+
+        wasJumpPressed = false;
+    }
+
     public static void tick(MinecraftClient client) {
         if (!enabled) return;
 

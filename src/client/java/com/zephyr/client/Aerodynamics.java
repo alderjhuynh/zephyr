@@ -52,6 +52,7 @@ public final class Aerodynamics {
 
     public static void setAcceleration(double value) {
         acceleration = MathHelper.clamp(value, MIN_ACCELERATION, MAX_ACCELERATION);
+        ZephyrConfig.saveCurrentState();
     }
 
     public static double getMinAcceleration() {

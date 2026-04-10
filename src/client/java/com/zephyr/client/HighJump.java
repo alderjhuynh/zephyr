@@ -20,6 +20,7 @@ public class HighJump {
 
     public static void setMultiplier(double value) {
         multiplier = clamp(value, MIN_MULTIPLIER, MAX_MULTIPLIER);
+        ZephyrConfig.saveCurrentState();
     }
 
     public static double getMinMultiplier() {

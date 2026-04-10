@@ -19,6 +19,19 @@ public class Flight {
 
     private static Mode mode = Mode.ABILITIES;
 
+    public static void setEnabled(boolean value) {
+        if (enabled == value) {
+            return;
+        }
+
+        if (value) {
+            onEnable();
+            return;
+        }
+
+        onDisable();
+    }
+
     public static void onEnable() {
         enabled = true;
 
