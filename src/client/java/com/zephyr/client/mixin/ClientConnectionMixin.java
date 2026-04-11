@@ -1,9 +1,9 @@
 package com.zephyr.client.mixin;
 
-import com.zephyr.client.AntiHunger;
-import com.zephyr.client.Blink;
-import com.zephyr.client.NoFall;
-import com.zephyr.client.SpeedMine;
+import com.zephyr.client.module.AntiHunger;
+import com.zephyr.client.module.Blink;
+import com.zephyr.client.module.NoFall;
+import com.zephyr.client.module.SpeedMine;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketCallbacks;

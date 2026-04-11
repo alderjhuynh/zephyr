@@ -1,6 +1,6 @@
 package com.zephyr.client.mixin;
 
-import com.zephyr.client.ItemRestock;
+import com.zephyr.client.module.ItemRestock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;

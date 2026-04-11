@@ -1,6 +1,6 @@
 package com.zephyr.client.mixin;
 
-import com.zephyr.client.TridentBoost;
+import com.zephyr.client.module.TridentBoost;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;

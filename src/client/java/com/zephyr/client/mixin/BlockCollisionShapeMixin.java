@@ -1,6 +1,6 @@
 package com.zephyr.client.mixin;
 
-import com.zephyr.client.Jesus;
+import com.zephyr.client.module.Jesus;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;

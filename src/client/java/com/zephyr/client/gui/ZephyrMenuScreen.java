@@ -1,6 +1,8 @@
 package com.zephyr.client.gui;
 
 import com.zephyr.client.*;
+import com.zephyr.client.disable.*;
+import com.zephyr.client.module.*;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -13,6 +15,7 @@ import java.util.function.Supplier;
 public class ZephyrMenuScreen extends Screen {
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_MAX_WIDTH = 220;
+    private static final int BUTTON_MIN_WIDTH = 120;
     private static final int WIDGET_GAP = 4;
     private static final int SIDE_PADDING = 16;
     private static final int TOP_BOTTOM_PADDING = 16;
@@ -26,16 +29,54 @@ public class ZephyrMenuScreen extends Screen {
 
     @Override
     protected void init() {
-        int leftButtonCount = 7;
-        int rightButtonCount = 7;
+        MenuButtonSpec[] toggleButtons = new MenuButtonSpec[] {
+                new MenuButtonSpec(ZephyrMenuScreen::getAutoRespawnText, () -> AutoRespawn.enabled = !AutoRespawn.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getStepText, () -> Step.setEnabled(!Step.isEnabled())),
+                new MenuButtonSpec(ZephyrMenuScreen::getSprintText, () -> Sprint.enabled = !Sprint.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getAntiHungerText, () -> AntiHunger.enabled = !AntiHunger.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getElytraBoostText, () -> ElytraBoost.enabled = !ElytraBoost.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getNoFallText, () -> NoFall.enabled = !NoFall.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getItemRestockText, () -> ItemRestock.enabled = !ItemRestock.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getTridentBoostText, () -> TridentBoost.enabled = !TridentBoost.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getBlinkText, () -> Blink.CanUseKeybind = !Blink.CanUseKeybind),
+                new MenuButtonSpec(ZephyrMenuScreen::getAirJumpText, () -> AirJump.setEnabled(!AirJump.enabled)),
+                new MenuButtonSpec(ZephyrMenuScreen::getFlightText, () -> Flight.setEnabled(!Flight.enabled)),
+                new MenuButtonSpec(ZephyrMenuScreen::getSpeedMineText, SpeedMine::cycleMode),
+                new MenuButtonSpec(ZephyrMenuScreen::getCriticalsText, () -> Criticals.enabled = !Criticals.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getJesusText, () -> Jesus.enabled = !Jesus.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getAutoToolText, () -> AutoTool.enabled = !AutoTool.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getGhostHandText, () -> GhostHand.enabled = !GhostHand.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getPortalGuiClosingText, () -> disablePortalGuiClosing.enabled = !disablePortalGuiClosing.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getDeadMobInteractionText, () -> disableDeadMobInteraction.enabled = !disableDeadMobInteraction.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getAxeStrippingText, () -> disableAxeStripping.enabled = !disableAxeStripping.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getShovelPathingText, () -> disableShovelPathing.enabled = !disableShovelPathing.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getBreakCooldownText, () -> disableBlockBreakingCooldown.enabled = !disableBlockBreakingCooldown.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getBreakParticlesText, () -> disableBlockBreakingParticles.enabled = !disableBlockBreakingParticles.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getInventoryEffectsText, () -> disableInventoryEffectRendering.enabled = !disableInventoryEffectRendering.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getNauseaOverlayText, () -> disableNauseaOverlay.enabled = !disableNauseaOverlay.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getPortalSoundText, () -> disableNetherPortalSound.enabled = !disableNetherPortalSound.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getFogText, () -> disableFogRendering.enabled = !disableFogRendering.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getFirstPersonParticlesText, () -> disableFirstPersonEffectParticles.enabled = !disableFirstPersonEffectParticles.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getRainText, () -> disableRainEffects.enabled = !disableRainEffects.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getDeadMobRenderingText, () -> disableDeadMobRendering.enabled = !disableDeadMobRendering.enabled)
+        };
 
-        int fullWidth = Math.max(80, Math.min(BUTTON_MAX_WIDTH, this.width - (SIDE_PADDING * 2)));
-        int buttonWidth = (fullWidth / 2) - (WIDGET_GAP / 2);
+        int availableWidth = Math.max(BUTTON_MIN_WIDTH, this.width - (SIDE_PADDING * 2));
+        int columnCount = MathHelper.clamp(
+                (availableWidth + WIDGET_GAP) / (BUTTON_MIN_WIDTH + WIDGET_GAP),
+                2,
+                4
+        );
+        int buttonWidth = Math.min(
+                BUTTON_MAX_WIDTH,
+                (availableWidth - ((columnCount - 1) * WIDGET_GAP)) / columnCount
+        );
+        int contentWidth = (buttonWidth * columnCount) + ((columnCount - 1) * WIDGET_GAP);
+        int contentX = (this.width - contentWidth) / 2;
 
-        int leftX = (this.width / 2) - buttonWidth - (WIDGET_GAP / 2);
-        int rightX = (this.width / 2) + (WIDGET_GAP / 2);
-
-        int rowCount = Math.max(leftButtonCount, rightButtonCount);
+        int toggleRowCount = MathHelper.ceil((float) toggleButtons.length / columnCount);
+        int sliderRowCount = 4;
+        int rowCount = toggleRowCount + sliderRowCount;
 
         int gap = MathHelper.clamp(
                 (this.height - (TOP_BOTTOM_PADDING * 2) - (rowCount * BUTTON_HEIGHT)) / Math.max(1, rowCount - 1),
@@ -46,173 +87,92 @@ public class ZephyrMenuScreen extends Screen {
         int totalHeight = (rowCount * BUTTON_HEIGHT) + ((rowCount - 1) * gap);
         int startY = Math.max(TOP_BOTTOM_PADDING, ((this.height - totalHeight) / 2) - LAYOUT_SHIFT_Y);
 
-        int yLeft = startY;
-        int yRight = startY;
+        int index = 0;
+        for (MenuButtonSpec spec : toggleButtons) {
+            int column = index % columnCount;
+            int row = index / columnCount;
+            int x = contentX + (column * (buttonWidth + WIDGET_GAP));
+            int y = startY + (row * (BUTTON_HEIGHT + gap));
 
-        yLeft = this.addMenuButton(
-                getAutoRespawnText(),
-                b -> applyMenuChange(b, () -> AutoRespawn.enabled = !AutoRespawn.enabled, ZephyrMenuScreen::getAutoRespawnText),
-                leftX, yLeft, buttonWidth, gap
-        );
+            this.addMenuButton(
+                    spec.textSupplier.get(),
+                    b -> applyMenuChange(b, spec.toggleAction, spec.textSupplier),
+                    x, y, buttonWidth, gap
+            );
+            index++;
+        }
 
-        yLeft = this.addMenuButton(
-                getStepText(),
-                b -> applyMenuChange(b, () -> Step.setEnabled(!Step.isEnabled()), ZephyrMenuScreen::getStepText),
-                leftX, yLeft, buttonWidth, gap
-        );
-
-        yLeft = this.addMenuButton(
-                getSprintText(),
-                b -> applyMenuChange(b, () -> Sprint.enabled = !Sprint.enabled, ZephyrMenuScreen::getSprintText),
-                leftX, yLeft, buttonWidth, gap
-        );
-
-        yLeft = this.addMenuButton(
-                getAntiHungerText(),
-                b -> applyMenuChange(b, () -> AntiHunger.enabled = !AntiHunger.enabled, ZephyrMenuScreen::getAntiHungerText),
-                leftX, yLeft, buttonWidth, gap
-        );
-
-        yLeft = this.addMenuButton(
-                getElytraBoostText(),
-                b -> applyMenuChange(b, () -> ElytraBoost.enabled = !ElytraBoost.enabled, ZephyrMenuScreen::getElytraBoostText),
-                leftX, yLeft, buttonWidth, gap
-        );
-
-        yLeft = this.addMenuButton(
-                getNoFallText(),
-                b -> applyMenuChange(b, () -> NoFall.enabled = !NoFall.enabled, ZephyrMenuScreen::getNoFallText),
-                leftX, yLeft, buttonWidth, gap
-        );
-
-        yLeft = this.addMenuButton(
-                getItemRestockText(),
-                b -> applyMenuChange(b, () -> ItemRestock.enabled = !ItemRestock.enabled, ZephyrMenuScreen::getItemRestockText),
-                leftX, yLeft, buttonWidth, gap
-        );
-
-        yRight = this.addMenuButton(
-                getTridentBoostText(),
-                b -> applyMenuChange(b, () -> TridentBoost.enabled = !TridentBoost.enabled, ZephyrMenuScreen::getTridentBoostText),
-                rightX, yRight, buttonWidth, gap
-        );
-
-        yRight = this.addMenuButton(
-                getBlinkText(),
-                b -> applyMenuChange(b, () -> Blink.CanUseKeybind = !Blink.CanUseKeybind, ZephyrMenuScreen::getBlinkText),
-                rightX, yRight, buttonWidth, gap
-        );
-
-        yRight = this.addMenuButton(
-                getAirJumpText(),
-                b -> applyMenuChange(b, () -> AirJump.setEnabled(!AirJump.enabled), ZephyrMenuScreen::getAirJumpText),
-                rightX, yRight, buttonWidth, gap
-        );
-
-        yRight = this.addMenuButton(
-                getFlightText(),
-                b -> applyMenuChange(b, () -> Flight.setEnabled(!Flight.enabled), ZephyrMenuScreen::getFlightText),
-                rightX, yRight, buttonWidth, gap
-        );
-
-        yRight = this.addMenuButton(
-                getSpeedMineText(),
-                b -> applyMenuChange(b, SpeedMine::cycleMode, ZephyrMenuScreen::getSpeedMineText),
-                rightX, yRight, buttonWidth, gap
-        );
-
-        yRight = this.addMenuButton(
-                getCriticalsText(),
-                b -> applyMenuChange(b, () -> Criticals.enabled = !Criticals.enabled, ZephyrMenuScreen::getCriticalsText),
-                rightX, yRight, buttonWidth, gap
-        );
-
-        yRight = this.addMenuButton(
-                getJesusText(),
-                b -> applyMenuChange(b, () -> Jesus.enabled = !Jesus.enabled, ZephyrMenuScreen::getJesusText),
-                rightX, yRight, buttonWidth, gap
-        );
-
-        int pearlRowY = Math.max(yLeft, yRight);
-        int pearlRowX = (this.width / 2) - (fullWidth / 2);
-        int pearlButtonWidth = Math.max(88, Math.min(buttonWidth, fullWidth / 2));
-        int pearlSliderWidth = fullWidth - pearlButtonWidth - WIDGET_GAP;
+        int sliderRowY = startY + (toggleRowCount * (BUTTON_HEIGHT + gap));
+        int sliderRowX = contentX;
+        int sliderButtonWidth = Math.max(120, Math.min(220, contentWidth / 3));
+        int sliderWidth = contentWidth - sliderButtonWidth - WIDGET_GAP;
 
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 getPearlBoostText(),
                                 b -> applyMenuChange(b, () -> PearlBoost.enabled = !PearlBoost.enabled, ZephyrMenuScreen::getPearlBoostText)
                         )
-                        .dimensions(pearlRowX, pearlRowY, pearlButtonWidth, BUTTON_HEIGHT)
+                        .dimensions(sliderRowX, sliderRowY, sliderButtonWidth, BUTTON_HEIGHT)
                         .build()
         );
         this.addDrawableChild(new PearlBoostVelocitySlider(
-                pearlRowX + pearlButtonWidth + WIDGET_GAP,
-                pearlRowY,
-                pearlSliderWidth,
+                sliderRowX + sliderButtonWidth + WIDGET_GAP,
+                sliderRowY,
+                sliderWidth,
                 BUTTON_HEIGHT
         ));
 
-        int highJumpRowY = pearlRowY + BUTTON_HEIGHT + gap;
-        int highJumpRowX = (this.width / 2) - (fullWidth / 2);
-        int highJumpButtonWidth = Math.max(88, Math.min(buttonWidth, fullWidth / 2));
-        int highJumpSliderWidth = fullWidth - highJumpButtonWidth - WIDGET_GAP;
+        int highJumpRowY = sliderRowY + BUTTON_HEIGHT + gap;
 
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 getHighJumpText(),
                                 b -> applyMenuChange(b, () -> HighJump.enabled = !HighJump.enabled, ZephyrMenuScreen::getHighJumpText)
                         )
-                        .dimensions(highJumpRowX, highJumpRowY, highJumpButtonWidth, BUTTON_HEIGHT)
+                        .dimensions(sliderRowX, highJumpRowY, sliderButtonWidth, BUTTON_HEIGHT)
                         .build()
         );
 
         this.addDrawableChild(new HighJumpSlider(
-                highJumpRowX + highJumpButtonWidth + WIDGET_GAP,
+                sliderRowX + sliderButtonWidth + WIDGET_GAP,
                 highJumpRowY,
-                highJumpSliderWidth,
+                sliderWidth,
                 BUTTON_HEIGHT
         ));
 
         int longJumpRowY = highJumpRowY + BUTTON_HEIGHT + gap;
-        int longJumpRowX = (this.width / 2) - (fullWidth / 2);
-        int longJumpButtonWidth = Math.max(88, Math.min(buttonWidth, fullWidth / 2));
-        int longJumpSliderWidth = fullWidth - longJumpButtonWidth - WIDGET_GAP;
 
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 getLongJumpText(),
                                 b -> applyMenuChange(b, () -> LongJump.setEnabled(!LongJump.enabled), ZephyrMenuScreen::getLongJumpText)
                         )
-                        .dimensions(longJumpRowX, longJumpRowY, longJumpButtonWidth, BUTTON_HEIGHT)
+                        .dimensions(sliderRowX, longJumpRowY, sliderButtonWidth, BUTTON_HEIGHT)
                         .build()
         );
 
         this.addDrawableChild(new LongJumpSlider(
-                longJumpRowX + longJumpButtonWidth + WIDGET_GAP,
+                sliderRowX + sliderButtonWidth + WIDGET_GAP,
                 longJumpRowY,
-                longJumpSliderWidth,
+                sliderWidth,
                 BUTTON_HEIGHT
         ));
 
         int aerodynamicsRowY = longJumpRowY + BUTTON_HEIGHT + gap;
-        int aerodynamicsRowX = (this.width / 2) - (fullWidth / 2);
-        int aerodynamicsButtonWidth = Math.max(88, Math.min(buttonWidth, fullWidth / 2));
-        int aerodynamicsSliderWidth = fullWidth - aerodynamicsButtonWidth - WIDGET_GAP;
 
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 getAerodynamicsText(),
                                 b -> applyMenuChange(b, () -> Aerodynamics.enabled = !Aerodynamics.enabled, ZephyrMenuScreen::getAerodynamicsText)
                         )
-                        .dimensions(aerodynamicsRowX, aerodynamicsRowY, aerodynamicsButtonWidth, BUTTON_HEIGHT)
+                        .dimensions(sliderRowX, aerodynamicsRowY, sliderButtonWidth, BUTTON_HEIGHT)
                         .build()
         );
 
         this.addDrawableChild(new AerodynamicsSlider(
-                aerodynamicsRowX + aerodynamicsButtonWidth + WIDGET_GAP,
+                sliderRowX + sliderButtonWidth + WIDGET_GAP,
                 aerodynamicsRowY,
-                aerodynamicsSliderWidth,
+                sliderWidth,
                 BUTTON_HEIGHT
         ));
     }
@@ -314,6 +274,77 @@ public class ZephyrMenuScreen extends Screen {
 
     private static Text getItemRestockText() {
         return Text.literal("Item Restock: " + (ItemRestock.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getAutoToolText() {
+        return Text.literal("AutoTool: " + (AutoTool.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getGhostHandText() {
+        return Text.literal("GhostHand: " + (GhostHand.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getPortalGuiClosingText() {
+        return Text.literal("Disable Portal GUI Closing: " + (disablePortalGuiClosing.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getDeadMobInteractionText() {
+        return Text.literal("Disable Dead Mob Interaction: " + (disableDeadMobInteraction.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getAxeStrippingText() {
+        return Text.literal("Disable Axe Stripping: " + (disableAxeStripping.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getShovelPathingText() {
+        return Text.literal("Disable Shovel Pathing: " + (disableShovelPathing.enabled ? "ON" : "OFF"));
+    }
+
+
+    private static Text getBreakCooldownText() {
+        return Text.literal("Disable Block Break Cooldown: " + (disableBlockBreakingCooldown.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getBreakParticlesText() {
+        return Text.literal("Disable Block Break Particles: " + (disableBlockBreakingParticles.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getInventoryEffectsText() {
+        return Text.literal("Disable Inventory Effect Rendering: " + (disableInventoryEffectRendering.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getNauseaOverlayText() {
+        return Text.literal("Disable Nausea Overlay: " + (disableNauseaOverlay.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getPortalSoundText() {
+        return Text.literal("Disable Portal Sound: " + (disableNetherPortalSound.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getFogText() {
+        return Text.literal("Disable Fog: " + (disableFogRendering.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getFirstPersonParticlesText() {
+        return Text.literal("Disable First Person Effect Particles: " + (disableFirstPersonEffectParticles.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getRainText() {
+        return Text.literal("Disable Rain Effects: " + (disableRainEffects.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getDeadMobRenderingText() {
+        return Text.literal("Disable Dead Mob Rendering: " + (disableDeadMobRendering.enabled ? "ON" : "OFF"));
+    }
+
+    private static final class MenuButtonSpec {
+        private final Supplier<Text> textSupplier;
+        private final Runnable toggleAction;
+
+        private MenuButtonSpec(Supplier<Text> textSupplier, Runnable toggleAction) {
+            this.textSupplier = textSupplier;
+            this.toggleAction = toggleAction;
+        }
     }
 
     public class HighJumpSlider extends SliderWidget {

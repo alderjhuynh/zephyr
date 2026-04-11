@@ -1,6 +1,6 @@
 package com.zephyr.client.mixin;
 
-import com.zephyr.client.ElytraBoost;
+import com.zephyr.client.module.ElytraBoost;
 import net.minecraft.item.FireworkRocketItem;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;

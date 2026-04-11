@@ -1,6 +1,6 @@
 package com.zephyr.client.mixin;
 
-import com.zephyr.client.HighJump;
+import com.zephyr.client.module.HighJump;
 import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

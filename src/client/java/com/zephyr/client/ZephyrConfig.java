@@ -2,6 +2,8 @@ package com.zephyr.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.zephyr.client.disable.*;
+import com.zephyr.client.module.*;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,11 +65,24 @@ public final class ZephyrConfig {
         suppressSaves = true;
         try {
             Sprint.enabled = config.sprintEnabled;
-            Speed.enabled = config.speedEnabled;
             AutoRespawn.enabled = config.autoRespawnEnabled;
             AntiHunger.enabled = config.antiHungerEnabled;
             NoFall.enabled = config.noFallEnabled;
-            Portals.enabled = config.portalsEnabled;
+            AutoTool.enabled = config.autoToolEnabled;
+            GhostHand.enabled = config.ghostHandEnabled;
+            disablePortalGuiClosing.enabled = config.portalsEnabled;
+            disableDeadMobInteraction.enabled = config.deadMobInteractionEnabled;
+            disableAxeStripping.enabled = config.axeStrippingEnabled;
+            disableShovelPathing.enabled = config.shovelPathingEnabled;
+            disableBlockBreakingCooldown.enabled = config.blockBreakingCooldownEnabled;
+            disableBlockBreakingParticles.enabled = config.blockBreakingParticlesEnabled;
+            disableInventoryEffectRendering.enabled = config.inventoryEffectRenderingEnabled;
+            disableNauseaOverlay.enabled = config.nauseaOverlayEnabled;
+            disableNetherPortalSound.enabled = config.netherPortalSoundEnabled;
+            disableFogRendering.enabled = config.fogRenderingEnabled;
+            disableFirstPersonEffectParticles.enabled = config.firstPersonEffectParticlesEnabled;
+            disableRainEffects.enabled = config.rainEffectsEnabled;
+            disableDeadMobRendering.enabled = config.deadMobRenderingEnabled;
             TridentBoost.enabled = config.tridentBoostEnabled;
             Blink.CanUseKeybind = config.blinkKeybindEnabled;
             Jesus.enabled = config.jesusEnabled;
@@ -98,11 +113,24 @@ public final class ZephyrConfig {
 
     private static final class ConfigData {
         private boolean sprintEnabled = Sprint.enabled;
-        private boolean speedEnabled = Speed.enabled;
         private boolean autoRespawnEnabled = AutoRespawn.enabled;
         private boolean antiHungerEnabled = AntiHunger.enabled;
         private boolean noFallEnabled = NoFall.enabled;
-        private boolean portalsEnabled = Portals.enabled;
+        private boolean autoToolEnabled = AutoTool.enabled;
+        private boolean ghostHandEnabled = GhostHand.enabled;
+        private boolean portalsEnabled = disablePortalGuiClosing.enabled;
+        private boolean deadMobInteractionEnabled = disableDeadMobInteraction.enabled;
+        private boolean axeStrippingEnabled = disableAxeStripping.enabled;
+        private boolean shovelPathingEnabled = disableShovelPathing.enabled;
+        private boolean blockBreakingCooldownEnabled = disableBlockBreakingCooldown.enabled;
+        private boolean blockBreakingParticlesEnabled = disableBlockBreakingParticles.enabled;
+        private boolean inventoryEffectRenderingEnabled = disableInventoryEffectRendering.enabled;
+        private boolean nauseaOverlayEnabled = disableNauseaOverlay.enabled;
+        private boolean netherPortalSoundEnabled = disableNetherPortalSound.enabled;
+        private boolean fogRenderingEnabled = disableFogRendering.enabled;
+        private boolean firstPersonEffectParticlesEnabled = disableFirstPersonEffectParticles.enabled;
+        private boolean rainEffectsEnabled = disableRainEffects.enabled;
+        private boolean deadMobRenderingEnabled = disableDeadMobRendering.enabled;
         private boolean tridentBoostEnabled = TridentBoost.enabled;
         private boolean blinkKeybindEnabled = Blink.CanUseKeybind;
         private boolean jesusEnabled = Jesus.enabled;
