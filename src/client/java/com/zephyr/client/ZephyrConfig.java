@@ -3,6 +3,7 @@ package com.zephyr.client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.zephyr.client.disable.*;
+import com.zephyr.client.keybind.ZephyrKeybindManager;
 import com.zephyr.client.module.*;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 public final class ZephyrConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger("ZephyrConfig");
@@ -85,6 +87,8 @@ public final class ZephyrConfig {
             disableDeadMobRendering.enabled = config.deadMobRenderingEnabled;
             TridentBoost.enabled = config.tridentBoostEnabled;
             Blink.CanUseKeybind = config.blinkKeybindEnabled;
+            ZephyrKeybindManager.setModifierKeyCode(config.keybindModifierKey);
+            ZephyrKeybindManager.loadSpecificKeyCodes(config.keybindSpecificKeys);
             Jesus.enabled = config.jesusEnabled;
             Criticals.enabled = config.criticalsEnabled;
             Criticals.setSpoofHeight(config.criticalsSpoofHeight);
@@ -133,6 +137,8 @@ public final class ZephyrConfig {
         private boolean deadMobRenderingEnabled = disableDeadMobRendering.enabled;
         private boolean tridentBoostEnabled = TridentBoost.enabled;
         private boolean blinkKeybindEnabled = Blink.CanUseKeybind;
+        private int keybindModifierKey = ZephyrKeybindManager.getModifierKeyCode();
+        private Map<String, Integer> keybindSpecificKeys = ZephyrKeybindManager.getSpecificKeyCodes();
         private boolean jesusEnabled = Jesus.enabled;
         private boolean criticalsEnabled = Criticals.enabled;
         private double criticalsSpoofHeight = Criticals.getSpoofHeight();

@@ -16,6 +16,7 @@ public class ZephyrMenuScreen extends Screen {
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_MAX_WIDTH = 220;
     private static final int BUTTON_MIN_WIDTH = 120;
+    private static final int KEYBINDS_BUTTON_WIDTH = 96;
     private static final int WIDGET_GAP = 4;
     private static final int SIDE_PADDING = 16;
     private static final int TOP_BOTTOM_PADDING = 16;
@@ -29,6 +30,19 @@ public class ZephyrMenuScreen extends Screen {
 
     @Override
     protected void init() {
+        this.addDrawableChild(
+                ButtonWidget.builder(
+                                Text.literal("Keybinds"),
+                                button -> {
+                                    if (this.client != null) {
+                                        this.client.setScreen(new ZephyrKeybindsScreen(this));
+                                    }
+                                }
+                        )
+                        .dimensions(this.width - KEYBINDS_BUTTON_WIDTH - 10, 10, KEYBINDS_BUTTON_WIDTH, BUTTON_HEIGHT)
+                        .build()
+        );
+
         MenuButtonSpec[] toggleButtons = new MenuButtonSpec[] {
                 new MenuButtonSpec(ZephyrMenuScreen::getAutoRespawnText, () -> AutoRespawn.enabled = !AutoRespawn.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getStepText, () -> Step.setEnabled(!Step.isEnabled())),
