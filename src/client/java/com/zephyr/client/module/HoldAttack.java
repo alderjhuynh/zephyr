@@ -10,6 +10,6 @@ public class HoldAttack {
     public static void onTick() {
         if (!enabled) return;
         if (mc.player == null) return;
-        mc.options.useKey.setPressed(enabled);
+        mc.options.attackKey.setPressed(enabled);
     }
 }
