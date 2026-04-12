@@ -1,40 +1,10 @@
 package com.zephyr.client.keybind;
 
 import com.zephyr.client.ZephyrConfig;
-import com.zephyr.client.disable.disableAxeStripping;
-import com.zephyr.client.disable.disableBlockBreakingCooldown;
-import com.zephyr.client.disable.disableBlockBreakingParticles;
-import com.zephyr.client.disable.disableDeadMobInteraction;
-import com.zephyr.client.disable.disableDeadMobRendering;
-import com.zephyr.client.disable.disableFirstPersonEffectParticles;
-import com.zephyr.client.disable.disableFogRendering;
-import com.zephyr.client.disable.disableInventoryEffectRendering;
-import com.zephyr.client.disable.disableNauseaOverlay;
-import com.zephyr.client.disable.disableNetherPortalSound;
-import com.zephyr.client.disable.disablePortalGuiClosing;
-import com.zephyr.client.disable.disableRainEffects;
-import com.zephyr.client.disable.disableShovelPathing;
+import com.zephyr.client.disable.*;
 import com.zephyr.client.gui.ZephyrKeybindsScreen;
 import com.zephyr.client.gui.ZephyrMenuScreen;
-import com.zephyr.client.module.Aerodynamics;
-import com.zephyr.client.module.AirJump;
-import com.zephyr.client.module.AntiHunger;
-import com.zephyr.client.module.AutoRespawn;
-import com.zephyr.client.module.AutoTool;
-import com.zephyr.client.module.Blink;
-import com.zephyr.client.module.Criticals;
-import com.zephyr.client.module.ElytraBoost;
-import com.zephyr.client.module.Flight;
-import com.zephyr.client.module.GhostHand;
-import com.zephyr.client.module.HighJump;
-import com.zephyr.client.module.ItemRestock;
-import com.zephyr.client.module.Jesus;
-import com.zephyr.client.module.LongJump;
-import com.zephyr.client.module.NoFall;
-import com.zephyr.client.module.PearlBoost;
-import com.zephyr.client.module.Sprint;
-import com.zephyr.client.module.Step;
-import com.zephyr.client.module.TridentBoost;
+import com.zephyr.client.module.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.InputUtil;
@@ -126,6 +96,15 @@ public final class ZephyrKeybindManager {
         return Text.literal(action.displayName + ": " + getKeyName(modifierKeyCode) + " + " + getKeyName(getSpecificKeyCode(action)));
     }
 
+    public static boolean isActionHeld(MinecraftClient client, Action action) {
+        if (client == null || client.getWindow() == null) {
+            return false;
+        }
+
+        long windowHandle = client.getWindow().getHandle();
+        return isKeyPressed(windowHandle, modifierKeyCode) && isKeyPressed(windowHandle, getSpecificKeyCode(action));
+    }
+
     private static boolean isKeyPressed(long windowHandle, int keyCode) {
         return keyCode != UNBOUND_KEY && InputUtil.isKeyPressed(windowHandle, keyCode);
     }
@@ -146,16 +125,32 @@ public final class ZephyrKeybindManager {
         SPRINT("Sprint", UNBOUND_KEY),
         ANTI_HUNGER("AntiHunger", UNBOUND_KEY),
         ELYTRA_BOOST("Elytra Boost", UNBOUND_KEY),
+        ELYTRA_SWAP("Elytra Swap", UNBOUND_KEY),
         NO_FALL("No Fall", UNBOUND_KEY),
         ITEM_RESTOCK("Item Restock", UNBOUND_KEY),
+        DURABILITY_SWAP("Durability Swap", UNBOUND_KEY),
+        HOTBAR_ROW_SWAP("Use Hotbar Row Swap", UNBOUND_KEY),
         TRIDENT_BOOST("Trident Boost", UNBOUND_KEY),
         BLINK_ENABLED("Blink Enabled", UNBOUND_KEY),
+        HOTBAR_ROW_SWAP_ENABLED("Hotbar Row Swap", UNBOUND_KEY),
         AIR_JUMP("AirJump", UNBOUND_KEY),
         FLIGHT("Flight", UNBOUND_KEY),
+        FREE_CAM("FreeCam", UNBOUND_KEY),
+        F5_TWEAKS("F5 Tweaks", UNBOUND_KEY),
+        GUI_MOVE("GUI Move", UNBOUND_KEY),
         CRITICALS("Criticals", UNBOUND_KEY),
         JESUS("Jesus", UNBOUND_KEY),
         AUTO_TOOL("AutoTool", UNBOUND_KEY),
+        FAST_ATTACK("Fast Attack", UNBOUND_KEY),
+        FAST_USE("Fast Use", UNBOUND_KEY),
         GHOST_HAND("GhostHand", UNBOUND_KEY),
+        HOLD_ATTACK("Hold Attack", UNBOUND_KEY),
+        HOLD_USE("Hold Use", UNBOUND_KEY),
+        PERIODIC_ATTACK("Periodic Attack", UNBOUND_KEY),
+        PERIODIC_USE("Periodic Use", UNBOUND_KEY),
+        PICK_BEFORE_PLACE("Pick Before Place", UNBOUND_KEY),
+        RENDER_INVISIBILITY("Render Invisibility", UNBOUND_KEY),
+        SNEAK("Sneak", UNBOUND_KEY),
         PORTAL_GUI_CLOSING("Disable Portal GUI Closing", UNBOUND_KEY),
         DEAD_MOB_INTERACTION("Disable Dead Mob Interaction", UNBOUND_KEY),
         AXE_STRIPPING("Disable Axe Stripping", UNBOUND_KEY),
@@ -239,16 +234,33 @@ public final class ZephyrKeybindManager {
             case SPRINT -> toggleAndSave(() -> Sprint.enabled = !Sprint.enabled);
             case ANTI_HUNGER -> toggleAndSave(() -> AntiHunger.enabled = !AntiHunger.enabled);
             case ELYTRA_BOOST -> toggleAndSave(() -> ElytraBoost.enabled = !ElytraBoost.enabled);
+            case ELYTRA_SWAP -> toggleAndSave(() -> ElytraSwap.enabled = !ElytraSwap.enabled);
             case NO_FALL -> toggleAndSave(() -> NoFall.enabled = !NoFall.enabled);
             case ITEM_RESTOCK -> toggleAndSave(() -> ItemRestock.enabled = !ItemRestock.enabled);
+            case DURABILITY_SWAP -> toggleAndSave(() -> DurabilitySwap.enabled = !DurabilitySwap.enabled);
+            case HOTBAR_ROW_SWAP -> {
+            }
             case TRIDENT_BOOST -> toggleAndSave(() -> TridentBoost.enabled = !TridentBoost.enabled);
             case BLINK_ENABLED -> toggleAndSave(() -> Blink.CanUseKeybind = !Blink.CanUseKeybind);
+            case HOTBAR_ROW_SWAP_ENABLED -> toggleAndSave(() -> HotbarRowSwap.enabled = !HotbarRowSwap.enabled);
             case AIR_JUMP -> toggleAndSave(() -> AirJump.setEnabled(!AirJump.enabled));
             case FLIGHT -> toggleAndSave(() -> Flight.setEnabled(!Flight.enabled));
+            case FREE_CAM -> toggleAndSave(() -> FreeCam.setEnabled(!FreeCam.enabled));
+            case F5_TWEAKS -> toggleAndSave(() -> F5Tweaks.enabled = !F5Tweaks.enabled);
+            case GUI_MOVE -> toggleAndSave(() -> GuiMove.enabled = !GuiMove.enabled);
             case CRITICALS -> toggleAndSave(() -> Criticals.enabled = !Criticals.enabled);
             case JESUS -> toggleAndSave(() -> Jesus.enabled = !Jesus.enabled);
             case AUTO_TOOL -> toggleAndSave(() -> AutoTool.enabled = !AutoTool.enabled);
+            case FAST_ATTACK -> toggleAndSave(() -> FastAttack.enabled = !FastAttack.enabled);
+            case FAST_USE -> toggleAndSave(() -> FastUse.enabled = !FastUse.enabled);
             case GHOST_HAND -> toggleAndSave(() -> GhostHand.enabled = !GhostHand.enabled);
+            case HOLD_ATTACK -> toggleAndSave(() -> HoldAttack.enabled = !HoldAttack.enabled);
+            case HOLD_USE -> toggleAndSave(() -> HoldUse.enabled = !HoldUse.enabled);
+            case PERIODIC_ATTACK -> toggleAndSave(() -> PeriodicAttack.enabled = !PeriodicAttack.enabled);
+            case PERIODIC_USE -> toggleAndSave(() -> PeriodicUse.enabled = !PeriodicUse.enabled);
+            case PICK_BEFORE_PLACE -> toggleAndSave(() -> PickBeforePlace.enabled = !PickBeforePlace.enabled);
+            case RENDER_INVISIBILITY -> toggleAndSave(() -> RenderInvisibility.enabled = !RenderInvisibility.enabled);
+            case SNEAK -> toggleAndSave(() -> Sneak.enabled = !Sneak.enabled);
             case PORTAL_GUI_CLOSING -> toggleAndSave(() -> disablePortalGuiClosing.enabled = !disablePortalGuiClosing.enabled);
             case DEAD_MOB_INTERACTION -> toggleAndSave(() -> disableDeadMobInteraction.enabled = !disableDeadMobInteraction.enabled);
             case AXE_STRIPPING -> toggleAndSave(() -> disableAxeStripping.enabled = !disableAxeStripping.enabled);

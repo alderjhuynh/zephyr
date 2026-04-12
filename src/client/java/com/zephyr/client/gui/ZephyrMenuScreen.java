@@ -20,7 +20,7 @@ public class ZephyrMenuScreen extends Screen {
     private static final int WIDGET_GAP = 4;
     private static final int SIDE_PADDING = 16;
     private static final int TOP_BOTTOM_PADDING = 16;
-    private static final int LAYOUT_SHIFT_Y = 24*2;
+    private static final int LAYOUT_SHIFT_Y = 24;
     private final Screen parent;
 
     public ZephyrMenuScreen(Screen parent) {
@@ -47,19 +47,34 @@ public class ZephyrMenuScreen extends Screen {
                 new MenuButtonSpec(ZephyrMenuScreen::getAutoRespawnText, () -> AutoRespawn.enabled = !AutoRespawn.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getStepText, () -> Step.setEnabled(!Step.isEnabled())),
                 new MenuButtonSpec(ZephyrMenuScreen::getSprintText, () -> Sprint.enabled = !Sprint.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getSneakText, () -> Sneak.enabled = !Sneak.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getAntiHungerText, () -> AntiHunger.enabled = !AntiHunger.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getElytraBoostText, () -> ElytraBoost.enabled = !ElytraBoost.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getElytraSwapText, () -> ElytraSwap.enabled = !ElytraSwap.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getNoFallText, () -> NoFall.enabled = !NoFall.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getItemRestockText, () -> ItemRestock.enabled = !ItemRestock.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getDurabilitySwapText, () -> DurabilitySwap.enabled = !DurabilitySwap.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getHotbarRowSwapText, () -> HotbarRowSwap.enabled = !HotbarRowSwap.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getTridentBoostText, () -> TridentBoost.enabled = !TridentBoost.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getBlinkText, () -> Blink.CanUseKeybind = !Blink.CanUseKeybind),
                 new MenuButtonSpec(ZephyrMenuScreen::getAirJumpText, () -> AirJump.setEnabled(!AirJump.enabled)),
                 new MenuButtonSpec(ZephyrMenuScreen::getFlightText, () -> Flight.setEnabled(!Flight.enabled)),
+                new MenuButtonSpec(ZephyrMenuScreen::getFreeCamText, () -> FreeCam.setEnabled(!FreeCam.enabled)),
+                new MenuButtonSpec(ZephyrMenuScreen::getF5TweaksText, () -> F5Tweaks.enabled = !F5Tweaks.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getGuiMoveText, () -> GuiMove.enabled = !GuiMove.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getSpeedMineText, SpeedMine::cycleMode),
                 new MenuButtonSpec(ZephyrMenuScreen::getCriticalsText, () -> Criticals.enabled = !Criticals.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getJesusText, () -> Jesus.enabled = !Jesus.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getAutoToolText, () -> AutoTool.enabled = !AutoTool.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getFastAttackText, () -> FastAttack.enabled = !FastAttack.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getFastUseText, () -> FastUse.enabled = !FastUse.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getGhostHandText, () -> GhostHand.enabled = !GhostHand.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getHoldAttackText, () -> HoldAttack.enabled = !HoldAttack.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getHoldUseText, () -> HoldUse.enabled = !HoldUse.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getPeriodicAttackText, () -> PeriodicAttack.enabled = !PeriodicAttack.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getPeriodicUseText, () -> PeriodicUse.enabled = !PeriodicUse.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getPickBeforePlaceText, () -> PickBeforePlace.enabled = !PickBeforePlace.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getRenderInvisibilityText, () -> RenderInvisibility.enabled = !RenderInvisibility.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getPortalGuiClosingText, () -> disablePortalGuiClosing.enabled = !disablePortalGuiClosing.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getDeadMobInteractionText, () -> disableDeadMobInteraction.enabled = !disableDeadMobInteraction.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getAxeStrippingText, () -> disableAxeStripping.enabled = !disableAxeStripping.enabled),
@@ -89,7 +104,7 @@ public class ZephyrMenuScreen extends Screen {
         int contentX = (this.width - contentWidth) / 2;
 
         int toggleRowCount = MathHelper.ceil((float) toggleButtons.length / columnCount);
-        int sliderRowCount = 4;
+        int sliderRowCount = 8;
         int rowCount = toggleRowCount + sliderRowCount;
 
         int gap = MathHelper.clamp(
@@ -189,6 +204,78 @@ public class ZephyrMenuScreen extends Screen {
                 sliderWidth,
                 BUTTON_HEIGHT
         ));
+
+        int fastAttackRowY = aerodynamicsRowY + BUTTON_HEIGHT + gap;
+
+        this.addDrawableChild(
+                ButtonWidget.builder(
+                                getFastAttackText(),
+                                b -> applyMenuChange(b, () -> FastAttack.enabled = !FastAttack.enabled, ZephyrMenuScreen::getFastAttackText)
+                        )
+                        .dimensions(sliderRowX, fastAttackRowY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build()
+        );
+
+        this.addDrawableChild(new FastAttackSlider(
+                sliderRowX + sliderButtonWidth + WIDGET_GAP,
+                fastAttackRowY,
+                sliderWidth,
+                BUTTON_HEIGHT
+        ));
+
+        int fastUseRowY = fastAttackRowY + BUTTON_HEIGHT + gap;
+
+        this.addDrawableChild(
+                ButtonWidget.builder(
+                                getFastUseText(),
+                                b -> applyMenuChange(b, () -> FastUse.enabled = !FastUse.enabled, ZephyrMenuScreen::getFastUseText)
+                        )
+                        .dimensions(sliderRowX, fastUseRowY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build()
+        );
+
+        this.addDrawableChild(new FastUseSlider(
+                sliderRowX + sliderButtonWidth + WIDGET_GAP,
+                fastUseRowY,
+                sliderWidth,
+                BUTTON_HEIGHT
+        ));
+
+        int periodicAttackRowY = fastUseRowY + BUTTON_HEIGHT + gap;
+
+        this.addDrawableChild(
+                ButtonWidget.builder(
+                                getPeriodicAttackText(),
+                                b -> applyMenuChange(b, () -> PeriodicAttack.enabled = !PeriodicAttack.enabled, ZephyrMenuScreen::getPeriodicAttackText)
+                        )
+                        .dimensions(sliderRowX, periodicAttackRowY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build()
+        );
+
+        this.addDrawableChild(new PeriodicAttackSlider(
+                sliderRowX + sliderButtonWidth + WIDGET_GAP,
+                periodicAttackRowY,
+                sliderWidth,
+                BUTTON_HEIGHT
+        ));
+
+        int periodicUseRowY = periodicAttackRowY + BUTTON_HEIGHT + gap;
+
+        this.addDrawableChild(
+                ButtonWidget.builder(
+                                getPeriodicUseText(),
+                                b -> applyMenuChange(b, () -> PeriodicUse.enabled = !PeriodicUse.enabled, ZephyrMenuScreen::getPeriodicUseText)
+                        )
+                        .dimensions(sliderRowX, periodicUseRowY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build()
+        );
+
+        this.addDrawableChild(new PeriodicUseSlider(
+                sliderRowX + sliderButtonWidth + WIDGET_GAP,
+                periodicUseRowY,
+                sliderWidth,
+                BUTTON_HEIGHT
+        ));
     }
 
     @Override
@@ -224,8 +311,16 @@ public class ZephyrMenuScreen extends Screen {
         return Text.literal("AntiHunger: " + (AntiHunger.enabled ? "ON" : "OFF"));
     }
 
+    private static Text getSneakText() {
+        return Text.literal("Sneak: " + (Sneak.enabled ? "ON" : "OFF"));
+    }
+
     private static Text getElytraBoostText() {
         return Text.literal("Elytra Boost: " + (ElytraBoost.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getElytraSwapText() {
+        return Text.literal("Elytra Swap: " + (ElytraSwap.enabled ? "ON" : "OFF"));
     }
 
     private static Text getNoFallText() {
@@ -266,8 +361,28 @@ public class ZephyrMenuScreen extends Screen {
         return Text.literal(String.format("Velocity: %.1f", PearlBoost.getBoostVelocity()));
     }
 
+    private static Text getFastAttackTimesText() {
+        return Text.literal("Times/Tick: " + FastAttack.getTimesPerTick());
+    }
+
+    private static Text getFastUseTimesText() {
+        return Text.literal("Times/Tick: " + FastUse.getTimesPerTick());
+    }
+
+    private static Text getPeriodicAttackDelayText() {
+        return Text.literal("Delay: " + PeriodicAttack.getDelayTicks() + " ticks");
+    }
+
+    private static Text getPeriodicUseDelayText() {
+        return Text.literal("Delay: " + PeriodicUse.getDelayTicks() + " ticks");
+    }
+
     private static Text getStepText() {
         return Text.literal("Step: " + (Step.isEnabled() ? "ON" : "OFF"));
+    }
+
+    private static Text getDurabilitySwapText() {
+        return Text.literal("Durability Swap: " + (DurabilitySwap.enabled ? "ON" : "OFF"));
     }
 
     private static Text getAutoRespawnText() {
@@ -282,6 +397,18 @@ public class ZephyrMenuScreen extends Screen {
         return Text.literal("Flight: " + (Flight.enabled ? "ON" : "OFF"));
     }
 
+    private static Text getFreeCamText() {
+        return Text.literal("FreeCam: " + (FreeCam.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getF5TweaksText() {
+        return Text.literal("F5 Tweaks: " + (F5Tweaks.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getGuiMoveText() {
+        return Text.literal("GUI Move: " + (GuiMove.enabled ? "ON" : "OFF"));
+    }
+
     private static Text getSpeedMineText() {
         return Text.literal("SpeedMine: " + SpeedMine.mode.name());
     }
@@ -294,8 +421,44 @@ public class ZephyrMenuScreen extends Screen {
         return Text.literal("AutoTool: " + (AutoTool.enabled ? "ON" : "OFF"));
     }
 
+    private static Text getFastAttackText() {
+        return Text.literal("Fast Attack: " + (FastAttack.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getFastUseText() {
+        return Text.literal("Fast Use: " + (FastUse.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getHotbarRowSwapText() {
+        return Text.literal("Hotbar Row Swap: " + (HotbarRowSwap.enabled ? "ON" : "OFF"));
+    }
+
     private static Text getGhostHandText() {
         return Text.literal("GhostHand: " + (GhostHand.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getHoldAttackText() {
+        return Text.literal("Hold Attack: " + (HoldAttack.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getHoldUseText() {
+        return Text.literal("Hold Use: " + (HoldUse.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getPeriodicAttackText() {
+        return Text.literal("Periodic Attack: " + (PeriodicAttack.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getPeriodicUseText() {
+        return Text.literal("Periodic Use: " + (PeriodicUse.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getPickBeforePlaceText() {
+        return Text.literal("Pick Before Place: " + (PickBeforePlace.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getRenderInvisibilityText() {
+        return Text.literal("Render Invisibility: " + (RenderInvisibility.enabled ? "ON" : "OFF"));
     }
 
     private static Text getPortalGuiClosingText() {
@@ -493,6 +656,130 @@ public class ZephyrMenuScreen extends Screen {
 
             double raw = min + ((max - min) * sliderValue);
             return Math.round(raw / STEP) * STEP;
+        }
+    }
+
+    private static final class FastAttackSlider extends SliderWidget {
+        private FastAttackSlider(int x, int y, int width, int height) {
+            super(x, y, width, height, Text.empty(), toSliderValue(FastAttack.getTimesPerTick()));
+            this.updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            this.setMessage(getFastAttackTimesText());
+        }
+
+        @Override
+        protected void applyValue() {
+            FastAttack.setTimesPerTick(fromSliderValue(this.value));
+            this.value = toSliderValue(FastAttack.getTimesPerTick());
+            this.updateMessage();
+        }
+
+        private static double toSliderValue(int value) {
+            double min = FastAttack.getMinTimesPerTick();
+            double max = FastAttack.getMaxTimesPerTick();
+            return (value - min) / (max - min);
+        }
+
+        private static int fromSliderValue(double sliderValue) {
+            double min = FastAttack.getMinTimesPerTick();
+            double max = FastAttack.getMaxTimesPerTick();
+            return (int) Math.round(min + ((max - min) * sliderValue));
+        }
+    }
+
+    private static final class FastUseSlider extends SliderWidget {
+        private FastUseSlider(int x, int y, int width, int height) {
+            super(x, y, width, height, Text.empty(), toSliderValue(FastUse.getTimesPerTick()));
+            this.updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            this.setMessage(getFastUseTimesText());
+        }
+
+        @Override
+        protected void applyValue() {
+            FastUse.setTimesPerTick(fromSliderValue(this.value));
+            this.value = toSliderValue(FastUse.getTimesPerTick());
+            this.updateMessage();
+        }
+
+        private static double toSliderValue(int value) {
+            double min = FastUse.getMinTimesPerTick();
+            double max = FastUse.getMaxTimesPerTick();
+            return (value - min) / (max - min);
+        }
+
+        private static int fromSliderValue(double sliderValue) {
+            double min = FastUse.getMinTimesPerTick();
+            double max = FastUse.getMaxTimesPerTick();
+            return (int) Math.round(min + ((max - min) * sliderValue));
+        }
+    }
+
+    private static final class PeriodicAttackSlider extends SliderWidget {
+        private PeriodicAttackSlider(int x, int y, int width, int height) {
+            super(x, y, width, height, Text.empty(), toSliderValue(PeriodicAttack.getDelayTicks()));
+            this.updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            this.setMessage(getPeriodicAttackDelayText());
+        }
+
+        @Override
+        protected void applyValue() {
+            PeriodicAttack.setDelayTicks(fromSliderValue(this.value));
+            this.value = toSliderValue(PeriodicAttack.getDelayTicks());
+            this.updateMessage();
+        }
+
+        private static double toSliderValue(int value) {
+            double min = PeriodicAttack.getMinDelayTicks();
+            double max = PeriodicAttack.getMaxDelayTicks();
+            return (value - min) / (max - min);
+        }
+
+        private static int fromSliderValue(double sliderValue) {
+            double min = PeriodicAttack.getMinDelayTicks();
+            double max = PeriodicAttack.getMaxDelayTicks();
+            return (int) Math.round(min + ((max - min) * sliderValue));
+        }
+    }
+
+    private static final class PeriodicUseSlider extends SliderWidget {
+        private PeriodicUseSlider(int x, int y, int width, int height) {
+            super(x, y, width, height, Text.empty(), toSliderValue(PeriodicUse.getDelayTicks()));
+            this.updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            this.setMessage(getPeriodicUseDelayText());
+        }
+
+        @Override
+        protected void applyValue() {
+            PeriodicUse.setDelayTicks(fromSliderValue(this.value));
+            this.value = toSliderValue(PeriodicUse.getDelayTicks());
+            this.updateMessage();
+        }
+
+        private static double toSliderValue(int value) {
+            double min = PeriodicUse.getMinDelayTicks();
+            double max = PeriodicUse.getMaxDelayTicks();
+            return (value - min) / (max - min);
+        }
+
+        private static int fromSliderValue(double sliderValue) {
+            double min = PeriodicUse.getMinDelayTicks();
+            double max = PeriodicUse.getMaxDelayTicks();
+            return (int) Math.round(min + ((max - min) * sliderValue));
         }
     }
 

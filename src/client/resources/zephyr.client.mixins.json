@@ -35,10 +35,22 @@
 		"BlockParticleMixin",
 		"DeadMobRenderingMixin",
 		"BlockBreakingCooldownMixin",
+		"HotbarRowSwapHudMixin",
+		"HotbarRowSwapMouseMixin",
 		"LivingEntityRendererMixin",
 		"InventoryRendererMixin",
+		"KeyboardInputMixin",
 		"SoundManagerMixin",
 		"NoRainRenderMixin",
-		"NoRainSoundMixin"
+		"NoRainSoundMixin",
+		"BlockPickInvoker",
+		"BlockPlaceMixin",
+		"InvisibilityRenderMixin",
+		"GameOptionsMixin",
+		"GuiMoveMixin",
+		"MouseMixin",
+		"KeyBindingAccessor",
+		"CameraClipMixin",
+		"CameraMixin"
 	]
 }
