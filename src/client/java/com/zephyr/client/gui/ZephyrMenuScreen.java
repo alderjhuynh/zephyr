@@ -6,10 +6,13 @@ import com.zephyr.client.module.*;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class ZephyrMenuScreen extends Screen {
@@ -18,10 +21,22 @@ public class ZephyrMenuScreen extends Screen {
     private static final int BUTTON_MIN_WIDTH = 120;
     private static final int KEYBINDS_BUTTON_WIDTH = 96;
     private static final int WIDGET_GAP = 4;
-    private static final int SIDE_PADDING = 16;
-    private static final int TOP_BOTTOM_PADDING = 16;
-    private static final int LAYOUT_SHIFT_Y = 24;
+    private static final int HORIZONTAL_MARGIN = 16;
+    private static final int TOP_MARGIN = 16;
+    private static final int BOTTOM_MARGIN = 16;
+    private static final int TITLE_HEIGHT = 16;
+    private static final int HEADER_GAP = 8;
+    private static final int VIEWPORT_GAP = 10;
+    private static final int SCROLL_HINT_HEIGHT = 0;
+    private static final int MIN_SLIDER_WIDTH = 120;
+    private static final double SCROLL_STEP = BUTTON_HEIGHT + WIDGET_GAP;
     private final Screen parent;
+    private final List<ScrollableWidget> scrollableWidgets = new ArrayList<>();
+    private int viewportTop;
+    private int viewportBottom;
+    private int contentHeight;
+    private double scrollAmount;
+    private double maxScroll;
 
     public ZephyrMenuScreen(Screen parent) {
         super(Text.literal("Zephyr"));
@@ -30,6 +45,12 @@ public class ZephyrMenuScreen extends Screen {
 
     @Override
     protected void init() {
+        this.scrollableWidgets.clear();
+        this.viewportTop = TOP_MARGIN + TITLE_HEIGHT + HEADER_GAP + BUTTON_HEIGHT + VIEWPORT_GAP;
+        this.viewportBottom = this.height - BOTTOM_MARGIN - SCROLL_HINT_HEIGHT;
+
+        int headerButtonX = this.width - HORIZONTAL_MARGIN - KEYBINDS_BUTTON_WIDTH;
+        int headerButtonY = TOP_MARGIN + TITLE_HEIGHT + HEADER_GAP;
         this.addDrawableChild(
                 ButtonWidget.builder(
                                 Text.literal("Keybinds"),
@@ -39,7 +60,7 @@ public class ZephyrMenuScreen extends Screen {
                                     }
                                 }
                         )
-                        .dimensions(this.width - KEYBINDS_BUTTON_WIDTH - 10, 10, KEYBINDS_BUTTON_WIDTH, BUTTON_HEIGHT)
+                        .dimensions(headerButtonX, headerButtonY, KEYBINDS_BUTTON_WIDTH, BUTTON_HEIGHT)
                         .build()
         );
 
@@ -90,10 +111,10 @@ public class ZephyrMenuScreen extends Screen {
                 new MenuButtonSpec(ZephyrMenuScreen::getDeadMobRenderingText, () -> disableDeadMobRendering.enabled = !disableDeadMobRendering.enabled)
         };
 
-        int availableWidth = Math.max(BUTTON_MIN_WIDTH, this.width - (SIDE_PADDING * 2));
+        int availableWidth = Math.max(BUTTON_MIN_WIDTH, this.width - (HORIZONTAL_MARGIN * 2));
         int columnCount = MathHelper.clamp(
                 (availableWidth + WIDGET_GAP) / (BUTTON_MIN_WIDTH + WIDGET_GAP),
-                2,
+                1,
                 4
         );
         int buttonWidth = Math.min(
@@ -104,178 +125,165 @@ public class ZephyrMenuScreen extends Screen {
         int contentX = (this.width - contentWidth) / 2;
 
         int toggleRowCount = MathHelper.ceil((float) toggleButtons.length / columnCount);
-        int sliderRowCount = 8;
+        boolean stackSliderControls = contentWidth < ((BUTTON_MIN_WIDTH * 2) + WIDGET_GAP);
+        int sliderRowCount = stackSliderControls ? 16 : 8;
         int rowCount = toggleRowCount + sliderRowCount;
 
-        int gap = MathHelper.clamp(
-                (this.height - (TOP_BOTTOM_PADDING * 2) - (rowCount * BUTTON_HEIGHT)) / Math.max(1, rowCount - 1),
-                2,
-                6
-        );
-
-        int totalHeight = (rowCount * BUTTON_HEIGHT) + ((rowCount - 1) * gap);
-        int startY = Math.max(TOP_BOTTOM_PADDING, ((this.height - totalHeight) / 2) - LAYOUT_SHIFT_Y);
+        int viewportHeight = Math.max(BUTTON_HEIGHT, this.viewportBottom - this.viewportTop);
+        int gap = MathHelper.clamp((viewportHeight - (rowCount * BUTTON_HEIGHT)) / Math.max(1, rowCount - 1), 2, 6);
+        int currentY = 0;
 
         int index = 0;
         for (MenuButtonSpec spec : toggleButtons) {
             int column = index % columnCount;
             int row = index / columnCount;
             int x = contentX + (column * (buttonWidth + WIDGET_GAP));
-            int y = startY + (row * (BUTTON_HEIGHT + gap));
+            int y = currentY + (row * (BUTTON_HEIGHT + gap));
 
             this.addMenuButton(
                     spec.textSupplier.get(),
                     b -> applyMenuChange(b, spec.toggleAction, spec.textSupplier),
-                    x, y, buttonWidth, gap
+                    x, y, buttonWidth
             );
             index++;
         }
 
-        int sliderRowY = startY + (toggleRowCount * (BUTTON_HEIGHT + gap));
-        int sliderRowX = contentX;
-        int sliderButtonWidth = Math.max(120, Math.min(220, contentWidth / 3));
-        int sliderWidth = contentWidth - sliderButtonWidth - WIDGET_GAP;
+        currentY = toggleRowCount * (BUTTON_HEIGHT + gap);
+        int sliderButtonWidth = stackSliderControls ? contentWidth : Math.max(BUTTON_MIN_WIDTH, Math.min(220, contentWidth / 3));
+        int sliderWidth = stackSliderControls ? contentWidth : Math.max(MIN_SLIDER_WIDTH, contentWidth - sliderButtonWidth - WIDGET_GAP);
 
-        this.addDrawableChild(
+        currentY = this.addSliderRow(
+                contentX,
+                currentY,
+                contentWidth,
+                sliderButtonWidth,
+                sliderWidth,
+                gap,
+                stackSliderControls,
                 ButtonWidget.builder(
                                 getPearlBoostText(),
                                 b -> applyMenuChange(b, () -> PearlBoost.enabled = !PearlBoost.enabled, ZephyrMenuScreen::getPearlBoostText)
                         )
-                        .dimensions(sliderRowX, sliderRowY, sliderButtonWidth, BUTTON_HEIGHT)
-                        .build()
+                        .dimensions(contentX, this.viewportTop + currentY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build(),
+                new PearlBoostVelocitySlider(contentX, this.viewportTop + currentY, sliderWidth, BUTTON_HEIGHT)
         );
-        this.addDrawableChild(new PearlBoostVelocitySlider(
-                sliderRowX + sliderButtonWidth + WIDGET_GAP,
-                sliderRowY,
+        currentY = this.addSliderRow(
+                contentX,
+                currentY,
+                contentWidth,
+                sliderButtonWidth,
                 sliderWidth,
-                BUTTON_HEIGHT
-        ));
-
-        int highJumpRowY = sliderRowY + BUTTON_HEIGHT + gap;
-
-        this.addDrawableChild(
+                gap,
+                stackSliderControls,
                 ButtonWidget.builder(
                                 getHighJumpText(),
                                 b -> applyMenuChange(b, () -> HighJump.enabled = !HighJump.enabled, ZephyrMenuScreen::getHighJumpText)
                         )
-                        .dimensions(sliderRowX, highJumpRowY, sliderButtonWidth, BUTTON_HEIGHT)
-                        .build()
+                        .dimensions(contentX, this.viewportTop + currentY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build(),
+                new HighJumpSlider(contentX, this.viewportTop + currentY, sliderWidth, BUTTON_HEIGHT)
         );
-
-        this.addDrawableChild(new HighJumpSlider(
-                sliderRowX + sliderButtonWidth + WIDGET_GAP,
-                highJumpRowY,
+        currentY = this.addSliderRow(
+                contentX,
+                currentY,
+                contentWidth,
+                sliderButtonWidth,
                 sliderWidth,
-                BUTTON_HEIGHT
-        ));
-
-        int longJumpRowY = highJumpRowY + BUTTON_HEIGHT + gap;
-
-        this.addDrawableChild(
+                gap,
+                stackSliderControls,
                 ButtonWidget.builder(
                                 getLongJumpText(),
                                 b -> applyMenuChange(b, () -> LongJump.setEnabled(!LongJump.enabled), ZephyrMenuScreen::getLongJumpText)
                         )
-                        .dimensions(sliderRowX, longJumpRowY, sliderButtonWidth, BUTTON_HEIGHT)
-                        .build()
+                        .dimensions(contentX, this.viewportTop + currentY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build(),
+                new LongJumpSlider(contentX, this.viewportTop + currentY, sliderWidth, BUTTON_HEIGHT)
         );
-
-        this.addDrawableChild(new LongJumpSlider(
-                sliderRowX + sliderButtonWidth + WIDGET_GAP,
-                longJumpRowY,
+        currentY = this.addSliderRow(
+                contentX,
+                currentY,
+                contentWidth,
+                sliderButtonWidth,
                 sliderWidth,
-                BUTTON_HEIGHT
-        ));
-
-        int aerodynamicsRowY = longJumpRowY + BUTTON_HEIGHT + gap;
-
-        this.addDrawableChild(
+                gap,
+                stackSliderControls,
                 ButtonWidget.builder(
                                 getAerodynamicsText(),
                                 b -> applyMenuChange(b, () -> Aerodynamics.enabled = !Aerodynamics.enabled, ZephyrMenuScreen::getAerodynamicsText)
                         )
-                        .dimensions(sliderRowX, aerodynamicsRowY, sliderButtonWidth, BUTTON_HEIGHT)
-                        .build()
+                        .dimensions(contentX, this.viewportTop + currentY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build(),
+                new AerodynamicsSlider(contentX, this.viewportTop + currentY, sliderWidth, BUTTON_HEIGHT)
         );
-
-        this.addDrawableChild(new AerodynamicsSlider(
-                sliderRowX + sliderButtonWidth + WIDGET_GAP,
-                aerodynamicsRowY,
+        currentY = this.addSliderRow(
+                contentX,
+                currentY,
+                contentWidth,
+                sliderButtonWidth,
                 sliderWidth,
-                BUTTON_HEIGHT
-        ));
-
-        int fastAttackRowY = aerodynamicsRowY + BUTTON_HEIGHT + gap;
-
-        this.addDrawableChild(
+                gap,
+                stackSliderControls,
                 ButtonWidget.builder(
                                 getFastAttackText(),
                                 b -> applyMenuChange(b, () -> FastAttack.enabled = !FastAttack.enabled, ZephyrMenuScreen::getFastAttackText)
                         )
-                        .dimensions(sliderRowX, fastAttackRowY, sliderButtonWidth, BUTTON_HEIGHT)
-                        .build()
+                        .dimensions(contentX, this.viewportTop + currentY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build(),
+                new FastAttackSlider(contentX, this.viewportTop + currentY, sliderWidth, BUTTON_HEIGHT)
         );
-
-        this.addDrawableChild(new FastAttackSlider(
-                sliderRowX + sliderButtonWidth + WIDGET_GAP,
-                fastAttackRowY,
+        currentY = this.addSliderRow(
+                contentX,
+                currentY,
+                contentWidth,
+                sliderButtonWidth,
                 sliderWidth,
-                BUTTON_HEIGHT
-        ));
-
-        int fastUseRowY = fastAttackRowY + BUTTON_HEIGHT + gap;
-
-        this.addDrawableChild(
+                gap,
+                stackSliderControls,
                 ButtonWidget.builder(
                                 getFastUseText(),
                                 b -> applyMenuChange(b, () -> FastUse.enabled = !FastUse.enabled, ZephyrMenuScreen::getFastUseText)
                         )
-                        .dimensions(sliderRowX, fastUseRowY, sliderButtonWidth, BUTTON_HEIGHT)
-                        .build()
+                        .dimensions(contentX, this.viewportTop + currentY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build(),
+                new FastUseSlider(contentX, this.viewportTop + currentY, sliderWidth, BUTTON_HEIGHT)
         );
-
-        this.addDrawableChild(new FastUseSlider(
-                sliderRowX + sliderButtonWidth + WIDGET_GAP,
-                fastUseRowY,
+        currentY = this.addSliderRow(
+                contentX,
+                currentY,
+                contentWidth,
+                sliderButtonWidth,
                 sliderWidth,
-                BUTTON_HEIGHT
-        ));
-
-        int periodicAttackRowY = fastUseRowY + BUTTON_HEIGHT + gap;
-
-        this.addDrawableChild(
+                gap,
+                stackSliderControls,
                 ButtonWidget.builder(
                                 getPeriodicAttackText(),
                                 b -> applyMenuChange(b, () -> PeriodicAttack.enabled = !PeriodicAttack.enabled, ZephyrMenuScreen::getPeriodicAttackText)
                         )
-                        .dimensions(sliderRowX, periodicAttackRowY, sliderButtonWidth, BUTTON_HEIGHT)
-                        .build()
+                        .dimensions(contentX, this.viewportTop + currentY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build(),
+                new PeriodicAttackSlider(contentX, this.viewportTop + currentY, sliderWidth, BUTTON_HEIGHT)
         );
-
-        this.addDrawableChild(new PeriodicAttackSlider(
-                sliderRowX + sliderButtonWidth + WIDGET_GAP,
-                periodicAttackRowY,
+        currentY = this.addSliderRow(
+                contentX,
+                currentY,
+                contentWidth,
+                sliderButtonWidth,
                 sliderWidth,
-                BUTTON_HEIGHT
-        ));
-
-        int periodicUseRowY = periodicAttackRowY + BUTTON_HEIGHT + gap;
-
-        this.addDrawableChild(
+                gap,
+                stackSliderControls,
                 ButtonWidget.builder(
                                 getPeriodicUseText(),
                                 b -> applyMenuChange(b, () -> PeriodicUse.enabled = !PeriodicUse.enabled, ZephyrMenuScreen::getPeriodicUseText)
                         )
-                        .dimensions(sliderRowX, periodicUseRowY, sliderButtonWidth, BUTTON_HEIGHT)
-                        .build()
+                        .dimensions(contentX, this.viewportTop + currentY, sliderButtonWidth, BUTTON_HEIGHT)
+                        .build(),
+                new PeriodicUseSlider(contentX, this.viewportTop + currentY, sliderWidth, BUTTON_HEIGHT)
         );
 
-        this.addDrawableChild(new PeriodicUseSlider(
-                sliderRowX + sliderButtonWidth + WIDGET_GAP,
-                periodicUseRowY,
-                sliderWidth,
-                BUTTON_HEIGHT
-        ));
+        this.contentHeight = Math.max(0, currentY - gap);
+        this.maxScroll = Math.max(0.0D, this.contentHeight - viewportHeight);
+        this.setScrollAmount(this.scrollAmount);
     }
 
     @Override
@@ -289,12 +297,75 @@ public class ZephyrMenuScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, TOP_MARGIN, 0xFFFFFF);
     }
 
-    private int addMenuButton(Text text, ButtonWidget.PressAction onPress, int x, int y, int width, int gap) {
-        this.addDrawableChild(ButtonWidget.builder(text, onPress).dimensions(x, y, width, BUTTON_HEIGHT).build());
-        return y + BUTTON_HEIGHT + gap;
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (this.maxScroll <= 0.0D) {
+            return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+        }
+
+        this.setScrollAmount(this.scrollAmount - (verticalAmount * SCROLL_STEP));
+        return true;
+    }
+
+    private void addMenuButton(Text text, ButtonWidget.PressAction onPress, int x, int baseY, int width) {
+        ButtonWidget button = this.addScrollableChild(
+                ButtonWidget.builder(text, onPress).dimensions(x, this.viewportTop + baseY, width, BUTTON_HEIGHT).build()
+        );
+        this.registerScrollableWidget(button, x, baseY);
+    }
+
+    private int addSliderRow(
+            int contentX,
+            int currentY,
+            int contentWidth,
+            int sliderButtonWidth,
+            int sliderWidth,
+            int gap,
+            boolean stackSliderControls,
+            ButtonWidget button,
+            SliderWidget slider
+    ) {
+        ButtonWidget addedButton = this.addScrollableChild(button);
+        this.registerScrollableWidget(addedButton, contentX, currentY);
+
+        if (stackSliderControls) {
+            SliderWidget addedSlider = this.addScrollableChild(slider);
+            this.registerScrollableWidget(addedSlider, contentX, currentY + BUTTON_HEIGHT + gap);
+            return currentY + (2 * (BUTTON_HEIGHT + gap));
+        }
+
+        int sliderX = contentX + sliderButtonWidth + WIDGET_GAP;
+        slider.setWidth(Math.min(sliderWidth, Math.max(MIN_SLIDER_WIDTH, contentWidth - sliderButtonWidth - WIDGET_GAP)));
+        slider.setPosition(sliderX, this.viewportTop + currentY);
+        SliderWidget addedSlider = this.addScrollableChild(slider);
+        this.registerScrollableWidget(addedSlider, sliderX, currentY);
+        return currentY + BUTTON_HEIGHT + gap;
+    }
+
+    private <T extends ClickableWidget> T addScrollableChild(T widget) {
+        return this.addDrawableChild(widget);
+    }
+
+    private void registerScrollableWidget(ClickableWidget widget, int baseX, int baseY) {
+        this.scrollableWidgets.add(new ScrollableWidget(widget, baseX, baseY));
+    }
+
+    private void setScrollAmount(double newScrollAmount) {
+        this.scrollAmount = MathHelper.clamp(newScrollAmount, 0.0D, this.maxScroll);
+        int scrollOffset = MathHelper.floor(this.scrollAmount);
+
+        for (ScrollableWidget scrollableWidget : this.scrollableWidgets) {
+            int y = this.viewportTop + scrollableWidget.baseY - scrollOffset;
+            scrollableWidget.widget.setPosition(scrollableWidget.baseX, y);
+
+            boolean visible = y + scrollableWidget.widget.getHeight() > this.viewportTop
+                    && y < this.viewportBottom;
+            scrollableWidget.widget.visible = visible;
+            scrollableWidget.widget.active = visible;
+        }
     }
 
     private static void applyMenuChange(ButtonWidget button, Runnable change, Supplier<Text> textSupplier) {
@@ -522,6 +593,9 @@ public class ZephyrMenuScreen extends Screen {
             this.textSupplier = textSupplier;
             this.toggleAction = toggleAction;
         }
+    }
+
+    private record ScrollableWidget(ClickableWidget widget, int baseX, int baseY) {
     }
 
     public class HighJumpSlider extends SliderWidget {
