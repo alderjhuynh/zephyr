@@ -64,6 +64,19 @@ public class ZephyrMenuScreen extends Screen {
                         .build()
         );
 
+        this.addDrawableChild(
+                ButtonWidget.builder(
+                                Text.literal("Profiles"),
+                                button -> {
+                                    if (this.client != null) {
+                                        this.client.setScreen(new ZephyrProfilesScreen(this));
+                                    }
+                                }
+                        )
+                        .dimensions(headerButtonX-KEYBINDS_BUTTON_WIDTH-WIDGET_GAP, headerButtonY, KEYBINDS_BUTTON_WIDTH, BUTTON_HEIGHT)
+                        .build()
+        );
+
         MenuButtonSpec[] toggleButtons = new MenuButtonSpec[] {
                 new MenuButtonSpec(ZephyrMenuScreen::getAutoRespawnText, () -> AutoRespawn.enabled = !AutoRespawn.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getStepText, () -> Step.setEnabled(!Step.isEnabled())),
