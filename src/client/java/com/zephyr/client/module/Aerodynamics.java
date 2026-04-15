@@ -22,7 +22,7 @@ public final class Aerodynamics {
     public static void tick(MinecraftClient client) {
         ClientPlayerEntity player = client.player;
         if (!AllowElytra) {
-            if (!enabled || player == null || player.isOnGround() || player.isFallFlying()) {
+            if (!enabled || player == null || player.isOnGround() || player.isGliding()) {
                 return;
             }
         }
@@ -31,7 +31,7 @@ public final class Aerodynamics {
             if (!enabled || player == null || player.isOnGround()) {return;}
         }
 
-        if (player.isSprinting() || (player.isFallFlying() && AllowElytra && client.options.sprintKey.isPressed())) {
+        if (player.isSprinting() || (player.isGliding() && AllowElytra && client.options.sprintKey.isPressed())) {
 
             Vec3d direction = getBoostDirection(player);
             if (direction.lengthSquared() < 1.0E-6D) {
@@ -43,7 +43,7 @@ public final class Aerodynamics {
                     direction.y * acceleration,
                     direction.z * acceleration
             );
-            player.velocityModified = true;
+            player.velocityDirty = true;
         }
     }
 

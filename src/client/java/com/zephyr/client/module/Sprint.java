@@ -1,6 +1,7 @@
 package com.zephyr.client.module;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.math.Vec2f;
 
 public class Sprint {
 
@@ -12,9 +13,8 @@ public class Sprint {
         if (mc.player == null) return;
         if (mc.player.isTouchingWater()) return;
 
-        boolean isMoving =
-                mc.player.input.movementForward != 0 ||
-                mc.player.input.movementSideways != 0;
+        Vec2f movementInput = mc.player.input.getMovementInput();
+        boolean isMoving = movementInput.x != 0.0F || movementInput.y != 0.0F;
 
         mc.player.setSprinting(isMoving);
     }

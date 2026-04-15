@@ -49,7 +49,7 @@ public class InGameHudMixin {
             int itemY = y + (SLOT_HEIGHT - ITEM_SIZE) / 2;
 
             context.drawItem(stack, itemX, itemY);
-            context.drawItemInSlot(textRenderer, stack, itemX, itemY);
+            context.drawStackOverlay(textRenderer, stack, itemX, itemY);
 
             int damage = stack.getDamage();
             int maxDamage = stack.getMaxDamage();

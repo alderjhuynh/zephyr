@@ -30,7 +30,7 @@ public class ClientPlayerInteractionManagerMixin {
                     target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;sendPacket(Lnet/minecraft/network/packet/Packet;)V"
             )
     )
-    private void zephyr$sendCriticalPacketsBeforeAttack(PlayerEntity player, Entity target, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+    private void zephyr$sendCriticalPacketsBeforeAttack(PlayerEntity player, Entity target, CallbackInfo ci) {
         Criticals.onAttack();
     }
 

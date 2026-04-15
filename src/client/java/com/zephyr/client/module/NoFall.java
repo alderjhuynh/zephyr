@@ -30,7 +30,7 @@ public class NoFall {
             return;
         }
 
-        if (mc.player.isFallFlying()) {
+        if (mc.player.isGliding()) {
             if (!isAboutToTouchGround(mc)) {
                 return;
             }

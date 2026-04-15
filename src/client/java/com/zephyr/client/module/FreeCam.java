@@ -10,7 +10,11 @@ public final class FreeCam {
 
     private static final double BASE_SPEED = 0.35D;
     private static final double SPRINT_MULTIPLIER = 2.5D;
+    private static final FakePlayerMirror fakePlayerMirror = new FakePlayerMirror();
 
+    private static double prevX;
+    private static double prevY;
+    private static double prevZ;
     private static double x;
     private static double y;
     private static double z;
@@ -28,22 +32,33 @@ public final class FreeCam {
 
         enabled = value;
         if (!enabled) {
+            fakePlayerMirror.discard();
             initialized = false;
         }
     }
 
     public static void tick(MinecraftClient client) {
         if (!enabled) {
+            fakePlayerMirror.discard();
             initialized = false;
             return;
         }
 
-        if (client == null || client.player == null) {
+        if (client == null || client.player == null || client.world == null) {
+            fakePlayerMirror.discard();
             initialized = false;
             return;
         }
 
         ensureInitialized(client.player);
+        if (!fakePlayerMirror.isSpawned()) {
+            fakePlayerMirror.spawn(client);
+        }
+
+        prevX = x;
+        prevY = y;
+        prevZ = z;
+        fakePlayerMirror.syncIfNeeded(client.player);
 
         if (client.currentScreen != null) {
             return;
@@ -82,6 +97,9 @@ public final class FreeCam {
         }
 
         Vec3d cameraPos = player.getCameraPosVec(1.0F);
+        prevX = cameraPos.x;
+        prevY = cameraPos.y;
+        prevZ = cameraPos.z;
         x = cameraPos.x;
         y = cameraPos.y;
         z = cameraPos.z;
@@ -99,12 +117,24 @@ public final class FreeCam {
         return x;
     }
 
+    public static double getRenderX(float tickDelta) {
+        return MathHelper.lerp(tickDelta, prevX, x);
+    }
+
     public static double getY() {
         return y;
     }
 
+    public static double getRenderY(float tickDelta) {
+        return MathHelper.lerp(tickDelta, prevY, y);
+    }
+
     public static double getZ() {
         return z;
+    }
+
+    public static double getRenderZ(float tickDelta) {
+        return MathHelper.lerp(tickDelta, prevZ, z);
     }
 
     public static float getYaw() {
@@ -125,21 +155,19 @@ public final class FreeCam {
 
     private static Vec3d getForwardVector() {
         double yawRadians = Math.toRadians(yaw);
-        double pitchRadians = Math.toRadians(pitch);
-        double cosPitch = Math.cos(pitchRadians);
         return new Vec3d(
-                -Math.sin(yawRadians) * cosPitch,
-                -Math.sin(pitchRadians),
-                Math.cos(yawRadians) * cosPitch
+                -Math.sin(yawRadians),
+                0.0D,
+                Math.cos(yawRadians)
         );
     }
 
     private static Vec3d getRightVector() {
         double yawRadians = Math.toRadians(yaw);
         return new Vec3d(
-                -Math.cos(yawRadians),
+                Math.cos(yawRadians),
                 0.0D,
-                -Math.sin(yawRadians)
+                Math.sin(yawRadians)
         );
     }
 }

@@ -6,6 +6,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.glfw.GLFW;
@@ -111,20 +113,21 @@ public class ZephyrProfilesScreen extends Screen {
     }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
-        return this.profileNameField != null && this.profileNameField.charTyped(chr, modifiers)
-                || super.charTyped(chr, modifiers);
+    public boolean charTyped(CharInput charInput) {
+        return this.profileNameField != null && this.profileNameField.charTyped(charInput)
+                || super.charTyped(charInput);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyInput keyInput) {
+        int keyCode = keyInput.key();
         if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
             this.createProfile();
             return true;
         }
 
-        return this.profileNameField != null && this.profileNameField.keyPressed(keyCode, scanCode, modifiers)
-                || super.keyPressed(keyCode, scanCode, modifiers);
+        return this.profileNameField != null && this.profileNameField.keyPressed(keyInput)
+                || super.keyPressed(keyInput);
     }
 
     @Override
@@ -146,7 +149,6 @@ public class ZephyrProfilesScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, TOP_MARGIN, 0xFFFFFF);
         context.drawCenteredTextWithShadow(
@@ -209,7 +211,7 @@ public class ZephyrProfilesScreen extends Screen {
         }
 
         this.clearChildren();
-        this.init(this.client, this.width, this.height);
+        this.init();
     }
 
     private void registerScrollableWidget(ClickableWidget widget, int baseX, int baseY, boolean enabledWhenVisible) {

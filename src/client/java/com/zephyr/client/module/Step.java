@@ -20,7 +20,7 @@ public final class Step {
 
         if (mc.player == null) return;
 
-        var attr = mc.player.getAttributeInstance(EntityAttributes.GENERIC_STEP_HEIGHT);
+        var attr = mc.player.getAttributeInstance(EntityAttributes.STEP_HEIGHT);
         if (attr == null) return;
 
         if (enabled) {
@@ -41,7 +41,7 @@ public final class Step {
 
         if (!enabled || mc.player == null) return;
 
-        var attr = mc.player.getAttributeInstance(EntityAttributes.GENERIC_STEP_HEIGHT);
+        var attr = mc.player.getAttributeInstance(EntityAttributes.STEP_HEIGHT);
         if (attr != null) {
             attr.setBaseValue(stepHeight);
         }
@@ -54,7 +54,7 @@ public final class Step {
     public static void tick() {
         if (!enabled || mc.player == null) return;
 
-        var attr = mc.player.getAttributeInstance(EntityAttributes.GENERIC_STEP_HEIGHT);
+        var attr = mc.player.getAttributeInstance(EntityAttributes.STEP_HEIGHT);
         if (attr != null) {
             attr.setBaseValue(stepHeight);
         }
@@ -64,7 +64,7 @@ public final class Step {
     public static void reset() {
         if (mc.player == null) return;
 
-        var attr = mc.player.getAttributeInstance(EntityAttributes.GENERIC_STEP_HEIGHT);
+        var attr = mc.player.getAttributeInstance(EntityAttributes.STEP_HEIGHT);
         if (attr != null) {
             attr.setBaseValue(previousStepHeight);
         }

@@ -75,7 +75,7 @@ public final class LongJump {
         Vec3d currentVelocity = player.getVelocity();
         player.setSprinting(true);
         player.setVelocity(direction.x * momentum, currentVelocity.y, direction.z * momentum);
-        player.velocityModified = true;
+        player.velocityDirty = true;
     }
 
     private static Vec3d getBoostDirection(ClientPlayerEntity player) {

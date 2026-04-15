@@ -1,8 +1,8 @@
 package com.zephyr.client.module;
 
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.MovementType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;

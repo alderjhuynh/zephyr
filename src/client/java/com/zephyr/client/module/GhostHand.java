@@ -27,7 +27,7 @@ public class GhostHand {
 
         BlockHitResult hit = (BlockHitResult) player.raycast(
                 player.getBlockInteractionRange(),
-                mc.getRenderTickCounter().getTickDelta(true),
+                mc.getRenderTickCounter().getTickProgress(true),
                 false
         );
 
@@ -40,7 +40,7 @@ public class GhostHand {
 
         posList.clear();
 
-        Vec3d cameraPos = player.getCameraPosVec(mc.getRenderTickCounter().getTickDelta(true));
+        Vec3d cameraPos = player.getCameraPosVec(mc.getRenderTickCounter().getTickProgress(true));
 
         for (int i = 1; i < player.getBlockInteractionRange() * 10; i++) {
             BlockPos pos = BlockPos.ofFloored(cameraPos.add(direction.multiply(i)));
@@ -64,7 +64,7 @@ public class GhostHand {
                             )
                     );
 
-                    if (result.isAccepted() || result.shouldSwingHand()) {
+                    if (result.isAccepted()) {
                         player.swingHand(hand);
                         return;
                     }

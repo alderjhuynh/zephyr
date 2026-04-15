@@ -1,14 +1,14 @@
 package com.zephyr.client.module;
 
-import com.zephyr.client.mixin.CurrentBreakingPosAccessor;
 import com.zephyr.client.mixin.ClientWorldAccessor;
+import com.zephyr.client.mixin.CurrentBreakingPosAccessor;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PendingUpdateManager;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
@@ -16,11 +16,14 @@ import net.minecraft.util.math.Direction;
 
 public class SpeedMine {
     private static final float DAMAGE_THRESHOLD = 0.7f;
+    private static final int SYNTHETIC_HASTE_AMPLIFIER = 1;
+    private static final int SYNTHETIC_HASTE_DURATION = -1;
 
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static BlockPos trackedBreakingPos;
     private static Direction trackedBreakingDirection = Direction.UP;
     private static boolean damageTriggered;
+    private static boolean syntheticHasteApplied;
 
     public static Mode mode = Mode.OFF;
 
@@ -42,17 +45,20 @@ public class SpeedMine {
             case HASTE -> {
                 StatusEffectInstance haste = mc.player.getStatusEffect(StatusEffects.HASTE);
 
-                if (haste == null || haste.getAmplifier() < 1) {
+                if (haste == null || haste.getAmplifier() < SYNTHETIC_HASTE_AMPLIFIER) {
                     mc.player.addStatusEffect(
                             new StatusEffectInstance(
                                     StatusEffects.HASTE,
-                                    -1,
-                                    1,
+                                    SYNTHETIC_HASTE_DURATION,
+                                    SYNTHETIC_HASTE_AMPLIFIER,
                                     false,
                                     false,
                                     false
                             )
                     );
+                    syntheticHasteApplied = true;
+                } else if (!isSyntheticHaste(haste)) {
+                    syntheticHasteApplied = false;
                 }
             }
 
@@ -123,7 +129,13 @@ public class SpeedMine {
     }
 
     public static void setMode(Mode value) {
+        Mode previousMode = mode;
         mode = value == null ? Mode.OFF : value;
+
+        if (previousMode == Mode.HASTE && mode != Mode.HASTE) {
+            removeSyntheticHaste();
+        }
+
         if (mode != Mode.DAMAGE) {
             resetDamageState();
         }
@@ -158,5 +170,27 @@ public class SpeedMine {
         trackedBreakingPos = null;
         trackedBreakingDirection = Direction.UP;
         damageTriggered = false;
+    }
+
+    private static boolean isSyntheticHaste(StatusEffectInstance haste) {
+        return haste.getAmplifier() == SYNTHETIC_HASTE_AMPLIFIER
+                && haste.getDuration() == SYNTHETIC_HASTE_DURATION
+                && !haste.isAmbient()
+                && !haste.shouldShowParticles()
+                && !haste.shouldShowIcon();
+    }
+
+    private static void removeSyntheticHaste() {
+        if (!syntheticHasteApplied || mc.player == null) {
+            syntheticHasteApplied = false;
+            return;
+        }
+
+        StatusEffectInstance haste = mc.player.getStatusEffect(StatusEffects.HASTE);
+        if (haste != null && isSyntheticHaste(haste)) {
+            mc.player.removeStatusEffect(StatusEffects.HASTE);
+        }
+
+        syntheticHasteApplied = false;
     }
 }
