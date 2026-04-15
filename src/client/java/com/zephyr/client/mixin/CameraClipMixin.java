@@ -1,14 +1,13 @@
 package com.zephyr.client.mixin;
 
+import com.zephyr.client.module.F5Tweaks;
+import com.zephyr.client.module.FreeCam;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-
-import com.zephyr.client.module.F5Tweaks;
-import com.zephyr.client.module.FreeCam;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Camera.class)
 public class CameraClipMixin {

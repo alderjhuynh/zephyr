@@ -1,33 +1,29 @@
 package com.zephyr.client.mixin;
 
+import com.zephyr.client.disable.disableDeadMobRendering;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
+import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import com.zephyr.client.disable.disableDeadMobRendering;
 
 @Mixin(LivingEntityRenderer.class)
-public class DeadMobRenderingMixin<T extends LivingEntity> {
+public class DeadMobRenderingMixin {
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void cancelDeadMobRendering(
-            T entity,
-            float yaw,
-            float tickDelta,
+            LivingEntityRenderState state,
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
             int light,
             CallbackInfo ci
     ) {
-        if (entity == null) return;
         if (!disableDeadMobRendering.enabled) return;
-        if (!entity.isAlive()
-                || entity.isRemoved()
-                || entity.deathTime > 0) {
+
+        if (state != null && state.deathTime > 0.0F) {
             ci.cancel();
         }
     }

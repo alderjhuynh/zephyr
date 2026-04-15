@@ -8,6 +8,7 @@ import com.zephyr.client.module.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.util.Window;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
@@ -36,11 +37,11 @@ public final class ZephyrKeybindManager {
             return;
         }
 
-        long windowHandle = client.getWindow().getHandle();
-        boolean modifierPressed = isKeyPressed(windowHandle, modifierKeyCode);
+        Window window = client.getWindow();
+        boolean modifierPressed = isKeyPressed(window, modifierKeyCode);
 
         for (InternalKeybind keybind : KEYBINDS.values()) {
-            keybind.tick(client, windowHandle, modifierPressed);
+            keybind.tick(client, window, modifierPressed);
         }
     }
 
@@ -101,12 +102,13 @@ public final class ZephyrKeybindManager {
             return false;
         }
 
-        long windowHandle = client.getWindow().getHandle();
-        return isKeyPressed(windowHandle, modifierKeyCode) && isKeyPressed(windowHandle, getSpecificKeyCode(action));
+        Window window = client.getWindow();
+        return isKeyPressed(window, modifierKeyCode) && isKeyPressed(window, getSpecificKeyCode(action));
     }
 
-    private static boolean isKeyPressed(long windowHandle, int keyCode) {
-        return keyCode != UNBOUND_KEY && InputUtil.isKeyPressed(windowHandle, keyCode);
+    private static boolean isKeyPressed(Window window, int keyCode) {
+        return keyCode != UNBOUND_KEY &&
+                InputUtil.isKeyPressed(window.getHandle(), keyCode);
     }
 
     private static String getKeyName(int keyCode) {
@@ -192,8 +194,8 @@ public final class ZephyrKeybindManager {
             this.specificKeyCode = specificKeyCode;
         }
 
-        private void tick(MinecraftClient client, long windowHandle, boolean modifierPressed) {
-            boolean chordPressed = modifierPressed && isKeyPressed(windowHandle, specificKeyCode);
+        private void tick(MinecraftClient client, Window window, boolean modifierPressed) {
+            boolean chordPressed = modifierPressed && isKeyPressed(window, specificKeyCode);
 
             if (chordPressed && !chordHeld) {
                 trigger(client, action);

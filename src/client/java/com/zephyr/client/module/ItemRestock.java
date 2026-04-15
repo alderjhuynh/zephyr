@@ -31,7 +31,7 @@ public final class ItemRestock {
     }
 
     public static void trackUse(MinecraftClient mc, Hand hand, ItemStack stack, ActionResult result) {
-        if (!enabled || !result.isAccepted() || result == ActionResult.SUCCESS_NO_ITEM_USED || mc.player == null || stack.isEmpty()) {
+        if (!enabled || !result.isAccepted() || mc.player == null || stack.isEmpty()) {
             return;
         }
 
@@ -132,7 +132,7 @@ public final class ItemRestock {
     private static int findRestockSource(PlayerInventory inventory, ItemStack template, int excludedInventorySlot) {
         int bestSlot = -1;
         int bestCount = -1;
-        int oppositeHandSlot = excludedInventorySlot == PlayerInventory.OFF_HAND_SLOT ? inventory.selectedSlot : PlayerInventory.OFF_HAND_SLOT;
+        int oppositeHandSlot = excludedInventorySlot == PlayerInventory.OFF_HAND_SLOT ? inventory.getSelectedSlot() : PlayerInventory.OFF_HAND_SLOT;
 
         for (int slot = 0; slot < inventory.size(); slot++) {
             if (slot == excludedInventorySlot || slot == oppositeHandSlot) {
@@ -158,7 +158,7 @@ public final class ItemRestock {
     }
 
     private static int getHandInventorySlot(PlayerInventory inventory, Hand hand) {
-        return hand == Hand.MAIN_HAND ? inventory.selectedSlot : PlayerInventory.OFF_HAND_SLOT;
+        return hand == Hand.MAIN_HAND ? inventory.getSelectedSlot() : PlayerInventory.OFF_HAND_SLOT;
     }
 
     private static int toScreenSlot(int inventorySlot) {

@@ -52,7 +52,7 @@ public class Criticals {
         MinecraftClient mc = MinecraftClient.getInstance();
 
         mc.getNetworkHandler().sendPacket(
-                new PlayerMoveC2SPacket.PositionAndOnGround(x, y, z, onGround)
+                new PlayerMoveC2SPacket.PositionAndOnGround(x, y, z, onGround, false)
         );
     }
 }

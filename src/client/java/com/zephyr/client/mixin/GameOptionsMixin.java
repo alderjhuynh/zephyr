@@ -1,5 +1,6 @@
 package com.zephyr.client.mixin;
 
+import com.zephyr.client.module.F5Tweaks;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.Perspective;
 import org.spongepowered.asm.mixin.Mixin;
@@ -8,8 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import com.zephyr.client.module.F5Tweaks;
 
 @Mixin(GameOptions.class)
 public class GameOptionsMixin {

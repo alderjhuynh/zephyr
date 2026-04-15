@@ -4,9 +4,9 @@ import com.zephyr.client.module.AntiHunger;
 import com.zephyr.client.module.Blink;
 import com.zephyr.client.module.NoFall;
 import com.zephyr.client.module.SpeedMine;
+import io.netty.channel.ChannelFutureListener;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,11 +17,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ClientConnection.class)
 public class ClientConnectionMixin {
     @Inject(
-            method = "send(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/PacketCallbacks;Z)V",
+            method = "send(Lnet/minecraft/network/packet/Packet;Lio/netty/channel/ChannelFutureListener;Z)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void zephyr$applyModulePacketHooks(Packet<?> packet, PacketCallbacks callbacks, boolean flush, CallbackInfo ci) {
+    private void zephyr$applyModulePacketHooks(Packet<?> packet, ChannelFutureListener callbacks, boolean flush, CallbackInfo ci) {
         MinecraftClient mc = MinecraftClient.getInstance();
 
         if (!AntiHunger.onSendPacket(packet, mc)) {

@@ -3,12 +3,13 @@
 	"id": "zephyr",
 	"version": "${version}",
 	"name": "zephyr",
-	"description": "Hacked client/utility mod for singleplayer or anarchy mainly focused on movement.",
+	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
-		"Auraea"
+		"Me!"
 	],
 	"contact": {
-		"sources": "https://github.com/alderjhuynh/zephyr"
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/zephyr/icon.png",
@@ -29,8 +30,8 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.18.6",
-		"minecraft": "~1.21.1",
+		"fabricloader": ">=0.19.1",
+		"minecraft": "~1.21.6",
 		"java": ">=21",
 		"fabric-api": "*"
 	}

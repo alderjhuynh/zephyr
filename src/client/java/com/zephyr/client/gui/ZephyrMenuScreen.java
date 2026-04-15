@@ -1,6 +1,6 @@
 package com.zephyr.client.gui;
 
-import com.zephyr.client.*;
+import com.zephyr.client.ZephyrConfig;
 import com.zephyr.client.disable.*;
 import com.zephyr.client.module.*;
 import net.minecraft.client.gui.DrawContext;
@@ -308,7 +308,6 @@ public class ZephyrMenuScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, TOP_MARGIN, 0xFFFFFF);
     }

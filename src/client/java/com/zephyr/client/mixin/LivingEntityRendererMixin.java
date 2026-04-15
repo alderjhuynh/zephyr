@@ -1,12 +1,11 @@
 package com.zephyr.client.mixin;
 
+import com.zephyr.client.disable.disableFirstPersonEffectParticles;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.world.World;
-
-import com.zephyr.client.disable.disableFirstPersonEffectParticles;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -18,7 +17,7 @@ public abstract class LivingEntityRendererMixin {
             method = "tickStatusEffects",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"
+                    target = "Lnet/minecraft/world/World;addParticleClient(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"
             )
     )
     private void zephyr$skipOwnParticlesInFirstPerson(
@@ -41,6 +40,6 @@ public abstract class LivingEntityRendererMixin {
             return;
         }
 
-        world.addParticle(parameters, x, y, z, velocityX, velocityY, velocityZ);
+        world.addParticleClient(parameters, x, y, z, velocityX, velocityY, velocityZ);
     }
 }

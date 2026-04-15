@@ -41,14 +41,14 @@ public abstract class GuiMoveMixin {
                 return;
             }
 
-            long windowHandle = this.getWindow().getHandle();
+            Window window = this.getWindow();
             this.zephyr$applyTrackedStates(
-                    this.zephyr$isPhysicalKeyPressed(this.options.forwardKey, windowHandle),
-                    this.zephyr$isPhysicalKeyPressed(this.options.backKey, windowHandle),
-                    this.zephyr$isPhysicalKeyPressed(this.options.leftKey, windowHandle),
-                    this.zephyr$isPhysicalKeyPressed(this.options.rightKey, windowHandle),
-                    this.zephyr$isPhysicalKeyPressed(this.options.jumpKey, windowHandle),
-                    this.zephyr$isPhysicalKeyPressed(this.options.sprintKey, windowHandle)
+                    this.zephyr$isPhysicalKeyPressed(this.options.forwardKey, window),
+                    this.zephyr$isPhysicalKeyPressed(this.options.backKey, window),
+                    this.zephyr$isPhysicalKeyPressed(this.options.leftKey, window),
+                    this.zephyr$isPhysicalKeyPressed(this.options.rightKey, window),
+                    this.zephyr$isPhysicalKeyPressed(this.options.jumpKey, window),
+                    this.zephyr$isPhysicalKeyPressed(this.options.sprintKey, window)
             );
             this.zephyr$managedGuiMoveInput = true;
             return;
@@ -58,26 +58,26 @@ public abstract class GuiMoveMixin {
             return;
         }
 
-        long windowHandle = this.getWindow().getHandle();
+        Window window = this.getWindow();
         this.zephyr$applyTrackedStates(
-                this.zephyr$isPhysicalKeyPressed(this.options.forwardKey, windowHandle),
-                this.zephyr$isPhysicalKeyPressed(this.options.backKey, windowHandle),
-                this.zephyr$isPhysicalKeyPressed(this.options.leftKey, windowHandle),
-                this.zephyr$isPhysicalKeyPressed(this.options.rightKey, windowHandle),
-                this.zephyr$isPhysicalKeyPressed(this.options.jumpKey, windowHandle),
-                this.zephyr$isPhysicalKeyPressed(this.options.sprintKey, windowHandle)
+                this.zephyr$isPhysicalKeyPressed(this.options.forwardKey, window),
+                this.zephyr$isPhysicalKeyPressed(this.options.backKey, window),
+                this.zephyr$isPhysicalKeyPressed(this.options.leftKey, window),
+                this.zephyr$isPhysicalKeyPressed(this.options.rightKey, window),
+                this.zephyr$isPhysicalKeyPressed(this.options.jumpKey, window),
+                this.zephyr$isPhysicalKeyPressed(this.options.sprintKey, window)
         );
         this.zephyr$managedGuiMoveInput = false;
     }
 
     @Unique
-    private boolean zephyr$isPhysicalKeyPressed(KeyBinding keyBinding, long windowHandle) {
+    private boolean zephyr$isPhysicalKeyPressed(KeyBinding keyBinding, Window window) {
         InputUtil.Key boundKey = ((KeyBindingAccessor) keyBinding).zephyr$getBoundKey();
         if (boundKey == null || keyBinding.isUnbound() || boundKey.getCategory() != InputUtil.Type.KEYSYM) {
             return false;
         }
 
-        return InputUtil.isKeyPressed(windowHandle, boundKey.getCode());
+        return InputUtil.isKeyPressed(window.getHandle(), boundKey.getCode());
     }
 
     @Unique

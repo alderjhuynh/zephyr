@@ -75,7 +75,7 @@ public class ElytraBoost {
         return mc.player != null
                 && mc.world != null
                 && mc.currentScreen == null
-                && mc.player.isFallFlying();
+                && mc.player.isGliding();
     }
 
     public static boolean canStartBoost(MinecraftClient mc, ItemStack stack) {
@@ -106,7 +106,7 @@ public class ElytraBoost {
         }
 
         Vec3d velocity = player.getVelocity();
-        mc.world.addParticle(
+        mc.world.addParticleClient(
                 ParticleTypes.FIREWORK,
                 player.getX(),
                 player.getY(),

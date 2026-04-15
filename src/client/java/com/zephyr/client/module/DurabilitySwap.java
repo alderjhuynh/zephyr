@@ -31,14 +31,14 @@ public class DurabilitySwap {
         int swapSlot = findSafeSlot(player);
         if (swapSlot == -1) return;
 
-        player.getInventory().selectedSlot = swapSlot;
+        player.getInventory().setSelectedSlot(swapSlot);
 
         player.sendMessage(Text.literal("Swapped near broken item."), true);
     }
 
     private static int findSafeSlot(ClientPlayerEntity player) {
         for (int i = 0; i < 9; i++) {
-            if (i == player.getInventory().selectedSlot) continue;
+            if (i == player.getInventory().getSelectedSlot()) continue;
 
             ItemStack stack = player.getInventory().getStack(i);
             if (stack.isEmpty()) continue;

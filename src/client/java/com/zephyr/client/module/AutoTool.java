@@ -31,8 +31,8 @@ public class AutoTool {
             }
         }
 
-        if (bestSlot != -1 && bestSlot != inv.selectedSlot) {
-            inv.selectedSlot = bestSlot;
+        if (bestSlot != -1 && bestSlot != inv.getSelectedSlot()) {
+            inv.setSelectedSlot(bestSlot);
         }
     }
 }

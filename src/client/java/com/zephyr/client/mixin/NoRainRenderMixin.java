@@ -1,11 +1,11 @@
 package com.zephyr.client.mixin;
 
+import com.zephyr.client.disable.disableRainEffects;
 import net.minecraft.client.render.WorldRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import com.zephyr.client.disable.disableRainEffects;
 
 @Mixin(WorldRenderer.class)
 public class NoRainRenderMixin {
