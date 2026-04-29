@@ -45,22 +45,22 @@ public class FastAttack {
         if (client.player == null) return;
 
         switch (client.crosshairTarget.getType()) {
-            case ENTITY -> {
-                var entityHit = (net.minecraft.util.hit.EntityHitResult) client.crosshairTarget;
-                client.interactionManager.attackEntity(client.player, entityHit.getEntity());
-                client.player.swingHand(Hand.MAIN_HAND);
-            }
-            case BLOCK -> {
-                var blockHit = (net.minecraft.util.hit.BlockHitResult) client.crosshairTarget;
-                client.interactionManager.attackBlock(
-                        blockHit.getBlockPos(),
-                        blockHit.getSide()
-                );
-                client.player.swingHand(Hand.MAIN_HAND);
-            }
-            case MISS -> {
-                client.player.swingHand(Hand.MAIN_HAND);
-            }
+                case ENTITY -> {
+                    var entityHit = (net.minecraft.util.hit.EntityHitResult) client.crosshairTarget;
+                    client.interactionManager.attackEntity(client.player, entityHit.getEntity());
+                    client.player.swingHand(Hand.MAIN_HAND);
+                }
+                case BLOCK -> {
+                    var blockHit = (net.minecraft.util.hit.BlockHitResult) client.crosshairTarget;
+                    client.interactionManager.attackBlock(
+                            blockHit.getBlockPos(),
+                            blockHit.getSide()
+                    );
+                    client.player.swingHand(Hand.MAIN_HAND);
+                }
+                case MISS -> {
+                    client.player.swingHand(Hand.MAIN_HAND);
+                }
         }
     }
 }

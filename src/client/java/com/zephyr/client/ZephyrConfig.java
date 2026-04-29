@@ -330,6 +330,7 @@ public final class ZephyrConfig {
             F5Tweaks.enabled = config.f5TweaksEnabled;
             FastAttack.enabled = config.fastAttackEnabled;
             FastAttack.setTimesPerTick(config.fastAttackTimesPerTick);
+            ShieldBreaker.enabled = config.attributeSwapEnabled;
             FastUse.enabled = config.fastUseEnabled;
             FastUse.setTimesPerTick(config.fastUseTimesPerTick);
             GuiMove.enabled = config.guiMoveEnabled;
@@ -358,6 +359,8 @@ public final class ZephyrConfig {
             Flight.setEnabled(config.flightEnabled);
             FreeCam.setEnabled(config.freeCamEnabled);
             SpeedMine.setMode(config.getSpeedMineMode());
+            BreachSwap.enabled = config.BreachSwapEnabled;
+            PearlCatch.enabled = config.PearlCatchEnabled;
         } finally {
             suppressSaves = false;
         }
@@ -432,6 +435,7 @@ public final class ZephyrConfig {
         private static final boolean F5_TWEAKS_ENABLED = F5Tweaks.enabled;
         private static final boolean FAST_ATTACK_ENABLED = FastAttack.enabled;
         private static final int FAST_ATTACK_TIMES_PER_TICK = FastAttack.getTimesPerTick();
+        private static final boolean ATTRIBUTE_SWAP_ENABLED = ShieldBreaker.enabled;
         private static final boolean FAST_USE_ENABLED = FastUse.enabled;
         private static final int FAST_USE_TIMES_PER_TICK = FastUse.getTimesPerTick();
         private static final boolean GUI_MOVE_ENABLED = GuiMove.enabled;
@@ -460,6 +464,8 @@ public final class ZephyrConfig {
         private static final boolean FLIGHT_ENABLED = Flight.enabled;
         private static final boolean FREE_CAM_ENABLED = FreeCam.enabled;
         private static final String SPEED_MINE_MODE = SpeedMine.mode.name();
+        private static final boolean BREACH_SWAP_ENABLED = BreachSwap.enabled;
+        private static final boolean PEARL_CATCH_ENABLED = PearlCatch.enabled;
     }
 
     private static final class ConfigData {
@@ -498,6 +504,7 @@ public final class ZephyrConfig {
         private boolean f5TweaksEnabled = Defaults.F5_TWEAKS_ENABLED;
         private boolean fastAttackEnabled = Defaults.FAST_ATTACK_ENABLED;
         private int fastAttackTimesPerTick = Defaults.FAST_ATTACK_TIMES_PER_TICK;
+        private boolean attributeSwapEnabled = Defaults.ATTRIBUTE_SWAP_ENABLED;
         private boolean fastUseEnabled = Defaults.FAST_USE_ENABLED;
         private int fastUseTimesPerTick = Defaults.FAST_USE_TIMES_PER_TICK;
         private boolean guiMoveEnabled = Defaults.GUI_MOVE_ENABLED;
@@ -526,6 +533,8 @@ public final class ZephyrConfig {
         private boolean flightEnabled = Defaults.FLIGHT_ENABLED;
         private boolean freeCamEnabled = Defaults.FREE_CAM_ENABLED;
         private String speedMineMode = Defaults.SPEED_MINE_MODE;
+        private boolean BreachSwapEnabled = Defaults.BREACH_SWAP_ENABLED;
+        private boolean PearlCatchEnabled = Defaults.PEARL_CATCH_ENABLED;
 
         private static ConfigData captureCurrentState() {
             ConfigData data = new ConfigData();
@@ -564,6 +573,7 @@ public final class ZephyrConfig {
             data.f5TweaksEnabled = F5Tweaks.enabled;
             data.fastAttackEnabled = FastAttack.enabled;
             data.fastAttackTimesPerTick = FastAttack.getTimesPerTick();
+            data.attributeSwapEnabled = ShieldBreaker.enabled;
             data.fastUseEnabled = FastUse.enabled;
             data.fastUseTimesPerTick = FastUse.getTimesPerTick();
             data.guiMoveEnabled = GuiMove.enabled;
@@ -592,6 +602,8 @@ public final class ZephyrConfig {
             data.flightEnabled = Flight.enabled;
             data.freeCamEnabled = FreeCam.enabled;
             data.speedMineMode = SpeedMine.mode.name();
+            data.BreachSwapEnabled = BreachSwap.enabled;
+            data.PearlCatchEnabled = PearlCatch.enabled;
             return data;
         }
 

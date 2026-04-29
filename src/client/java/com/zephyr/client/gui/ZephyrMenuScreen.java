@@ -101,6 +101,7 @@ public class ZephyrMenuScreen extends Screen {
                 new MenuButtonSpec(ZephyrMenuScreen::getJesusText, () -> Jesus.enabled = !Jesus.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getAutoToolText, () -> AutoTool.enabled = !AutoTool.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getFastAttackText, () -> FastAttack.enabled = !FastAttack.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getShieldBreakerText, () -> ShieldBreaker.enabled = !ShieldBreaker.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getFastUseText, () -> FastUse.enabled = !FastUse.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getGhostHandText, () -> GhostHand.enabled = !GhostHand.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getHoldAttackText, () -> HoldAttack.enabled = !HoldAttack.enabled),
@@ -121,7 +122,9 @@ public class ZephyrMenuScreen extends Screen {
                 new MenuButtonSpec(ZephyrMenuScreen::getFogText, () -> disableFogRendering.enabled = !disableFogRendering.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getFirstPersonParticlesText, () -> disableFirstPersonEffectParticles.enabled = !disableFirstPersonEffectParticles.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getRainText, () -> disableRainEffects.enabled = !disableRainEffects.enabled),
-                new MenuButtonSpec(ZephyrMenuScreen::getDeadMobRenderingText, () -> disableDeadMobRendering.enabled = !disableDeadMobRendering.enabled)
+                new MenuButtonSpec(ZephyrMenuScreen::getDeadMobRenderingText, () -> disableDeadMobRendering.enabled = !disableDeadMobRendering.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getBreachSwapText, () -> BreachSwap.enabled = !BreachSwap.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getPearlCatchText, () -> PearlCatch.enabled = !PearlCatch.enabled)
         };
 
         int availableWidth = Math.max(BUTTON_MIN_WIDTH, this.width - (HORIZONTAL_MARGIN * 2));
@@ -508,6 +511,10 @@ public class ZephyrMenuScreen extends Screen {
         return Text.literal("Fast Attack: " + (FastAttack.enabled ? "ON" : "OFF"));
     }
 
+    private static Text getShieldBreakerText() {
+        return Text.literal("Shield Breaker: " + (ShieldBreaker.enabled ? "ON" : "OFF"));
+    }
+
     private static Text getFastUseText() {
         return Text.literal("Fast Use: " + (FastUse.enabled ? "ON" : "OFF"));
     }
@@ -595,6 +602,14 @@ public class ZephyrMenuScreen extends Screen {
 
     private static Text getDeadMobRenderingText() {
         return Text.literal("Disable Dead Mob Rendering: " + (disableDeadMobRendering.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getBreachSwapText() {
+        return Text.literal("Breach Swap: " + (BreachSwap.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getPearlCatchText() {
+        return Text.literal("Pearl Catch: " + (PearlCatch.enabled ? "ON" : "OFF"));
     }
 
     private static final class MenuButtonSpec {

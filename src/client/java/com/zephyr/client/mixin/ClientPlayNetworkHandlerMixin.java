@@ -1,9 +1,16 @@
 package com.zephyr.client.mixin;
 
+import com.zephyr.client.ZephyrClient;
+import com.zephyr.client.module.EntityControl;
 import com.zephyr.client.module.ItemRestock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.PacketCallbacks;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.c2s.play.VehicleMoveC2SPacket;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
+import net.minecraft.network.packet.s2c.play.VehicleMoveS2CPacket;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,4 +31,13 @@ public class ClientPlayNetworkHandlerMixin {
             ItemRestock.onTotemPop(mc);
         }
     }
+
+    @Inject(method = "onVehicleMove", at = @At("HEAD"), cancellable = true)
+    private void onVehicleMove(VehicleMoveS2CPacket packet, CallbackInfo ci) {
+
+        if (EntityControl.onReceivePacket(packet)) {
+            ci.cancel();
+        }
+    }
+
 }

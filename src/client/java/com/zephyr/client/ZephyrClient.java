@@ -39,5 +39,6 @@ public class ZephyrClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(PeriodicUse::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(PeriodicAttack::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(FastUse::tick);
+		ClientTickEvents.END_CLIENT_TICK.register(client -> EntityControl.tick());
 	}
 }

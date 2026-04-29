@@ -120,7 +120,7 @@ public final class ZephyrKeybindManager {
 
     public enum Action {
         OPEN_MENU("Open Menu", GLFW.GLFW_KEY_ENTER),
-        BLINK("Use Blink", GLFW.GLFW_KEY_B),
+        BLINK("Use Blink", UNBOUND_KEY),
         AUTO_RESPAWN("AutoRespawn", UNBOUND_KEY),
         STEP("Step", UNBOUND_KEY),
         SPRINT("Sprint", UNBOUND_KEY),
@@ -143,6 +143,7 @@ public final class ZephyrKeybindManager {
         JESUS("Jesus", UNBOUND_KEY),
         AUTO_TOOL("AutoTool", UNBOUND_KEY),
         FAST_ATTACK("Fast Attack", UNBOUND_KEY),
+        SHIELD_BREAKER("Shield Breaker", UNBOUND_KEY),
         FAST_USE("Fast Use", UNBOUND_KEY),
         GHOST_HAND("GhostHand", UNBOUND_KEY),
         HOLD_ATTACK("Hold Attack", UNBOUND_KEY),
@@ -168,7 +169,10 @@ public final class ZephyrKeybindManager {
         PEARL_BOOST("Pearl Boost", UNBOUND_KEY),
         HIGH_JUMP("High Jump", UNBOUND_KEY),
         LONG_JUMP("Long Jump", UNBOUND_KEY),
-        AERODYNAMICS("Aerodynamics", UNBOUND_KEY);
+        AERODYNAMICS("Aerodynamics", UNBOUND_KEY),
+        BREACHSWAP("Breach Swap", UNBOUND_KEY),
+        PEARLCATCH("Pearl Catch", UNBOUND_KEY);
+
 
         private final String displayName;
         private final int defaultSpecificKeyCode;
@@ -230,60 +234,84 @@ public final class ZephyrKeybindManager {
 
                 Blink.toggle();
             }
-            case AUTO_RESPAWN -> toggleAndSave(() -> AutoRespawn.enabled = !AutoRespawn.enabled);
-            case STEP -> toggleAndSave(() -> Step.setEnabled(!Step.isEnabled()));
-            case SPRINT -> toggleAndSave(() -> Sprint.enabled = !Sprint.enabled);
-            case ANTI_HUNGER -> toggleAndSave(() -> AntiHunger.enabled = !AntiHunger.enabled);
-            case ELYTRA_BOOST -> toggleAndSave(() -> ElytraBoost.enabled = !ElytraBoost.enabled);
-            case ELYTRA_SWAP -> toggleAndSave(() -> ElytraSwap.enabled = !ElytraSwap.enabled);
-            case NO_FALL -> toggleAndSave(() -> NoFall.enabled = !NoFall.enabled);
-            case ITEM_RESTOCK -> toggleAndSave(() -> ItemRestock.enabled = !ItemRestock.enabled);
-            case DURABILITY_SWAP -> toggleAndSave(() -> DurabilitySwap.enabled = !DurabilitySwap.enabled);
+        
+            case AUTO_RESPAWN -> toggleAndSave(action.getDisplayName(), () -> AutoRespawn.enabled = !AutoRespawn.enabled, () -> AutoRespawn.enabled);
+            case STEP -> toggleAndSave(action.getDisplayName(), () -> Step.setEnabled(!Step.isEnabled()), () -> Step.enabled);
+            case SPRINT -> toggleAndSave(action.getDisplayName(), () -> Sprint.enabled = !Sprint.enabled, () -> Sprint.enabled);
+            case ANTI_HUNGER -> toggleAndSave(action.getDisplayName(), () -> AntiHunger.enabled = !AntiHunger.enabled, () -> AntiHunger.enabled);
+            case ELYTRA_BOOST -> toggleAndSave(action.getDisplayName(), () -> ElytraBoost.enabled = !ElytraBoost.enabled, () -> ElytraBoost.enabled);
+            case ELYTRA_SWAP -> toggleAndSave(action.getDisplayName(), () -> ElytraSwap.enabled = !ElytraSwap.enabled, () -> ElytraSwap.enabled);
+            case NO_FALL -> toggleAndSave(action.getDisplayName(), () -> NoFall.enabled = !NoFall.enabled, () -> NoFall.enabled);
+            case ITEM_RESTOCK -> toggleAndSave(action.getDisplayName(), () -> ItemRestock.enabled = !ItemRestock.enabled, () -> ItemRestock.enabled);
+            case DURABILITY_SWAP -> toggleAndSave(action.getDisplayName(), () -> DurabilitySwap.enabled = !DurabilitySwap.enabled, () -> DurabilitySwap.enabled);
             case HOTBAR_ROW_SWAP -> {
             }
-            case TRIDENT_BOOST -> toggleAndSave(() -> TridentBoost.enabled = !TridentBoost.enabled);
-            case BLINK_ENABLED -> toggleAndSave(() -> Blink.CanUseKeybind = !Blink.CanUseKeybind);
-            case HOTBAR_ROW_SWAP_ENABLED -> toggleAndSave(() -> HotbarRowSwap.enabled = !HotbarRowSwap.enabled);
-            case AIR_JUMP -> toggleAndSave(() -> AirJump.setEnabled(!AirJump.enabled));
-            case FLIGHT -> toggleAndSave(() -> Flight.setEnabled(!Flight.enabled));
-            case FREE_CAM -> toggleAndSave(() -> FreeCam.setEnabled(!FreeCam.enabled));
-            case F5_TWEAKS -> toggleAndSave(() -> F5Tweaks.enabled = !F5Tweaks.enabled);
-            case GUI_MOVE -> toggleAndSave(() -> GuiMove.enabled = !GuiMove.enabled);
-            case CRITICALS -> toggleAndSave(() -> Criticals.enabled = !Criticals.enabled);
-            case JESUS -> toggleAndSave(() -> Jesus.enabled = !Jesus.enabled);
-            case AUTO_TOOL -> toggleAndSave(() -> AutoTool.enabled = !AutoTool.enabled);
-            case FAST_ATTACK -> toggleAndSave(() -> FastAttack.enabled = !FastAttack.enabled);
-            case FAST_USE -> toggleAndSave(() -> FastUse.enabled = !FastUse.enabled);
-            case GHOST_HAND -> toggleAndSave(() -> GhostHand.enabled = !GhostHand.enabled);
-            case HOLD_ATTACK -> toggleAndSave(() -> HoldAttack.enabled = !HoldAttack.enabled);
-            case HOLD_USE -> toggleAndSave(() -> HoldUse.enabled = !HoldUse.enabled);
-            case PERIODIC_ATTACK -> toggleAndSave(() -> PeriodicAttack.enabled = !PeriodicAttack.enabled);
-            case PERIODIC_USE -> toggleAndSave(() -> PeriodicUse.enabled = !PeriodicUse.enabled);
-            case PICK_BEFORE_PLACE -> toggleAndSave(() -> PickBeforePlace.enabled = !PickBeforePlace.enabled);
-            case RENDER_INVISIBILITY -> toggleAndSave(() -> RenderInvisibility.enabled = !RenderInvisibility.enabled);
-            case SNEAK -> toggleAndSave(() -> Sneak.enabled = !Sneak.enabled);
-            case PORTAL_GUI_CLOSING -> toggleAndSave(() -> disablePortalGuiClosing.enabled = !disablePortalGuiClosing.enabled);
-            case DEAD_MOB_INTERACTION -> toggleAndSave(() -> disableDeadMobInteraction.enabled = !disableDeadMobInteraction.enabled);
-            case AXE_STRIPPING -> toggleAndSave(() -> disableAxeStripping.enabled = !disableAxeStripping.enabled);
-            case SHOVEL_PATHING -> toggleAndSave(() -> disableShovelPathing.enabled = !disableShovelPathing.enabled);
-            case BREAK_COOLDOWN -> toggleAndSave(() -> disableBlockBreakingCooldown.enabled = !disableBlockBreakingCooldown.enabled);
-            case BREAK_PARTICLES -> toggleAndSave(() -> disableBlockBreakingParticles.enabled = !disableBlockBreakingParticles.enabled);
-            case INVENTORY_EFFECTS -> toggleAndSave(() -> disableInventoryEffectRendering.enabled = !disableInventoryEffectRendering.enabled);
-            case NAUSEA_OVERLAY -> toggleAndSave(() -> disableNauseaOverlay.enabled = !disableNauseaOverlay.enabled);
-            case PORTAL_SOUND -> toggleAndSave(() -> disableNetherPortalSound.enabled = !disableNetherPortalSound.enabled);
-            case FOG -> toggleAndSave(() -> disableFogRendering.enabled = !disableFogRendering.enabled);
-            case FIRST_PERSON_PARTICLES -> toggleAndSave(() -> disableFirstPersonEffectParticles.enabled = !disableFirstPersonEffectParticles.enabled);
-            case RAIN -> toggleAndSave(() -> disableRainEffects.enabled = !disableRainEffects.enabled);
-            case DEAD_MOB_RENDERING -> toggleAndSave(() -> disableDeadMobRendering.enabled = !disableDeadMobRendering.enabled);
-            case PEARL_BOOST -> toggleAndSave(() -> PearlBoost.enabled = !PearlBoost.enabled);
-            case HIGH_JUMP -> toggleAndSave(() -> HighJump.enabled = !HighJump.enabled);
-            case LONG_JUMP -> toggleAndSave(() -> LongJump.setEnabled(!LongJump.enabled));
-            case AERODYNAMICS -> toggleAndSave(() -> Aerodynamics.enabled = !Aerodynamics.enabled);
+            case TRIDENT_BOOST -> toggleAndSave(action.getDisplayName(), () -> TridentBoost.enabled = !TridentBoost.enabled,() -> TridentBoost.enabled);
+            case BLINK_ENABLED -> toggleAndSave(action.getDisplayName(), () -> Blink.CanUseKeybind = !Blink.CanUseKeybind, () -> Blink.CanUseKeybind);
+            case HOTBAR_ROW_SWAP_ENABLED -> toggleAndSave(action.getDisplayName(), () -> HotbarRowSwap.enabled = !HotbarRowSwap.enabled, () -> HotbarRowSwap.enabled);
+            case AIR_JUMP -> toggleAndSave(action.getDisplayName(), () -> AirJump.setEnabled(!AirJump.enabled), () -> AirJump.enabled);
+            case FLIGHT -> toggleAndSave(action.getDisplayName(), () -> Flight.setEnabled(!Flight.enabled), () -> Flight.enabled);
+            case FREE_CAM -> toggleAndSave(action.getDisplayName(), () -> FreeCam.setEnabled(!FreeCam.enabled), () -> FreeCam.enabled);
+            case F5_TWEAKS -> toggleAndSave(action.getDisplayName(), () -> F5Tweaks.enabled = !F5Tweaks.enabled, () -> F5Tweaks.enabled);
+            case GUI_MOVE -> toggleAndSave(action.getDisplayName(), () -> GuiMove.enabled = !GuiMove.enabled, () -> GuiMove.enabled);
+            case CRITICALS -> toggleAndSave(action.getDisplayName(), () -> Criticals.enabled = !Criticals.enabled, () -> Criticals.enabled);
+            case JESUS -> toggleAndSave(action.getDisplayName(), () -> Jesus.enabled = !Jesus.enabled, () -> Jesus.enabled);
+            case AUTO_TOOL -> toggleAndSave(action.getDisplayName(), () -> AutoTool.enabled = !AutoTool.enabled, () -> AutoTool.enabled);
+            case FAST_ATTACK -> toggleAndSave(action.getDisplayName(), () -> FastAttack.enabled = !FastAttack.enabled, () -> FastAttack.enabled);
+            case SHIELD_BREAKER -> toggleAndSave(action.getDisplayName(), () -> ShieldBreaker.enabled = !ShieldBreaker.enabled, () -> ShieldBreaker.enabled);
+            case FAST_USE -> toggleAndSave(action.getDisplayName(), () -> FastUse.enabled = !FastUse.enabled, () -> FastUse.enabled);
+            case GHOST_HAND -> toggleAndSave(action.getDisplayName(), () -> GhostHand.enabled = !GhostHand.enabled, () -> GhostHand.enabled);
+            case HOLD_ATTACK -> toggleAndSave(action.getDisplayName(), () -> HoldAttack.enabled = !HoldAttack.enabled, () -> HoldAttack.enabled);
+            case HOLD_USE -> toggleAndSave(action.getDisplayName(), () -> HoldUse.enabled = !HoldUse.enabled, () -> HoldUse.enabled);
+            case PERIODIC_ATTACK -> toggleAndSave(action.getDisplayName(), () -> PeriodicAttack.enabled = !PeriodicAttack.enabled, () -> PeriodicAttack.enabled);
+            case PERIODIC_USE -> toggleAndSave(action.getDisplayName(), () -> PeriodicUse.enabled = !PeriodicUse.enabled, () -> PeriodicUse.enabled);
+            case PICK_BEFORE_PLACE -> toggleAndSave(action.getDisplayName(), () -> PickBeforePlace.enabled = !PickBeforePlace.enabled, () -> PickBeforePlace.enabled);
+            case RENDER_INVISIBILITY -> toggleAndSave(action.getDisplayName(), () -> RenderInvisibility.enabled = !RenderInvisibility.enabled, () -> RenderInvisibility.enabled);
+            case SNEAK -> toggleAndSave(action.getDisplayName(), () -> Sneak.enabled = !Sneak.enabled, () -> Sneak.enabled);
+            case PORTAL_GUI_CLOSING -> toggleAndSave(action.getDisplayName(), () -> disablePortalGuiClosing.enabled = !disablePortalGuiClosing.enabled, () -> disablePortalGuiClosing.enabled);
+            case DEAD_MOB_INTERACTION -> toggleAndSave(action.getDisplayName(), () -> disableDeadMobInteraction.enabled = !disableDeadMobInteraction.enabled, () -> disableDeadMobInteraction.enabled);
+            case AXE_STRIPPING -> toggleAndSave(action.getDisplayName(), () -> disableAxeStripping.enabled = !disableAxeStripping.enabled, () -> disableAxeStripping.enabled);
+            case SHOVEL_PATHING -> toggleAndSave(action.getDisplayName(), () -> disableShovelPathing.enabled = !disableShovelPathing.enabled, () -> disableShovelPathing.enabled);
+            case BREAK_COOLDOWN -> toggleAndSave(action.getDisplayName(), () -> disableBlockBreakingCooldown.enabled = !disableBlockBreakingCooldown.enabled, () -> disableBlockBreakingCooldown.enabled);
+            case BREAK_PARTICLES -> toggleAndSave(action.getDisplayName(), () -> disableBlockBreakingParticles.enabled = !disableBlockBreakingParticles.enabled, () -> disableBlockBreakingParticles.enabled);
+            case INVENTORY_EFFECTS -> toggleAndSave(action.getDisplayName(), () -> disableInventoryEffectRendering.enabled = !disableInventoryEffectRendering.enabled, () -> disableInventoryEffectRendering.enabled);
+            case NAUSEA_OVERLAY -> toggleAndSave(action.getDisplayName(), () -> disableNauseaOverlay.enabled = !disableNauseaOverlay.enabled, () -> disableNauseaOverlay.enabled);
+            case PORTAL_SOUND -> toggleAndSave(action.getDisplayName(), () -> disableNetherPortalSound.enabled = !disableNetherPortalSound.enabled, () -> disableNetherPortalSound.enabled);
+            case FOG -> toggleAndSave(action.getDisplayName(), () -> disableFogRendering.enabled = !disableFogRendering.enabled, () -> disableFogRendering.enabled);
+            case FIRST_PERSON_PARTICLES -> toggleAndSave(action.getDisplayName(), () -> disableFirstPersonEffectParticles.enabled = !disableFirstPersonEffectParticles.enabled, () -> disableFirstPersonEffectParticles.enabled);
+            case RAIN -> toggleAndSave(action.getDisplayName(), () -> disableRainEffects.enabled = !disableRainEffects.enabled, () -> disableRainEffects.enabled);
+            case DEAD_MOB_RENDERING -> toggleAndSave(action.getDisplayName(), () -> disableDeadMobRendering.enabled = !disableDeadMobRendering.enabled, () -> disableDeadMobRendering.enabled);
+            case PEARL_BOOST -> toggleAndSave(action.getDisplayName(), () -> PearlBoost.enabled = !PearlBoost.enabled, () -> PearlBoost.enabled);
+            case HIGH_JUMP -> toggleAndSave(action.getDisplayName(), () -> HighJump.enabled = !HighJump.enabled, () -> HighJump.enabled);
+            case LONG_JUMP -> toggleAndSave(action.getDisplayName(), () -> LongJump.setEnabled(!LongJump.enabled), () -> LongJump.enabled);
+            case AERODYNAMICS -> toggleAndSave(action.getDisplayName(), () -> Aerodynamics.enabled = !Aerodynamics.enabled, () -> Aerodynamics.enabled);
+            case BREACHSWAP -> toggleAndSave(action.getDisplayName(), () -> BreachSwap.enabled = !BreachSwap.enabled, () -> BreachSwap.enabled);
+            case PEARLCATCH -> toggleAndSave(action.getDisplayName(), () -> PearlCatch.enabled = !PearlCatch.enabled, () -> PearlCatch.enabled);
         }
     }
 
-    private static void toggleAndSave(Runnable toggle) {
+    private static void toggleAndSave(String name, Runnable toggle, java.util.function.Supplier<?> stateSupplier) {
         toggle.run();
         ZephyrConfig.saveCurrentState();
+
+        Object state = stateSupplier != null ? stateSupplier.get() : "";
+        sendOverlay(name, state);
+}
+
+    private static void sendOverlay(String name, Object state) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null) return;
+
+        String message;
+
+        if (state instanceof Boolean b) {
+            message = "Toggled " + name + " " + (b ? "§aON" : "§cOFF");
+        } else if (state != null && !state.toString().isEmpty()) {
+            message = "toggled " + name + " " + state.toString().toUpperCase();
+        } else {
+            message = "toggled " + name;
+        }
+
+        client.player.sendMessage(Text.literal(message), true);
     }
 }
