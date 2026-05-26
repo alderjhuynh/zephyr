@@ -1,7 +1,9 @@
 package com.zephyr.client;
 
 import com.zephyr.client.keybind.ZephyrKeybindManager;
-import com.zephyr.client.module.*;
+import com.zephyr.client.module.combat.LungeSwap;
+import com.zephyr.client.module.movement.*;
+import com.zephyr.client.module.qol.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
@@ -34,11 +36,13 @@ public class ZephyrClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(FreeCam::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(ItemRestock::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(HotbarRowSwap::tick);
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {DurabilitySwap.onTick();});
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			DurabilitySwap.onTick();});
 		ClientTickEvents.END_CLIENT_TICK.register(FastAttack::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(PeriodicUse::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(PeriodicAttack::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(FastUse::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> EntityControl.tick());
+		ClientTickEvents.END_CLIENT_TICK.register(client -> LungeSwap.tick());
 	}
 }

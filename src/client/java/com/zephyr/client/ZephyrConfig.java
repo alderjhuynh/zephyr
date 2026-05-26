@@ -2,9 +2,14 @@ package com.zephyr.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.zephyr.client.disable.*;
 import com.zephyr.client.keybind.ZephyrKeybindManager;
-import com.zephyr.client.module.*;
+import com.zephyr.client.module.combat.Criticals;
+import com.zephyr.client.module.combat.MaceSwap;
+import com.zephyr.client.module.combat.PearlCatch;
+import com.zephyr.client.module.combat.ShieldBreaker;
+import com.zephyr.client.module.disable.*;
+import com.zephyr.client.module.movement.*;
+import com.zephyr.client.module.qol.*;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -359,8 +364,9 @@ public final class ZephyrConfig {
             Flight.setEnabled(config.flightEnabled);
             FreeCam.setEnabled(config.freeCamEnabled);
             SpeedMine.setMode(config.getSpeedMineMode());
-            BreachSwap.enabled = config.BreachSwapEnabled;
+            MaceSwap.enabled = config.BreachSwapEnabled;
             PearlCatch.enabled = config.PearlCatchEnabled;
+            ArmorRenderer.enabled = config.armorRendererEnabled;
         } finally {
             suppressSaves = false;
         }
@@ -464,8 +470,9 @@ public final class ZephyrConfig {
         private static final boolean FLIGHT_ENABLED = Flight.enabled;
         private static final boolean FREE_CAM_ENABLED = FreeCam.enabled;
         private static final String SPEED_MINE_MODE = SpeedMine.mode.name();
-        private static final boolean BREACH_SWAP_ENABLED = BreachSwap.enabled;
+        private static final boolean BREACH_SWAP_ENABLED = MaceSwap.enabled;
         private static final boolean PEARL_CATCH_ENABLED = PearlCatch.enabled;
+        private static final boolean ARMOR_RENDERER_ENABLED = ArmorRenderer.enabled;
     }
 
     private static final class ConfigData {
@@ -535,6 +542,7 @@ public final class ZephyrConfig {
         private String speedMineMode = Defaults.SPEED_MINE_MODE;
         private boolean BreachSwapEnabled = Defaults.BREACH_SWAP_ENABLED;
         private boolean PearlCatchEnabled = Defaults.PEARL_CATCH_ENABLED;
+        private boolean armorRendererEnabled = Defaults.ARMOR_RENDERER_ENABLED;
 
         private static ConfigData captureCurrentState() {
             ConfigData data = new ConfigData();
@@ -602,8 +610,9 @@ public final class ZephyrConfig {
             data.flightEnabled = Flight.enabled;
             data.freeCamEnabled = FreeCam.enabled;
             data.speedMineMode = SpeedMine.mode.name();
-            data.BreachSwapEnabled = BreachSwap.enabled;
+            data.BreachSwapEnabled = MaceSwap.enabled;
             data.PearlCatchEnabled = PearlCatch.enabled;
+            data.armorRendererEnabled = ArmorRenderer.enabled;
             return data;
         }
 

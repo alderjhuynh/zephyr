@@ -1,10 +1,15 @@
 package com.zephyr.client.keybind;
 
 import com.zephyr.client.ZephyrConfig;
-import com.zephyr.client.disable.*;
 import com.zephyr.client.gui.ZephyrKeybindsScreen;
 import com.zephyr.client.gui.ZephyrMenuScreen;
-import com.zephyr.client.module.*;
+import com.zephyr.client.module.combat.Criticals;
+import com.zephyr.client.module.combat.MaceSwap;
+import com.zephyr.client.module.combat.PearlCatch;
+import com.zephyr.client.module.combat.ShieldBreaker;
+import com.zephyr.client.module.disable.*;
+import com.zephyr.client.module.movement.*;
+import com.zephyr.client.module.qol.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.InputUtil;
@@ -285,7 +290,7 @@ public final class ZephyrKeybindManager {
             case HIGH_JUMP -> toggleAndSave(action.getDisplayName(), () -> HighJump.enabled = !HighJump.enabled, () -> HighJump.enabled);
             case LONG_JUMP -> toggleAndSave(action.getDisplayName(), () -> LongJump.setEnabled(!LongJump.enabled), () -> LongJump.enabled);
             case AERODYNAMICS -> toggleAndSave(action.getDisplayName(), () -> Aerodynamics.enabled = !Aerodynamics.enabled, () -> Aerodynamics.enabled);
-            case BREACHSWAP -> toggleAndSave(action.getDisplayName(), () -> BreachSwap.enabled = !BreachSwap.enabled, () -> BreachSwap.enabled);
+            case BREACHSWAP -> toggleAndSave(action.getDisplayName(), () -> MaceSwap.enabled = !MaceSwap.enabled, () -> MaceSwap.enabled);
             case PEARLCATCH -> toggleAndSave(action.getDisplayName(), () -> PearlCatch.enabled = !PearlCatch.enabled, () -> PearlCatch.enabled);
         }
     }

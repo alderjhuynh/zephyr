@@ -1,8 +1,13 @@
 package com.zephyr.client.gui;
 
 import com.zephyr.client.*;
-import com.zephyr.client.disable.*;
-import com.zephyr.client.module.*;
+import com.zephyr.client.module.combat.Criticals;
+import com.zephyr.client.module.combat.MaceSwap;
+import com.zephyr.client.module.combat.PearlCatch;
+import com.zephyr.client.module.combat.ShieldBreaker;
+import com.zephyr.client.module.disable.*;
+import com.zephyr.client.module.movement.*;
+import com.zephyr.client.module.qol.*;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -123,8 +128,9 @@ public class ZephyrMenuScreen extends Screen {
                 new MenuButtonSpec(ZephyrMenuScreen::getFirstPersonParticlesText, () -> disableFirstPersonEffectParticles.enabled = !disableFirstPersonEffectParticles.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getRainText, () -> disableRainEffects.enabled = !disableRainEffects.enabled),
                 new MenuButtonSpec(ZephyrMenuScreen::getDeadMobRenderingText, () -> disableDeadMobRendering.enabled = !disableDeadMobRendering.enabled),
-                new MenuButtonSpec(ZephyrMenuScreen::getBreachSwapText, () -> BreachSwap.enabled = !BreachSwap.enabled),
-                new MenuButtonSpec(ZephyrMenuScreen::getPearlCatchText, () -> PearlCatch.enabled = !PearlCatch.enabled)
+                new MenuButtonSpec(ZephyrMenuScreen::getBreachSwapText, () -> MaceSwap.enabled = !MaceSwap.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getPearlCatchText, () -> PearlCatch.enabled = !PearlCatch.enabled),
+                new MenuButtonSpec(ZephyrMenuScreen::getArmorRendererText, () -> ArmorRenderer.enabled = !ArmorRenderer.enabled)
         };
 
         int availableWidth = Math.max(BUTTON_MIN_WIDTH, this.width - (HORIZONTAL_MARGIN * 2));
@@ -605,11 +611,15 @@ public class ZephyrMenuScreen extends Screen {
     }
 
     private static Text getBreachSwapText() {
-        return Text.literal("Breach Swap: " + (BreachSwap.enabled ? "ON" : "OFF"));
+        return Text.literal("Breach Swap: " + (MaceSwap.enabled ? "ON" : "OFF"));
     }
 
     private static Text getPearlCatchText() {
         return Text.literal("Pearl Catch: " + (PearlCatch.enabled ? "ON" : "OFF"));
+    }
+
+    private static Text getArmorRendererText() {
+        return Text.literal("Armor Renderer: " + (ArmorRenderer.enabled ? "ON" : "OFF"));
     }
 
     private static final class MenuButtonSpec {
