@@ -1,0 +1,111 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+	// Add repositories to retrieve artifacts from in here.
+	// You should only use this when depending on other mods because
+	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+	// for more information about repositories.
+
+	// Needed for the DiscordIPC library used for Discord Rich Presence.
+	mavenCentral()
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"zephyr" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+configurations {
+	// Artifacts placed in here are bundled straight into the mod jar (Fabric Loader's
+	// "Jar-in-Jar") so players don't need to install anything themselves.
+	shade
+	clientImplementation.extendsFrom shade
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Fabric API. This is technically optional, but you probably want it anyway.
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Discord Rich Presence (client-only). slf4j-api and gson are excluded since
+	// Minecraft/Fabric already provide both at runtime; using our own copies could conflict.
+	shade("io.github.cdagaming:DiscordIPC:${project.discordipc_version}") {
+		exclude group: "org.slf4j"
+		exclude group: "com.google.code.gson"
+	}
+}
+
+// Bundle every jar resolved from the "shade" configuration (DiscordIPC itself plus its
+// transitive dependencies, e.g. junixsocket and the small lenni0451 reflection helper it
+// uses on Windows) into the built mod jar via Loom's Jar-in-Jar ("include" configuration).
+afterEvaluate {
+	configurations.shade.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+		def id = artifact.moduleVersion.id
+		dependencies.add("include", "${id.group}:${id.name}:${id.version}")
+	}
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+}
+
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName"}
+	}
+}
+
+// configure the maven publication
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			from components.java
+		}
+	}
+
+	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+	repositories {
+		// Add repositories to publish to here.
+		// Notice: This block does NOT have the same function as the block in the top level.
+		// The repositories here will be used for publishing your artifact, not for
+		// retrieving dependencies.
+	}
+}
