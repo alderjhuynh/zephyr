@@ -6,11 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.zephyr.Zephyr;
-import com.zephyr.client.configplusgui.Module;
-import com.zephyr.client.configplusgui.BooleanSetting;
-import com.zephyr.client.configplusgui.EnumSetting;
-import com.zephyr.client.configplusgui.NumberSetting;
-import com.zephyr.client.configplusgui.Setting;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
@@ -23,7 +18,9 @@ import java.util.List;
 
 /**
  * Persists every module's enabled state and setting values to
- * {@code .minecraft/config/zephyr/modules.json}.
+ * {@code .minecraft/config/zephyr/modules.json}. The read/write helpers for a single
+ * module's state are package-visible so {@link ProfileManager} can reuse the exact
+ * same (de)serialization for its own named snapshots instead of duplicating it.
  */
 public final class ConfigManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -43,30 +40,62 @@ public final class ConfigManager {
         try (Reader reader = Files.newBufferedReader(CONFIG_PATH, StandardCharsets.UTF_8)) {
             JsonElement root = JsonParser.parseReader(reader);
             if (!root.isJsonObject()) return;
-            JsonObject moduleStates = root.getAsJsonObject();
-
-            for (Module module : modules) {
-                if (!moduleStates.has(module.getName())) continue;
-                JsonObject data = moduleStates.getAsJsonObject(module.getName());
-
-                if (data.has("enabled")) {
-                    module.setEnabledSilently(data.get("enabled").getAsBoolean());
-                }
-
-                if (data.has("settings")) {
-                    JsonObject settingsJson = data.getAsJsonObject("settings");
-                    for (Setting<?> setting : module.getSettings()) {
-                        if (!settingsJson.has(setting.getName())) continue;
-                        applySettingValue(setting, settingsJson.get(setting.getName()));
-                    }
-                }
-            }
+            applyModuleStates(root.getAsJsonObject(), modules, false);
         } catch (IOException | RuntimeException e) {
             Zephyr.LOGGER.warn("[Zephyr] Failed to load module config, falling back to defaults.", e);
         }
     }
 
     public static void save(List<Module> modules) {
+        JsonObject root = writeModuleStates(modules);
+
+        try {
+            Files.createDirectories(CONFIG_PATH.getParent());
+            try (Writer writer = Files.newBufferedWriter(CONFIG_PATH, StandardCharsets.UTF_8)) {
+                GSON.toJson(root, writer);
+            }
+        } catch (IOException e) {
+            Zephyr.LOGGER.warn("[Zephyr] Failed to save module config.", e);
+        }
+    }
+
+    /**
+     * Applies a {@code {moduleName: {enabled, settings}}} snapshot (as produced by
+     * {@link #writeModuleStates}) onto the given live modules. Modules or settings not
+     * present in {@code moduleStates} are left untouched.
+     *
+     * @param live if true, changes to a module's enabled flag go through
+     *             {@link Module#setEnabled(boolean)} so {@code onEnable()}/{@code onDisable()}
+     *             actually fire - use this for a runtime profile switch. If false, uses
+     *             {@link Module#setEnabledSilently(boolean)} - use this for the initial
+     *             config load at startup, before the game is ready for those side effects.
+     */
+    static void applyModuleStates(JsonObject moduleStates, List<Module> modules, boolean live) {
+        for (Module module : modules) {
+            if (!moduleStates.has(module.getName())) continue;
+            JsonObject data = moduleStates.getAsJsonObject(module.getName());
+
+            if (data.has("enabled")) {
+                boolean enabled = data.get("enabled").getAsBoolean();
+                if (live) {
+                    module.setEnabled(enabled);
+                } else {
+                    module.setEnabledSilently(enabled);
+                }
+            }
+
+            if (data.has("settings")) {
+                JsonObject settingsJson = data.getAsJsonObject("settings");
+                for (Setting<?> setting : module.getSettings()) {
+                    if (!settingsJson.has(setting.getName())) continue;
+                    applySettingValue(setting, settingsJson.get(setting.getName()));
+                }
+            }
+        }
+    }
+
+    /** Snapshots every module's enabled state and setting values into a {@code {moduleName: {enabled, settings}}} object. */
+    static JsonObject writeModuleStates(List<Module> modules) {
         JsonObject root = new JsonObject();
 
         for (Module module : modules) {
@@ -82,14 +111,7 @@ public final class ConfigManager {
             root.add(module.getName(), data);
         }
 
-        try {
-            Files.createDirectories(CONFIG_PATH.getParent());
-            try (Writer writer = Files.newBufferedWriter(CONFIG_PATH, StandardCharsets.UTF_8)) {
-                GSON.toJson(root, writer);
-            }
-        } catch (IOException e) {
-            Zephyr.LOGGER.warn("[Zephyr] Failed to save module config.", e);
-        }
+        return root;
     }
 
     private static void applySettingValue(Setting<?> setting, JsonElement element) {

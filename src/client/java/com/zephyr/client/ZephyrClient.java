@@ -1,7 +1,9 @@
 package com.zephyr.client;
 
+import com.zephyr.client.configplusgui.KeybindManager;
 import com.zephyr.client.configplusgui.ModuleManager;
 import com.zephyr.client.configplusgui.GuiKeybindHandler;
+import com.zephyr.client.configplusgui.ProfileManager;
 import com.zephyr.client.discord.DiscordPresenceManager;
 import com.zephyr.client.module.combat.KillWyvern;
 import com.zephyr.client.module.movement.AirJump;
@@ -24,6 +26,8 @@ public class ZephyrClient implements ClientModInitializer {
 
 
 		ModuleManager.init();
+		ProfileManager.init();
+		KeybindManager.init();
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			guiKeybindHandler.tick(client);

@@ -58,7 +58,9 @@ public abstract class KeyboardInputMixin {
 
         float forwardImpulse = zephyr$calculateImpulse(forward, backward);
         float leftImpulse = zephyr$calculateImpulse(left, right);
-        accessor.zephyr$setMoveVector(new Vec2(leftImpulse, forwardImpulse).normalized());
+        if (GuiMove.INSTANCE.isEnabled()) {
+            accessor.zephyr$setMoveVector(new Vec2(leftImpulse, forwardImpulse).normalized());
+        }
 
         ci.cancel();
     }

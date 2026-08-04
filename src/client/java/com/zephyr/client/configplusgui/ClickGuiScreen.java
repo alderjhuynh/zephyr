@@ -1,16 +1,8 @@
 package com.zephyr.client.configplusgui;
 
-import com.zephyr.client.configplusgui.Category;
-import com.zephyr.client.configplusgui.Module;
-import com.zephyr.client.configplusgui.ModuleManager;
-import com.zephyr.client.configplusgui.BooleanSetting;
-import com.zephyr.client.configplusgui.EnumSetting;
-import com.zephyr.client.configplusgui.NumberSetting;
-import com.zephyr.client.configplusgui.Setting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -19,31 +11,15 @@ import java.util.List;
 /**
  * Lunar-esque click-gui: a blurred, scrollable, searchable list of every registered
  * {@link Module}. Left-click a row to toggle it, right click to expand its settings.
- * Opened/closed via {@link com.zephyr.client.configplusgui.GuiKeybindHandler} (L + Enter).
+ * Opened/closed via the "Open Menu" keybind (L + Enter by default, see
+ * {@link KeybindManager}), and reachable from the other two Zephyr screens with the
+ * "Cycle Screen" keybind (Tab by default).
  */
-public final class ClickGuiScreen extends Screen {
-    // #d1b9eb, light lavender
-    private static final int ACCENT = 0xFFD1B9EB;
-    private static final int ACCENT_DIM = 0x66D1B9EB;
-    private static final int PANEL_BG = 0xE0141018;
-    private static final int TAB_BG = 0x30FFFFFF;
-    private static final int TAB_BG_SELECTED = 0xFFD1B9EB;
-    private static final int ROW_BG = 0x40FFFFFF;
-    private static final int ROW_BG_HOVER = 0x60FFFFFF;
-    private static final int ROW_BG_ENABLED = 0x40D1B9EB;
-    private static final int TEXT_MAIN = 0xFFF2EAFB;
-    private static final int TEXT_DIM = 0xFFAFA5C0;
-    private static final int TEXT_ON_ACCENT = 0xFF1B1420;
-
-    private static final int PANEL_WIDTH = 300;
-    private static final int PANEL_HEIGHT = 360;
-    private static final int TITLE_HEIGHT = 20;
+public final class ClickGuiScreen extends ZephyrScreen {
     private static final int TAB_HEIGHT = 18;
     private static final int SEARCH_HEIGHT = 20;
-    private static final int HEADER_HEIGHT = TITLE_HEIGHT + TAB_HEIGHT + SEARCH_HEIGHT;
     private static final int ROW_HEIGHT = 26;
     private static final int SETTING_ROW_HEIGHT = 20;
-    private static final int PADDING = 10;
 
     private final List<Module> modules = new ArrayList<>(ModuleManager.getModules());
     private String searchQuery = "";
@@ -54,20 +30,28 @@ public final class ClickGuiScreen extends Screen {
     private Module expandedModule = null;
     private NumberSetting draggingSetting = null;
 
-    private int panelX;
-    private int panelY;
-
     public ClickGuiScreen() {
-        super(Component.literal("Zephyr"));
+        this(0);
+    }
+
+    ClickGuiScreen(int enterDirection) {
+        super(Component.literal("Zephyr"), enterDirection);
     }
 
     @Override
-    protected void init() {
-        panelX = (this.width - PANEL_WIDTH) / 2;
-        panelY = (this.height - PANEL_HEIGHT) / 2;
+    protected Nav currentNav() {
+        return Nav.MAIN;
+    }
 
+    @Override
+    protected int headerHeight() {
+        return TITLE_HEIGHT + TAB_HEIGHT + SEARCH_HEIGHT;
+    }
+
+    @Override
+    protected void initWidgets() {
         int searchY = panelY + TITLE_HEIGHT + TAB_HEIGHT + 2;
-        searchBox = new EditBox(this.font, panelX + PADDING, searchY, PANEL_WIDTH - PADDING * 2, 16,
+        searchBox = new EditBox(this.font, panelX + PADDING, searchY, panelWidth - PADDING * 2, 16,
                 Component.literal("Search"));
         searchBox.setHint(Component.literal("Search modules..."));
         searchBox.setBordered(false);
@@ -79,47 +63,45 @@ public final class ClickGuiScreen extends Screen {
     }
 
     @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
-
-    @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.fill(panelX, panelY, panelX + PANEL_WIDTH, panelY + PANEL_HEIGHT, PANEL_BG);
-        graphics.fill(panelX, panelY, panelX + PANEL_WIDTH, panelY + 2, ACCENT);
+        withPanelSlide(() -> {
+            // The search box's x/y were fixed at init() time; keep it tracking the
+            // panel while a slide-cycle animation is temporarily offsetting panelX.
+            searchBox.setX(panelX + PADDING);
+            searchBox.setY(panelY + TITLE_HEIGHT + TAB_HEIGHT + 2);
 
-        graphics.text(this.font, "ZEPHYR", panelX + PADDING, panelY + 8, ACCENT, false);
+            renderChrome(graphics, mouseX, mouseY);
+            renderTabBar(graphics, mouseX, mouseY);
 
-        renderTabBar(graphics, mouseX, mouseY);
+            int listTop = panelY + headerHeight();
+            int listBottom = panelY + panelHeight - PADDING;
 
-        int listTop = panelY + HEADER_HEIGHT;
-        int listBottom = panelY + PANEL_HEIGHT - PADDING;
+            List<RowLayout> layout = computeLayout(listTop);
+            int contentHeight = layout.isEmpty() ? 0
+                    : (layout.get(layout.size() - 1).bottom() - listTop);
+            int maxScroll = Math.max(0, contentHeight - (listBottom - listTop));
+            scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
 
-        List<RowLayout> layout = computeLayout(listTop);
-        int contentHeight = layout.isEmpty() ? 0
-                : (layout.get(layout.size() - 1).bottom() - listTop);
-        int maxScroll = Math.max(0, contentHeight - (listBottom - listTop));
-        scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
+            graphics.enableScissor(panelX, listTop, panelX + panelWidth, listBottom);
+            for (RowLayout row : layout) {
+                renderRow(graphics, row, mouseX, mouseY, (int) scrollOffset);
+            }
+            graphics.disableScissor();
 
-        graphics.enableScissor(panelX, listTop, panelX + PANEL_WIDTH, listBottom);
-        for (RowLayout row : layout) {
-            renderRow(graphics, row, mouseX, mouseY, (int) scrollOffset);
-        }
-        graphics.disableScissor();
+            if (layout.isEmpty()) {
+                graphics.centeredText(this.font, "No modules found", panelX + panelWidth / 2,
+                        listTop + 20, TEXT_DIM);
+            }
 
-        if (layout.isEmpty()) {
-            graphics.centeredText(this.font, "No modules found", panelX + PANEL_WIDTH / 2,
-                    listTop + 20, TEXT_DIM);
-        }
+            if (maxScroll > 0) {
+                int trackHeight = listBottom - listTop;
+                int barHeight = Math.max(20, trackHeight * trackHeight / (trackHeight + maxScroll));
+                int barY = listTop + (int) ((trackHeight - barHeight) * (scrollOffset / (double) maxScroll));
+                graphics.fill(panelX + panelWidth - 4, barY, panelX + panelWidth - 1, barY + barHeight, ACCENT_DIM);
+            }
 
-        if (maxScroll > 0) {
-            int trackHeight = listBottom - listTop;
-            int barHeight = Math.max(20, trackHeight * trackHeight / (trackHeight + maxScroll));
-            int barY = listTop + (int) ((trackHeight - barHeight) * (scrollOffset / (double) maxScroll));
-            graphics.fill(panelX + PANEL_WIDTH - 4, barY, panelX + PANEL_WIDTH - 1, barY + barHeight, ACCENT_DIM);
-        }
-
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+            super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+        });
     }
 
     private void renderTabBar(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
@@ -141,18 +123,18 @@ public final class ClickGuiScreen extends Screen {
 
     private void renderRow(GuiGraphicsExtractor graphics, RowLayout row, int mouseX, int mouseY, int scroll) {
         int top = row.top - scroll;
-        boolean hovered = mouseX >= panelX + PADDING && mouseX <= panelX + PANEL_WIDTH - PADDING
+        boolean hovered = mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING
                 && mouseY >= top && mouseY < top + ROW_HEIGHT;
 
         int bg = row.module.isEnabled() ? ROW_BG_ENABLED : (hovered ? ROW_BG_HOVER : ROW_BG);
-        graphics.fill(panelX + PADDING, top, panelX + PANEL_WIDTH - PADDING, top + ROW_HEIGHT, bg);
+        graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT, bg);
 
         int nameColor = row.module.isEnabled() ? ACCENT : TEXT_MAIN;
         graphics.text(this.font, row.module.getName(), panelX + PADDING + 8, top + 9, nameColor, false);
 
         String tag = row.module.getCategory().getDisplayName();
         int tagWidth = this.font.width(tag);
-        graphics.text(this.font, tag, panelX + PANEL_WIDTH - PADDING - tagWidth - 8, top + 9, TEXT_DIM, false);
+        graphics.text(this.font, tag, panelX + panelWidth - PADDING - tagWidth - 8, top + 9, TEXT_DIM, false);
 
         if (row.expanded) {
             int settingTop = top + ROW_HEIGHT + 2;
@@ -165,7 +147,7 @@ public final class ClickGuiScreen extends Screen {
 
     private void renderSetting(GuiGraphicsExtractor graphics, SettingRowLayout settingRow, int top) {
         int left = panelX + PADDING + 8;
-        int right = panelX + PANEL_WIDTH - PADDING - 8;
+        int right = panelX + panelWidth - PADDING - 8;
 
         if (settingRow.setting instanceof BooleanSetting boolSetting) {
             graphics.text(this.font, settingRow.setting.getName(), left, top + 6, TEXT_DIM, false);
@@ -217,7 +199,7 @@ public final class ClickGuiScreen extends Screen {
             return true;
         }
 
-        int listTop = panelY + HEADER_HEIGHT;
+        int listTop = panelY + headerHeight();
         List<RowLayout> layout = computeLayout(listTop);
         int scroll = (int) scrollOffset;
 
@@ -225,7 +207,7 @@ public final class ClickGuiScreen extends Screen {
             int top = row.top - scroll;
 
             if (mouseY >= top && mouseY < top + ROW_HEIGHT
-                    && mouseX >= panelX + PADDING && mouseX <= panelX + PANEL_WIDTH - PADDING) {
+                    && mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING) {
                 if (button == 0) {
                     row.module.toggle();
                 } else if (button == 1) {
@@ -283,7 +265,7 @@ public final class ClickGuiScreen extends Screen {
 
     private void updateSliderFromMouse(NumberSetting setting, double mouseX) {
         int left = panelX + PADDING + 8;
-        int right = panelX + PANEL_WIDTH - PADDING - 8;
+        int right = panelX + panelWidth - PADDING - 8;
         double progress = (mouseX - left) / (double) (right - left);
         setting.setFromProgress(progress);
     }
@@ -294,17 +276,11 @@ public final class ClickGuiScreen extends Screen {
         return true;
     }
 
-    @Override
-    public void onClose() {
-        ModuleManager.saveAll();
-        super.onClose();
-    }
-
     private List<TabLayout> computeTabLayout() {
         List<TabLayout> tabs = new ArrayList<>();
         Category[] categories = Category.values();
         int tabCount = categories.length + 1; // +1 for "All"
-        int tabWidth = (PANEL_WIDTH - PADDING * 2) / tabCount;
+        int tabWidth = (panelWidth - PADDING * 2) / tabCount;
         int x = panelX + PADDING;
 
         tabs.add(new TabLayout(null, "All", x, x + tabWidth));

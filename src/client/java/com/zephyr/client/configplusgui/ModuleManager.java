@@ -1,22 +1,13 @@
 package com.zephyr.client.configplusgui;
 
+import com.zephyr.client.module.combat.KillAura.*;
+import com.zephyr.client.module.combat.AnimeProtagonist.*;
+
 import com.zephyr.client.module.combat.*;
-import com.zephyr.client.module.combat.AnimeProtagonist.AnimeProtagonist;
-import com.zephyr.client.module.combat.KillAura.KillAura;
-import com.zephyr.client.module.movement.Aerodynamics;
-import com.zephyr.client.module.movement.AirJump;
-import com.zephyr.client.module.movement.AntiHunger;
-import com.zephyr.client.module.movement.ElytraBoost;
-import com.zephyr.client.module.movement.Flight;
-import com.zephyr.client.module.movement.HighJump;
-import com.zephyr.client.module.movement.NoFall;
-import com.zephyr.client.module.movement.Sprint;
-import com.zephyr.client.module.movement.Step;
-import com.zephyr.client.module.movement.TridentBoost;
+import com.zephyr.client.module.movement.*;
 import com.zephyr.client.module.disable.*;
 import com.zephyr.client.module.qol.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.item.Potion;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -89,6 +80,7 @@ public final class ModuleManager {
         register(AutoPlace.INSTANCE);
         register(KillWyvern.INSTANCE);
         register(PotionSaver.INSTANCE);
+        register(ContainerESP.INSTANCE);
         register(DiscordPresence.INSTANCE);
 
         ConfigManager.load(MODULES);
@@ -112,5 +104,6 @@ public final class ModuleManager {
 
     public static void saveAll() {
         ConfigManager.save(MODULES);
+        ProfileManager.captureActiveProfile();
     }
 }
