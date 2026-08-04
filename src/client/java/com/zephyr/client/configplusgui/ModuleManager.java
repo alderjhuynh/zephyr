@@ -56,7 +56,6 @@ public final class ModuleManager {
         register(disableDeadMobRendering.INSTANCE);
         register(disableFirstPersonEffectParticles.INSTANCE);
         register(disableFogRendering.INSTANCE);
-        register(disableInventoryEffectRendering.INSTANCE);
         register(disableNauseaOverlay.INSTANCE);
         register(disableNetherPortalSound.INSTANCE);
         register(disablePortalGuiClosing.INSTANCE);

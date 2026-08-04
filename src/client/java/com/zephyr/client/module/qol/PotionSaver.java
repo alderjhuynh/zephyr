@@ -21,10 +21,10 @@ public final class PotionSaver extends Module {
             MobEffects.FIRE_RESISTANCE.value(),
             MobEffects.SPEED.value(),
             MobEffects.HASTE.value(),
+            MobEffects.INVISIBILITY.value(),
             MobEffects.REGENERATION.value(),
             MobEffects.WATER_BREATHING.value(),
             MobEffects.SATURATION.value(),
-            MobEffects.LUCK.value(),
             MobEffects.DOLPHINS_GRACE.value(),
             MobEffects.CONDUIT_POWER.value(),
             MobEffects.HERO_OF_THE_VILLAGE.value()

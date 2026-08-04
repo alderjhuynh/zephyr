@@ -16,7 +16,6 @@
 		"disable.DeadMobRendering.DeadMobRenderingMixin",
 		"disable.FirstPersonEffectParticles.LivingEntityRendererMixin",
 		"disable.FogRendering.BackgroundRendererMixin",
-		"disable.InventoryStatusEffects.InventoryRendererMixin",
 		"disable.NauseaOverlay.NauseaOverlayMixin",
 		"disable.NetherPortalSound.SoundManagerMixin",
 		"disable.RainEffects.NoRainRenderMixin",
@@ -52,7 +51,10 @@
 		"qol.FullBright.LightmapMixin",
 		"combat.DensitySwap.AttackMixin",
 		"combat.AutoPlace.AttackMixin",
-		"qol.PotionSaver.MobEffectInstanceMixin"
+		"qol.PotionSaver.MobEffectInstanceMixin",
+		"qol.InventoryPackets.ServerPlayerMixin",
+		"disable.PortalGuiClosing.LocalPlayerMixin",
+		"disable.NauseaOverlay.NauseaVignetteMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
