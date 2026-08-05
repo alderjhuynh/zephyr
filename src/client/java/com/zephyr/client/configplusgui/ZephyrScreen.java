@@ -27,19 +27,19 @@ public abstract class ZephyrScreen extends Screen {
     protected static final int TEXT_DIM = 0xFFAFA5C0;
     protected static final int TEXT_ON_ACCENT = 0xFF1B1420;
 
-    /** Solid accent (selected tabs, enabled rows, titles, toasts). Follows the config theme. */
+    /** Solid accent (selected tabs, enabled rows, titles, toasts). Follows the config theme / custom color. */
     protected static int accent() {
-        return GlobalConfig.themeColor().accent();
+        return GlobalConfig.accent();
     }
 
-    /** Partially transparent accent, e.g. the click-gui scroll bar. Follows the config theme. */
+    /** Partially transparent accent, e.g. the click-gui scroll bar. Follows the config theme / custom color. */
     protected static int accentDim() {
-        return GlobalConfig.themeColor().accentDim();
+        return GlobalConfig.accentDim();
     }
 
-    /** Faint accent wash behind enabled/highlighted rows. Follows the config theme. */
+    /** Faint accent wash behind enabled/highlighted rows. Follows the config theme / custom color. */
     protected static int rowBgEnabled() {
-        return GlobalConfig.themeColor().enabledBg();
+        return GlobalConfig.enabledBg();
     }
 
     protected static final int PADDING = 10;
@@ -55,7 +55,9 @@ public abstract class ZephyrScreen extends Screen {
     private static final int SCREEN_MARGIN = 16;
 
     private static final int INDICATOR_GAP = 6;
-    private static final long SLIDE_DURATION_NANOS = 180_000_000L;
+    private static final long BASE_SLIDE_DURATION_NANOS = 180_000_000L;
+    /** Floor so a very fast animation speed never reads as a teleport. */
+    private static final long MIN_SLIDE_DURATION_NANOS = 40_000_000L;
 
     protected int panelX;
     protected int panelY;
@@ -150,12 +152,19 @@ public abstract class ZephyrScreen extends Screen {
         }
     }
 
+    /** Panel slide length, scaled by the Menu Animation Speed setting. */
+    protected static long slideDurationNanos() {
+        return Math.max(MIN_SLIDE_DURATION_NANOS,
+                (long) (BASE_SLIDE_DURATION_NANOS * GlobalConfig.animationSpeed()));
+    }
+
     private int slideOffsetPx() {
         if (enterDirection == 0) return 0;
+        long duration = slideDurationNanos();
         long elapsed = System.nanoTime() - openedAtNanos;
-        if (elapsed >= SLIDE_DURATION_NANOS) return 0;
+        if (elapsed >= duration) return 0;
 
-        double t = elapsed / (double) SLIDE_DURATION_NANOS;
+        double t = elapsed / (double) duration;
         double eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
         return (int) Math.round((1 - eased) * enterDirection * (panelWidth + SCREEN_MARGIN));
     }

@@ -11,6 +11,7 @@ public final class Keybind {
     public static final Keybind NONE = new Keybind(UNSET, UNSET, UNSET);
 
     private final int[] keys;
+    private boolean conflicted;
 
     public Keybind(int a, int b, int c) {
         this.keys = new int[]{a, b, c};
@@ -51,5 +52,14 @@ public final class Keybind {
             builder.append(GlfwKeyNames.label(key));
         }
         return builder.toString();
+    }
+
+    /** Whether another bind shares this combo, as computed by {@link KeybindManager}. */
+    public boolean conflicted() {
+        return conflicted;
+    }
+
+    public void setConflicted(boolean conflicted) {
+        this.conflicted = conflicted;
     }
 }

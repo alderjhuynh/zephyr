@@ -22,6 +22,8 @@ import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 public final class KeybindManager {
@@ -33,7 +35,8 @@ public final class KeybindManager {
 
     public enum SystemAction {
         OPEN_MENU("Open Menu", new Keybind(GLFW.GLFW_KEY_L, GLFW.GLFW_KEY_ENTER, Keybind.UNSET)),
-        CYCLE_SCREEN("Cycle Screen", new Keybind(GLFW.GLFW_KEY_TAB, Keybind.UNSET, Keybind.UNSET));
+        CYCLE_SCREEN("Cycle Screen", new Keybind(GLFW.GLFW_KEY_TAB, Keybind.UNSET, Keybind.UNSET)),
+        STEALTH_MODE("Stealth Mode", new Keybind(GLFW.GLFW_KEY_F6, Keybind.UNSET, Keybind.UNSET));
 
         public final String label;
         public final Keybind defaultBind;
@@ -62,12 +65,19 @@ public final class KeybindManager {
     }
 
     public static void set(Module module, Keybind bind) {
+        boolean hadConflict = isModuleConflicted(module);
         MODULE_BINDS.put(module.getName(), bind);
+        recomputeConflicts();
+        if (GlobalConfig.keybindConflictWarningsEnabled() && !hadConflict && isModuleConflicted(module)) {
+            NotificationManager.notify("Keybind conflict", true);
+        }
         save();
     }
 
     public static void clear(Module module) {
-        set(module, Keybind.NONE);
+        MODULE_BINDS.remove(module.getName());
+        recomputeConflicts();
+        save();
     }
 
     public static Keybind get(SystemAction action) {
@@ -75,12 +85,18 @@ public final class KeybindManager {
     }
 
     public static void set(SystemAction action, Keybind bind) {
+        boolean hadConflict = isSystemConflicted(action);
         SYSTEM_BINDS.put(action, bind);
+        recomputeConflicts();
+        if (GlobalConfig.keybindConflictWarningsEnabled() && !hadConflict && isSystemConflicted(action)) {
+            NotificationManager.notify("Keybind conflict", true);
+        }
         save();
     }
 
     public static void resetToDefault(SystemAction action) {
         SYSTEM_BINDS.remove(action);
+        recomputeConflicts();
         save();
     }
 
@@ -92,6 +108,7 @@ public final class KeybindManager {
 
         if (!suppressed) {
             tickOpenMenu(client, screen);
+            tickStealthMode(client);
         }
 
         if (screen instanceof ZephyrScreen zephyrScreen && !capturingBind) {
@@ -117,6 +134,16 @@ public final class KeybindManager {
             }
         }
         SYSTEM_WAS_DOWN.put(SystemAction.OPEN_MENU, down);
+    }
+
+    private static void tickStealthMode(Minecraft client) {
+        boolean down = isDown(client, get(SystemAction.STEALTH_MODE));
+        boolean wasDown = SYSTEM_WAS_DOWN.getOrDefault(SystemAction.STEALTH_MODE, false);
+
+        if (down && !wasDown) {
+            GlobalConfig.toggleStealthMode();
+        }
+        SYSTEM_WAS_DOWN.put(SystemAction.STEALTH_MODE, down);
     }
 
     private static void tickCycleScreen(Minecraft client, ZephyrScreen current) {
@@ -154,6 +181,55 @@ public final class KeybindManager {
             if (GLFW.glfwGetKey(windowHandle, key) != GLFW.GLFW_PRESS) return false;
         }
         return true;
+    }
+
+    /** Re-derives every bind's {@code conflicted} flag: two binds share the same combo iff both are flagged. */
+    private static void recomputeConflicts() {
+        List<Keybind> all = new ArrayList<>(MODULE_BINDS.values());
+        for (SystemAction action : SystemAction.values()) {
+            all.add(get(action));
+        }
+
+        for (Keybind bind : all) {
+            bind.setConflicted(false);
+        }
+        for (int i = 0; i < all.size(); i++) {
+            for (int j = i + 1; j < all.size(); j++) {
+                if (sameCombo(all.get(i), all.get(j))) {
+                    all.get(i).setConflicted(true);
+                    all.get(j).setConflicted(true);
+                }
+            }
+        }
+    }
+
+    private static boolean isModuleConflicted(Module module) {
+        Keybind bind = MODULE_BINDS.get(module.getName());
+        return bind != null && bind.conflicted();
+    }
+
+    private static boolean isSystemConflicted(SystemAction action) {
+        return get(action).conflicted();
+    }
+
+    /** Whether two binds resolve to the same key set, ignoring order and unset slots. */
+    private static boolean sameCombo(Keybind a, Keybind b) {
+        if (!a.isSet() || !b.isSet()) return false;
+        int[] ka = normalizedKeys(a);
+        int[] kb = normalizedKeys(b);
+        return java.util.Arrays.equals(ka, kb);
+    }
+
+    private static int[] normalizedKeys(Keybind bind) {
+        int[] keys = bind.keys().clone();
+        int count = 0;
+        for (int key : keys) {
+            if (key != Keybind.UNSET) {
+                keys[count++] = key;
+            }
+        }
+        java.util.Arrays.sort(keys, 0, count);
+        return java.util.Arrays.copyOf(keys, count);
     }
 
     private static void load() {

@@ -14,6 +14,8 @@ public class
 ZephyrClient implements ClientModInitializer {
 	private final GuiKeybindHandler guiKeybindHandler = new GuiKeybindHandler();
 
+	private long tickCount = 0;
+
 	@Override
 	public void onInitializeClient() {
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> DiscordPresenceManager.initialize());
@@ -30,6 +32,12 @@ ZephyrClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			guiKeybindHandler.tick(client);
 			ModuleManager.tick(client);
+
+			tickCount++;
+			double interval = GlobalConfig.autosaveIntervalSeconds();
+			if (interval > 0 && tickCount % Math.max(1, (long) (interval * 20)) == 0) {
+				ModuleManager.saveAll();
+			}
 		});
 
 		HudElementRegistry.attachElementBefore(net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements.CHAT,
@@ -37,6 +45,15 @@ ZephyrClient implements ClientModInitializer {
 				(graphics, tickCounter) -> {
 					Minecraft client = Minecraft.getInstance();
 					NotificationManager.render(graphics, client.font,
+							client.getWindow().getGuiScaledWidth(),
+							client.getWindow().getGuiScaledHeight());
+				});
+
+		HudElementRegistry.attachElementBefore(net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements.CHAT,
+				Identifier.fromNamespaceAndPath("zephyr", "hud_overlay"),
+				(graphics, tickCounter) -> {
+					Minecraft client = Minecraft.getInstance();
+					HudRenderer.render(graphics, client.font,
 							client.getWindow().getGuiScaledWidth(),
 							client.getWindow().getGuiScaledHeight());
 				});

@@ -29,15 +29,33 @@ A client-side hacked client / utility mod for **Minecraft 26.2**, built on [Fabr
 ## Getting started
 
 - Press **`L` + `Enter`** to open the main menu (a clickable module list with search and category tabs).
-- Press **`Tab`** while the menu is open to cycle between the other screens (keybinds, profiles, and back).
+- Press **`Tab`** while the menu is open to cycle between the other screens (global settings, keybinds, profiles, and back).
 - **Left-click** a module to toggle it on or off; **right-click** it to open its settings panel.
 - Toggle state, settings, keybinds, and the active profile are all saved to `config/zephyr/` when you quit the game.
 
 Everything, including the menu itself, can be rebound from the **Keybinds** screen. Keybinds support up to three keys held together (e.g. `G` or `Ctrl` + `B`).
 
+## Global settings
+
+The **Settings** screen holds client-wide options:
+
+| Setting | Description |
+| --- | --- |
+| Hotkey Popups | Shows a toast whenever a module is toggled from a keybind |
+| Theme Color | Picks the accent color from six presets (Lavender, Sky, Mint, Gold, Coral, Rose) |
+| Use Custom Color | Replaces the preset with Hue/Saturation/Value sliders plus a live swatch |
+| Menu Animation Speed | Scales the panel slide and toast slide-in speed |
+| Notification Corner | Which corner hotkey toasts slide into |
+| Notification Lifetime | How long a toast holds before sliding out |
+| HUD Overlay | Off, Minimal (watermark + profile), or Full (active modules plus an info stack with FPS, server, and theme) |
+| Autosave Interval | Seconds between periodic config saves; `0` disables autosave |
+| Keybind Conflict Warnings | Warns via toast when a new bind collides with an existing one |
+| Stealth Mode | Snapshots and force-disables every module, restoring them when turned off |
+
 ## Features
 
 - **Click GUI**: searchable module list with per-category tabs and per-module settings panels
+- **Global settings**: theme/custom accent colors, toast popups, HUD overlay, and other client-wide options
 - **Profiles**: save and switch between different module/setting configurations
 - **Keybinds**: bind any module or system action to up to three simultaneous keys, all editable in-game
 - **Discord Rich Presence**: show "Zephyr Client" as your Discord status instead of Minecraft

@@ -15,6 +15,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
     private static final int ROW_HEIGHT = 24;
     private static final int SECTION_GAP = 6;
     private static final int CLEAR_BOX_SIZE = 12;
+    private static final int CONFLICT_RED = 0xFFE05B5B;
 
     private final LinkedHashSet<Integer> captureBuffer = new LinkedHashSet<>();
     private final Set<Integer> currentlyHeld = new java.util.HashSet<>();
@@ -74,7 +75,14 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         graphics.text(this.font, row.label, panelX + PADDING + 8, top + 9, TEXT_MAIN, false);
 
         String valueText = capturing ? captureLabel() : row.bind.getLabel();
-        int valueColor = capturing ? accent() : (row.bind.isSet() ? accent() : TEXT_DIM);
+        int valueColor;
+        if (capturing) {
+            valueColor = accent();
+        } else if (row.bind.conflicted()) {
+            valueColor = CONFLICT_RED;
+        } else {
+            valueColor = row.bind.isSet() ? accent() : TEXT_DIM;
+        }
 
         boolean showClear = !capturing && row.bind.isSet();
         int valueRight = panelX + panelWidth - PADDING - 8 - (showClear ? CLEAR_BOX_SIZE + 6 : 0);

@@ -94,6 +94,15 @@ public final class ModuleManager {
         return Collections.unmodifiableList(MODULES);
     }
 
+    /** Number of modules currently enabled, for the HUD overlay's {@code %modules_on%} token. */
+    public static int enabledCount() {
+        int count = 0;
+        for (Module module : MODULES) {
+            if (module.isEnabled()) count++;
+        }
+        return count;
+    }
+
     public static void tick(Minecraft client) {
         for (Module module : MODULES) {
             if (module.isEnabled()) {

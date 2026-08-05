@@ -121,6 +121,8 @@ public final class ConfigManager {
             numberSetting.set(element.getAsDouble());
         } else if (setting instanceof EnumSetting<?> enumSetting) {
             applyEnumValue(enumSetting, element.getAsString());
+        } else if (setting instanceof StringSetting stringSetting) {
+            stringSetting.set(element.getAsString());
         }
     }
 
@@ -141,6 +143,8 @@ public final class ConfigManager {
             settingsJson.addProperty(setting.getName(), numberSetting.get());
         } else if (setting instanceof EnumSetting<?> enumSetting) {
             settingsJson.addProperty(setting.getName(), enumSetting.get().name());
+        } else if (setting instanceof StringSetting stringSetting) {
+            settingsJson.addProperty(setting.getName(), stringSetting.get());
         }
     }
 }
