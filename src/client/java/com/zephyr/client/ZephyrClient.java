@@ -2,19 +2,16 @@ package com.zephyr.client;
 
 import com.zephyr.client.configplusgui.*;
 import com.zephyr.client.discord.DiscordPresenceManager;
-import com.zephyr.client.module.combat.KillWyvern;
-import com.zephyr.client.module.movement.AirJump;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
-public class ZephyrClient implements ClientModInitializer {
+public class
+ZephyrClient implements ClientModInitializer {
 	private final GuiKeybindHandler guiKeybindHandler = new GuiKeybindHandler();
 
 	@Override
@@ -25,6 +22,7 @@ public class ZephyrClient implements ClientModInitializer {
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> DiscordPresenceManager.onWorldTransition());
 
 
+		GlobalConfig.init();
 		ModuleManager.init();
 		ProfileManager.init();
 		KeybindManager.init();

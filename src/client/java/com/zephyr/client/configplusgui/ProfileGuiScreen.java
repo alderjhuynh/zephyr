@@ -93,7 +93,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         boolean hovered = mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING
                 && mouseY >= top && mouseY < top + ROW_HEIGHT;
 
-        int bg = active ? ROW_BG_ENABLED : (hovered ? ROW_BG_HOVER : ROW_BG);
+        int bg = active ? rowBgEnabled() : (hovered ? ROW_BG_HOVER : ROW_BG);
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT, bg);
 
         boolean showDelete = !renaming && ProfileManager.getProfileNames().size() > 1;
@@ -102,7 +102,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         int renameX = deleteX - (showDelete ? ICON_BOX_SIZE + ICON_GAP : 0);
 
         if (!renaming) {
-            int nameColor = active ? ACCENT : TEXT_MAIN;
+            int nameColor = active ? accent() : TEXT_MAIN;
             graphics.text(this.font, row.name, panelX + PADDING + 8, top + 9, nameColor, false);
         }
 
@@ -110,7 +110,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         boolean renameHovered = mouseX >= renameX && mouseX < renameX + ICON_BOX_SIZE
                 && mouseY >= renameY && mouseY < renameY + ICON_BOX_SIZE;
         graphics.fill(renameX, renameY, renameX + ICON_BOX_SIZE, renameY + ICON_BOX_SIZE,
-                renaming ? ACCENT : (renameHovered ? ROW_BG_HOVER : 0x40FFFFFF));
+                renaming ? accent() : (renameHovered ? ROW_BG_HOVER : 0x40FFFFFF));
         graphics.centeredText(this.font, "R", renameX + ICON_BOX_SIZE / 2, renameY + 1,
                 renaming ? TEXT_ON_ACCENT : TEXT_DIM);
 

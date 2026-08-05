@@ -19,17 +19,28 @@ import net.minecraft.network.chat.Component;
  * fixed 300x360 box that used to run off the edge of small windows.
  */
 public abstract class ZephyrScreen extends Screen {
-    protected static final int ACCENT = 0xFFD1B9EB;
-    protected static final int ACCENT_DIM = 0x66D1B9EB;
     protected static final int PANEL_BG = 0xE0141018;
     protected static final int TAB_BG = 0x30FFFFFF;
-    protected static final int TAB_BG_SELECTED = 0xFFD1B9EB;
     protected static final int ROW_BG = 0x40FFFFFF;
     protected static final int ROW_BG_HOVER = 0x60FFFFFF;
-    protected static final int ROW_BG_ENABLED = 0x40D1B9EB;
     protected static final int TEXT_MAIN = 0xFFF2EAFB;
     protected static final int TEXT_DIM = 0xFFAFA5C0;
     protected static final int TEXT_ON_ACCENT = 0xFF1B1420;
+
+    /** Solid accent (selected tabs, enabled rows, titles, toasts). Follows the config theme. */
+    protected static int accent() {
+        return GlobalConfig.themeColor().accent();
+    }
+
+    /** Partially transparent accent, e.g. the click-gui scroll bar. Follows the config theme. */
+    protected static int accentDim() {
+        return GlobalConfig.themeColor().accentDim();
+    }
+
+    /** Faint accent wash behind enabled/highlighted rows. Follows the config theme. */
+    protected static int rowBgEnabled() {
+        return GlobalConfig.themeColor().enabledBg();
+    }
 
     protected static final int PADDING = 10;
     protected static final int TITLE_HEIGHT = 20;
@@ -151,8 +162,8 @@ public abstract class ZephyrScreen extends Screen {
 
     protected void renderChrome(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         graphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, PANEL_BG);
-        graphics.fill(panelX, panelY, panelX + panelWidth, panelY + 2, ACCENT);
-        graphics.text(this.font, "ZEPHYR", panelX + PADDING, panelY + 8, ACCENT, false);
+        graphics.fill(panelX, panelY, panelX + panelWidth, panelY + 2, accent());
+        graphics.text(this.font, "ZEPHYR", panelX + PADDING, panelY + 8, accent(), false);
 
         String indicator = currentNav().name();
         int indicatorWidth = this.font.width(indicator);

@@ -97,7 +97,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
                 int trackHeight = listBottom - listTop;
                 int barHeight = Math.max(20, trackHeight * trackHeight / (trackHeight + maxScroll));
                 int barY = listTop + (int) ((trackHeight - barHeight) * (scrollOffset / (double) maxScroll));
-                graphics.fill(panelX + panelWidth - 4, barY, panelX + panelWidth - 1, barY + barHeight, ACCENT_DIM);
+                graphics.fill(panelX + panelWidth - 4, barY, panelX + panelWidth - 1, barY + barHeight, accentDim());
             }
 
             super.extractRenderState(graphics, mouseX, mouseY, partialTick);
@@ -111,7 +111,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
             boolean hovered = !selected && mouseX >= tab.left && mouseX < tab.right
                     && mouseY >= tabY && mouseY < tabY + TAB_HEIGHT - 2;
 
-            int bg = selected ? TAB_BG_SELECTED : (hovered ? ROW_BG_HOVER : TAB_BG);
+            int bg = selected ? accent() : (hovered ? ROW_BG_HOVER : TAB_BG);
             graphics.fill(tab.left, tabY, tab.right, tabY + TAB_HEIGHT - 2, bg);
 
             int textColor = selected ? TEXT_ON_ACCENT : TEXT_DIM;
@@ -126,10 +126,10 @@ public final class ClickGuiScreen extends ZephyrScreen {
         boolean hovered = mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING
                 && mouseY >= top && mouseY < top + ROW_HEIGHT;
 
-        int bg = row.module.isEnabled() ? ROW_BG_ENABLED : (hovered ? ROW_BG_HOVER : ROW_BG);
+        int bg = row.module.isEnabled() ? rowBgEnabled() : (hovered ? ROW_BG_HOVER : ROW_BG);
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT, bg);
 
-        int nameColor = row.module.isEnabled() ? ACCENT : TEXT_MAIN;
+        int nameColor = row.module.isEnabled() ? accent() : TEXT_MAIN;
         graphics.text(this.font, row.module.getName(), panelX + PADDING + 8, top + 9, nameColor, false);
 
         String tag = row.module.getCategory().getDisplayName();
@@ -154,7 +154,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
             int boxSize = 10;
             int boxX = right - boxSize;
             graphics.fill(boxX, top + 5, boxX + boxSize, top + 5 + boxSize,
-                    boolSetting.get() ? ACCENT : 0x40FFFFFF);
+                    boolSetting.get() ? accent() : 0x40FFFFFF);
         } else if (settingRow.setting instanceof NumberSetting numberSetting) {
             String label = settingRow.setting.getName() + ": " + trimDouble(numberSetting.get());
             graphics.text(this.font, label, left, top, TEXT_DIM, false);
@@ -162,14 +162,14 @@ public final class ClickGuiScreen extends ZephyrScreen {
             int trackY = top + 12;
             graphics.fill(left, trackY, right, trackY + 2, 0x40FFFFFF);
             int fillWidth = (int) ((right - left) * numberSetting.getProgress());
-            graphics.fill(left, trackY, left + fillWidth, trackY + 2, ACCENT);
-            graphics.fill(left + fillWidth - 1, trackY - 2, left + fillWidth + 1, trackY + 4, ACCENT);
+            graphics.fill(left, trackY, left + fillWidth, trackY + 2, accent());
+            graphics.fill(left + fillWidth - 1, trackY - 2, left + fillWidth + 1, trackY + 4, accent());
         } else if (settingRow.setting instanceof EnumSetting<?> enumSetting) {
             graphics.text(this.font, settingRow.setting.getName(), left, top + 6, TEXT_DIM, false);
 
             String value = enumSetting.getDisplayValue();
             int valueWidth = this.font.width(value);
-            graphics.text(this.font, value, right - valueWidth, top + 6, ACCENT, false);
+            graphics.text(this.font, value, right - valueWidth, top + 6, accent(), false);
         }
     }
 

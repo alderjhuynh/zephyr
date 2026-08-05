@@ -68,13 +68,13 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         boolean hovered = mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING
                 && mouseY >= top && mouseY < top + ROW_HEIGHT;
 
-        int bg = capturing ? ROW_BG_ENABLED : (hovered ? ROW_BG_HOVER : ROW_BG);
+        int bg = capturing ? rowBgEnabled() : (hovered ? ROW_BG_HOVER : ROW_BG);
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT, bg);
 
         graphics.text(this.font, row.label, panelX + PADDING + 8, top + 9, TEXT_MAIN, false);
 
         String valueText = capturing ? captureLabel() : row.bind.getLabel();
-        int valueColor = capturing ? ACCENT : (row.bind.isSet() ? ACCENT : TEXT_DIM);
+        int valueColor = capturing ? accent() : (row.bind.isSet() ? accent() : TEXT_DIM);
 
         boolean showClear = !capturing && row.bind.isSet();
         int valueRight = panelX + panelWidth - PADDING - 8 - (showClear ? CLEAR_BOX_SIZE + 6 : 0);

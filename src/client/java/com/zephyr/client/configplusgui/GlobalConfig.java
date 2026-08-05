@@ -23,6 +23,7 @@ public final class GlobalConfig {
             .resolve("client.json");
 
     private static boolean hotkeyPopupsEnabled = true;
+    private static ThemeColor themeColor = ThemeColor.LAVENDER;
 
     private GlobalConfig() {
     }
@@ -45,6 +46,21 @@ public final class GlobalConfig {
         setHotkeyPopupsEnabled(!hotkeyPopupsEnabled);
     }
 
+    public static ThemeColor themeColor() {
+        return themeColor;
+    }
+
+    public static void setThemeColor(ThemeColor color) {
+        if (themeColor == color) return;
+        themeColor = color;
+        save();
+    }
+
+    public static void cycleThemeColor() {
+        ThemeColor[] values = ThemeColor.values();
+        setThemeColor(values[(themeColor.ordinal() + 1) % values.length]);
+    }
+
     private static void load() {
         if (!Files.exists(CONFIG_PATH)) {
             return;
@@ -58,6 +74,15 @@ public final class GlobalConfig {
             if (json.has("hotkeyPopupsEnabled")) {
                 hotkeyPopupsEnabled = json.get("hotkeyPopupsEnabled").getAsBoolean();
             }
+            if (json.has("themeColor")) {
+                try {
+                    themeColor = Enum.valueOf(ThemeColor.class, json.get("themeColor").getAsString());
+                } catch (IllegalArgumentException e) {
+                    // Unknown value left over from an older config; keep the default.
+                    Zephyr.LOGGER.warn("[Zephyr] Unknown theme color '{}', keeping default.",
+                            json.get("themeColor").getAsString());
+                }
+            }
         } catch (IOException | RuntimeException e) {
             Zephyr.LOGGER.warn("[Zephyr] Failed to load client config, falling back to defaults.", e);
         }
@@ -66,6 +91,7 @@ public final class GlobalConfig {
     private static void save() {
         JsonObject root = new JsonObject();
         root.addProperty("hotkeyPopupsEnabled", hotkeyPopupsEnabled);
+        root.addProperty("themeColor", themeColor.name());
 
         try {
             Files.createDirectories(CONFIG_PATH.getParent());

@@ -52,13 +52,13 @@ public final class NotificationManager {
     private static void renderToast(GuiGraphicsExtractor graphics, Font font, Toast toast, int x, int y) {
         graphics.fill(x, y, x + TOAST_WIDTH, y + TOAST_HEIGHT, ZephyrScreen.PANEL_BG);
 
-        int accent = toast.enabledNow() ? ZephyrScreen.ACCENT : ZephyrScreen.TEXT_DIM;
+        int accent = toast.enabledNow() ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
         graphics.fill(x, y, x + TOAST_WIDTH, y + 2, accent);
 
         graphics.text(font, toast.moduleName(), x + 8, y + 9, ZephyrScreen.TEXT_MAIN, false);
 
         String status = toast.enabledNow() ? "ON" : "OFF";
-        int statusColor = toast.enabledNow() ? ZephyrScreen.ACCENT : ZephyrScreen.TEXT_DIM;
+        int statusColor = toast.enabledNow() ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
         int statusWidth = font.width(status);
         graphics.text(font, status, x + TOAST_WIDTH - 8 - statusWidth, y + 9, statusColor, false);
     }
