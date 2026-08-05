@@ -1,5 +1,13 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.screen;
 
+import com.zephyr.client.configplusgui.keybind.KeybindManager;
+import com.zephyr.client.configplusgui.module.Category;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.module.ModuleManager;
+import com.zephyr.client.configplusgui.setting.BooleanSetting;
+import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.NumberSetting;
+import com.zephyr.client.configplusgui.setting.Setting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.MouseButtonEvent;

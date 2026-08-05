@@ -1,9 +1,9 @@
 package com.zephyr.client.module.combat.KillAura;
 
-import com.zephyr.client.configplusgui.Category;
-import com.zephyr.client.configplusgui.EnumSetting;
-import com.zephyr.client.configplusgui.Module;
-import com.zephyr.client.configplusgui.NumberSetting;
+import com.zephyr.client.configplusgui.module.Category;
+import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.mixin.combat.KillAura.ForceAttackMixin;
 import com.zephyr.client.module.combat.Reach;
 

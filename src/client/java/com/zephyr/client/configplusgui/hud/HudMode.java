@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.hud;
 
 public enum HudMode {
     OFF,

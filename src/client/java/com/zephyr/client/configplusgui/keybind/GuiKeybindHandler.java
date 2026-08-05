@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.keybind;
 
 import net.minecraft.client.Minecraft;
 

@@ -1,5 +1,8 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.hud;
 
+import com.zephyr.client.configplusgui.config.GlobalConfig;
+import com.zephyr.client.configplusgui.config.ProfileManager;
+import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 

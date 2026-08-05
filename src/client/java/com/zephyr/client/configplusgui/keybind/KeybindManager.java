@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.keybind;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -7,6 +7,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.zephyr.Zephyr;
+import com.zephyr.client.configplusgui.config.GlobalConfig;
+import com.zephyr.client.configplusgui.hud.NotificationManager;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.module.ModuleManager;
+import com.zephyr.client.configplusgui.screen.ClickGuiScreen;
+import com.zephyr.client.configplusgui.screen.KeybindGuiScreen;
+import com.zephyr.client.configplusgui.screen.ZephyrScreen;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;

@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.module;
 
 /**
  * Groups modules for the click-gui's tab bar and per-row tag label. Mirrors the

@@ -1,11 +1,11 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.keybind;
 
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
 import java.util.Map;
 
-final class GlfwKeyNames {
+public final class GlfwKeyNames {
     private static final Map<Integer, String> NAMES = new HashMap<>();
 
     static {
@@ -41,7 +41,7 @@ final class GlfwKeyNames {
     private GlfwKeyNames() {
     }
 
-    static String label(int key) {
+    public static String label(int key) {
         String known = NAMES.get(key);
         if (known != null) return known;
 

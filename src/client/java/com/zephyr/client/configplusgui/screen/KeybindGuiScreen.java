@@ -1,5 +1,10 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.screen;
 
+import com.zephyr.client.configplusgui.keybind.GlfwKeyNames;
+import com.zephyr.client.configplusgui.keybind.Keybind;
+import com.zephyr.client.configplusgui.keybind.KeybindManager;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;

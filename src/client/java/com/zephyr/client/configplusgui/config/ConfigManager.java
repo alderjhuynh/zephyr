@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -6,6 +6,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.zephyr.Zephyr;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.setting.BooleanSetting;
+import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.NumberSetting;
+import com.zephyr.client.configplusgui.setting.Setting;
+import com.zephyr.client.configplusgui.setting.StringSetting;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;

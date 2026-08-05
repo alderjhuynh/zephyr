@@ -1,5 +1,7 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.screen;
 
+import com.zephyr.client.configplusgui.config.GlobalConfig;
+import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -19,16 +21,16 @@ import net.minecraft.network.chat.Component;
  * fixed 300x360 box that used to run off the edge of small windows.
  */
 public abstract class ZephyrScreen extends Screen {
-    protected static final int PANEL_BG = 0xE0141018;
+    public static final int PANEL_BG = 0xE0141018;
     protected static final int TAB_BG = 0x30FFFFFF;
     protected static final int ROW_BG = 0x40FFFFFF;
     protected static final int ROW_BG_HOVER = 0x60FFFFFF;
-    protected static final int TEXT_MAIN = 0xFFF2EAFB;
-    protected static final int TEXT_DIM = 0xFFAFA5C0;
+    public static final int TEXT_MAIN = 0xFFF2EAFB;
+    public static final int TEXT_DIM = 0xFFAFA5C0;
     protected static final int TEXT_ON_ACCENT = 0xFF1B1420;
 
     /** Solid accent (selected tabs, enabled rows, titles, toasts). Follows the config theme / custom color. */
-    protected static int accent() {
+    public static int accent() {
         return GlobalConfig.accent();
     }
 

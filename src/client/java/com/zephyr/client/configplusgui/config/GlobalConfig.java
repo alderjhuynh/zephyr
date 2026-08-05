@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -6,6 +6,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.zephyr.Zephyr;
+import com.zephyr.client.configplusgui.hud.Corner;
+import com.zephyr.client.configplusgui.hud.HudMode;
+import com.zephyr.client.configplusgui.hud.ThemeColor;
+import com.zephyr.client.configplusgui.setting.BooleanSetting;
+import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.NumberSetting;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
@@ -29,19 +35,19 @@ public final class GlobalConfig {
      * Package-visible so the gui can dispatch on their concrete type; persistence is
      * owned by this class ({@link #save()}), which the gui calls after each change.
      */
-    static final BooleanSetting hotkeyPopups = new BooleanSetting("Hotkey Popups", true);
-    static final BooleanSetting useCustomColor = new BooleanSetting("Use Custom Color", false);
+    public static final BooleanSetting hotkeyPopups = new BooleanSetting("Hotkey Popups", true);
+    public static final BooleanSetting useCustomColor = new BooleanSetting("Use Custom Color", false);
     // Defaults match the LAVENDER preset so the first enable doesn't jar.
-    static final NumberSetting customHue = new NumberSetting("Hue", 269, 0, 360, 1);
-    static final NumberSetting customSaturation = new NumberSetting("Saturation", 21, 0, 100, 1);
-    static final NumberSetting customValue = new NumberSetting("Value", 92, 0, 100, 1);
-    static final NumberSetting menuAnimationSpeed = new NumberSetting("Menu Animation Speed", 1.0, 0.25, 4.0, 0.05);
-    static final EnumSetting<Corner> notificationCorner = new EnumSetting<>("Notification Corner", Corner.BOTTOM_RIGHT);
-    static final NumberSetting notificationLifetime = new NumberSetting("Notification Lifetime", 1.6, 0.5, 10.0, 0.1);
-    static final EnumSetting<HudMode> hudMode = new EnumSetting<>("HUD Overlay", HudMode.OFF);
-    static final NumberSetting autosaveInterval = new NumberSetting("Autosave Interval", 60, 0, 300, 1);
-    static final BooleanSetting keybindConflictWarnings = new BooleanSetting("Keybind Conflict Warnings", true);
-    static final BooleanSetting stealthMode = new BooleanSetting("Stealth Mode", false);
+    public static final NumberSetting customHue = new NumberSetting("Hue", 269, 0, 360, 1);
+    public static final NumberSetting customSaturation = new NumberSetting("Saturation", 21, 0, 100, 1);
+    public static final NumberSetting customValue = new NumberSetting("Value", 92, 0, 100, 1);
+    public static final NumberSetting menuAnimationSpeed = new NumberSetting("Menu Animation Speed", 1.0, 0.25, 4.0, 0.05);
+    public static final EnumSetting<Corner> notificationCorner = new EnumSetting<>("Notification Corner", Corner.BOTTOM_RIGHT);
+    public static final NumberSetting notificationLifetime = new NumberSetting("Notification Lifetime", 1.6, 0.5, 10.0, 0.1);
+    public static final EnumSetting<HudMode> hudMode = new EnumSetting<>("HUD Overlay", HudMode.OFF);
+    public static final NumberSetting autosaveInterval = new NumberSetting("Autosave Interval", 60, 0, 300, 1);
+    public static final BooleanSetting keybindConflictWarnings = new BooleanSetting("Keybind Conflict Warnings", true);
+    public static final BooleanSetting stealthMode = new BooleanSetting("Stealth Mode", false);
 
     private GlobalConfig() {
     }
@@ -298,7 +304,7 @@ public final class GlobalConfig {
         }
     }
 
-    static void save() {
+    public static void save() {
         JsonObject root = new JsonObject();
         root.addProperty("hotkeyPopupsEnabled", hotkeyPopups.get());
         root.addProperty("themeColor", themeColor.name());

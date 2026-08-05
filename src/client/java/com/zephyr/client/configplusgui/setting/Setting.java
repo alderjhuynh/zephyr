@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.setting;
 
 /**
  * A single configurable value exposed by a {@link com.zephyr.client.module}

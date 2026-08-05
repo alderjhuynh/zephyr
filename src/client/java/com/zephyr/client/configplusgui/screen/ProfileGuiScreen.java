@@ -1,5 +1,6 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.screen;
 
+import com.zephyr.client.configplusgui.config.ProfileManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;

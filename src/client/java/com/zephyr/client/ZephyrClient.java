@@ -1,6 +1,12 @@
 package com.zephyr.client;
 
-import com.zephyr.client.configplusgui.*;
+import com.zephyr.client.configplusgui.config.GlobalConfig;
+import com.zephyr.client.configplusgui.config.ProfileManager;
+import com.zephyr.client.configplusgui.hud.HudRenderer;
+import com.zephyr.client.configplusgui.hud.NotificationManager;
+import com.zephyr.client.configplusgui.keybind.GuiKeybindHandler;
+import com.zephyr.client.configplusgui.keybind.KeybindManager;
+import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.discord.DiscordPresenceManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;

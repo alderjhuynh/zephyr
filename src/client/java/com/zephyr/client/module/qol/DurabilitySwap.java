@@ -1,8 +1,8 @@
 package com.zephyr.client.module.qol;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zephyr.client.configplusgui.Category;
-import com.zephyr.client.configplusgui.Module;
+import com.zephyr.client.configplusgui.module.Category;
+import com.zephyr.client.configplusgui.module.Module;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;

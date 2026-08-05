@@ -1,6 +1,6 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.module;
 
-import com.zephyr.client.configplusgui.Setting;
+import com.zephyr.client.configplusgui.setting.Setting;
 import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;

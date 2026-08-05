@@ -1,8 +1,8 @@
 package com.zephyr.client.module.combat.AnimeProtagonist;
 
-import com.zephyr.client.configplusgui.Category;
-import com.zephyr.client.configplusgui.EnumSetting;
-import com.zephyr.client.configplusgui.Module;
+import com.zephyr.client.configplusgui.module.Category;
+import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.module.Module;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;

@@ -1,7 +1,7 @@
 package com.zephyr.client.module.qol;
 
-import com.zephyr.client.configplusgui.Category;
-import com.zephyr.client.configplusgui.Module;
+import com.zephyr.client.configplusgui.module.Category;
+import com.zephyr.client.configplusgui.module.Module;
 import net.minecraft.client.Minecraft;
 
 public final class HoldAttack extends Module {

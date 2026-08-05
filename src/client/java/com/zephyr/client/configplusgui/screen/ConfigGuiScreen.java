@@ -1,5 +1,12 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.screen;
 
+import com.zephyr.client.configplusgui.config.GlobalConfig;
+import com.zephyr.client.configplusgui.hud.ThemeColor;
+import com.zephyr.client.configplusgui.setting.BooleanSetting;
+import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.NumberSetting;
+import com.zephyr.client.configplusgui.setting.Setting;
+import com.zephyr.client.configplusgui.setting.StringSetting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;

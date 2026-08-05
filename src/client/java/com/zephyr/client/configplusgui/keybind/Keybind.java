@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.keybind;
 
 import org.lwjgl.glfw.GLFW;
 

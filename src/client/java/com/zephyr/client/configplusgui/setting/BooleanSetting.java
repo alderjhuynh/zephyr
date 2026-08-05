@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.setting;
 
 /** Renders as a small checkbox in the click-gui. */
 public final class BooleanSetting extends Setting<Boolean> {

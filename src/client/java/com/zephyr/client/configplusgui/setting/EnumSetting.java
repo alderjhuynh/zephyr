@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.setting;
 
 /**
  * Renders as a cyclable value label in the click-gui (click to advance to the next

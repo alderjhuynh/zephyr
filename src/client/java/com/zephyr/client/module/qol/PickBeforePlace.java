@@ -1,7 +1,7 @@
 package com.zephyr.client.module.qol;
 
-import com.zephyr.client.configplusgui.Category;
-import com.zephyr.client.configplusgui.Module;
+import com.zephyr.client.configplusgui.module.Category;
+import com.zephyr.client.configplusgui.module.Module;
 
 public final class PickBeforePlace extends Module {
     public static final PickBeforePlace INSTANCE = new PickBeforePlace();

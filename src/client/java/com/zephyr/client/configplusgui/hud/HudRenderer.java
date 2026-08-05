@@ -1,5 +1,9 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.hud;
 
+import com.zephyr.client.configplusgui.config.GlobalConfig;
+import com.zephyr.client.configplusgui.config.StealthManager;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 

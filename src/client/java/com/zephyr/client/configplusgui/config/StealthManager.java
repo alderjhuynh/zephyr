@@ -1,6 +1,8 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.config;
 
 import com.google.gson.JsonObject;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.module.ModuleManager;
 
 public final class StealthManager {
     private static JsonObject snapshot;

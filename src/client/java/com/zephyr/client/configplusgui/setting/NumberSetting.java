@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.setting;
 
 /**
  * Renders as a draggable slider in the click-gui, bounded to [min, max] and

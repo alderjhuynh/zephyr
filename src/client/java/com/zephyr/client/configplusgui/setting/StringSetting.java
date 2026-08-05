@@ -1,4 +1,4 @@
-package com.zephyr.client.configplusgui;
+package com.zephyr.client.configplusgui.setting;
 
 public final class StringSetting extends Setting<String> {
 
