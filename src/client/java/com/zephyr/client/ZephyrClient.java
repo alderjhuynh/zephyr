@@ -1,9 +1,6 @@
 package com.zephyr.client;
 
-import com.zephyr.client.configplusgui.KeybindManager;
-import com.zephyr.client.configplusgui.ModuleManager;
-import com.zephyr.client.configplusgui.GuiKeybindHandler;
-import com.zephyr.client.configplusgui.ProfileManager;
+import com.zephyr.client.configplusgui.*;
 import com.zephyr.client.discord.DiscordPresenceManager;
 import com.zephyr.client.module.combat.KillWyvern;
 import com.zephyr.client.module.movement.AirJump;
@@ -11,8 +8,11 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 public class ZephyrClient implements ClientModInitializer {
 	private final GuiKeybindHandler guiKeybindHandler = new GuiKeybindHandler();
@@ -33,6 +33,15 @@ public class ZephyrClient implements ClientModInitializer {
 			guiKeybindHandler.tick(client);
 			ModuleManager.tick(client);
 		});
+
+		HudElementRegistry.attachElementBefore(net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements.CHAT,
+				Identifier.fromNamespaceAndPath("zephyr", "notifications"),
+				(graphics, tickCounter) -> {
+					Minecraft client = Minecraft.getInstance();
+					NotificationManager.render(graphics, client.font,
+							client.getWindow().getGuiScaledWidth(),
+							client.getWindow().getGuiScaledHeight());
+				});
 
 
 		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ModuleManager.saveAll());

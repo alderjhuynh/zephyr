@@ -139,6 +139,7 @@ public final class KeybindManager {
 
             if (down && !wasDown) {
                 module.toggle();
+                NotificationManager.notify(module.getName(), module.isEnabled());
             }
             MODULE_WAS_DOWN.put(module.getName(), down);
         }

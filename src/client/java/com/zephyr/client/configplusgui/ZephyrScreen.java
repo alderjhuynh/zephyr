@@ -5,11 +5,13 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 /**
- * Shared chrome for every Zephyr menu screen (module list, keybinds, profiles):
+ * Shared chrome for every Zephyr menu screen (module list, keybinds, profiles, config):
  * the panel background/border, the "ZEPHYR" title, and the small screen-indicator
  * tag in the bottom right. Also plays the slide transition used when cycling
  * between screens with the "Cycle Screen" keybind (Tab by default - see
- * {@link KeybindManager}).
+ * {@link KeybindManager}). {@link NotificationManager}'s hotkey-toggle popups reuse
+ * this same slide/ease-out-cubic timing, just mirrored for a top-right corner toast
+ * instead of a full-panel swap.
  * <p>
  * Owns the panel's size and position, recomputed fresh from the window's current
  * (GUI-scale-adjusted) width/height every time {@code init()} runs - which vanilla
@@ -69,6 +71,12 @@ public abstract class ZephyrScreen extends Screen {
             @Override
             Screen create(int direction) {
                 return new ProfileGuiScreen(direction);
+            }
+        },
+        CONFIG {
+            @Override
+            Screen create(int direction) {
+                return new ConfigGuiScreen(direction);
             }
         };
 
