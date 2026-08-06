@@ -12,6 +12,7 @@ import com.zephyr.client.configplusgui.hud.ThemeColor;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
+import com.zephyr.client.discord.DiscordPresenceManager;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
@@ -47,6 +48,7 @@ public final class GlobalConfig {
     public static final EnumSetting<HudMode> hudMode = new EnumSetting<>("HUD Overlay", HudMode.OFF);
     public static final NumberSetting autosaveInterval = new NumberSetting("Autosave Interval", 60, 0, 300, 1);
     public static final BooleanSetting keybindConflictWarnings = new BooleanSetting("Keybind Conflict Warnings", true);
+    public static final BooleanSetting discordPresence = new BooleanSetting("Discord Presence", true);
     public static final BooleanSetting stealthMode = new BooleanSetting("Stealth Mode", false);
 
     private GlobalConfig() {
@@ -171,6 +173,31 @@ public final class GlobalConfig {
         setKeybindConflictWarningsEnabled(!keybindConflictWarnings.get());
     }
 
+    /** Whether Discord Rich Presence is shown instead of the default Minecraft activity. */
+    public static boolean discordPresence() {
+        return discordPresence.get();
+    }
+
+    /**
+     * Enables/disables Discord Rich Presence. Toggling has side effects on the live
+     * IPC connection, so changes go through {@link DiscordPresenceManager} via this
+     * single choke point instead of the raw setting.
+     */
+    public static void setDiscordPresence(boolean enabled) {
+        if (discordPresence.get() == enabled) return;
+        discordPresence.set(enabled);
+        save();
+        if (enabled) {
+            DiscordPresenceManager.enable();
+        } else {
+            DiscordPresenceManager.disable();
+        }
+    }
+
+    public static void toggleDiscordPresence() {
+        setDiscordPresence(!discordPresence.get());
+    }
+
     /** Whether the Stealth Mode panic state is currently active. */
     public static boolean stealthMode() {
         return stealthMode.get();
@@ -271,6 +298,9 @@ public final class GlobalConfig {
             if (json.has("keybindConflictWarnings")) {
                 keybindConflictWarnings.set(json.get("keybindConflictWarnings").getAsBoolean());
             }
+            if (json.has("discordPresence")) {
+                discordPresence.set(json.get("discordPresence").getAsBoolean());
+            }
             if (json.has("stealthMode")) {
                 stealthMode.set(json.get("stealthMode").getAsBoolean());
             }
@@ -318,6 +348,7 @@ public final class GlobalConfig {
         root.addProperty("hudMode", hudMode.get().name());
         root.addProperty("autosaveInterval", autosaveInterval.get());
         root.addProperty("keybindConflictWarnings", keybindConflictWarnings.get());
+        root.addProperty("discordPresence", discordPresence.get());
         root.addProperty("stealthMode", stealthMode.get());
 
         try {

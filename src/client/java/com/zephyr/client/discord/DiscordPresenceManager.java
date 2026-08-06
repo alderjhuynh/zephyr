@@ -7,7 +7,7 @@ import com.jagrosh.discordipc.entities.RichPresence;
 import com.jagrosh.discordipc.entities.User;
 import com.jagrosh.discordipc.entities.Packet;
 import com.jagrosh.discordipc.exceptions.NoDiscordClientException;
-import com.zephyr.client.module.qol.DiscordPresence;
+import com.zephyr.client.configplusgui.config.GlobalConfig;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
@@ -43,7 +43,7 @@ public final class DiscordPresenceManager {
 
 	public static void initialize() {
 		sessionStart = System.currentTimeMillis();
-		if (DiscordPresence.INSTANCE.isEnabled()) {
+		if (GlobalConfig.discordPresence()) {
 			enable();
 		}
 	}
@@ -145,7 +145,7 @@ public final class DiscordPresenceManager {
 			return;
 		}
 		EXECUTOR.schedule(() -> {
-			if (!shuttingDown && DiscordPresence.INSTANCE.isEnabled() && ipcClient == null) {
+			if (!shuttingDown && GlobalConfig.discordPresence() && ipcClient == null) {
 				connect();
 			}
 		}, RECONNECT_DELAY_SECONDS, TimeUnit.SECONDS);
@@ -165,7 +165,7 @@ public final class DiscordPresenceManager {
 	}
 
 	private static void pushPresence() {
-		if (!ready || !DiscordPresence.INSTANCE.isEnabled()) {
+		if (!ready || !GlobalConfig.discordPresence()) {
 			return;
 		}
 		EXECUTOR.execute(() -> {

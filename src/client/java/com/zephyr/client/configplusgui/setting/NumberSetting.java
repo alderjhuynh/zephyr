@@ -1,10 +1,5 @@
 package com.zephyr.client.configplusgui.setting;
 
-/**
- * Renders as a draggable slider in the click-gui, bounded to [min, max] and
- * snapped to {@code step}. Use {@link #getProgress()} / {@link #setFromProgress(double)}
- * to convert to/from a 0-1 fraction of the slider's width.
- */
 public final class NumberSetting extends Setting<Double> {
     private final double min;
     private final double max;

@@ -213,6 +213,10 @@ public final class ConfigGuiScreen extends ZephyrScreen {
                 // Stealth toggling has side effects (snapshot + force-disable/restore modules),
                 // so it goes through the single choke point instead of the raw setting.
                 GlobalConfig.toggleStealthMode();
+            } else if (booleanSetting == GlobalConfig.discordPresence) {
+                // Toggling starts/stops the live Discord IPC connection, so it goes
+                // through the single choke point instead of the raw setting.
+                GlobalConfig.toggleDiscordPresence();
             } else {
                 booleanSetting.toggle();
                 GlobalConfig.save();
@@ -311,6 +315,9 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         cursor += ROW_HEIGHT;
 
         rows.add(new SettingRow(GlobalConfig.keybindConflictWarnings, cursor));
+        cursor += ROW_HEIGHT;
+
+        rows.add(new SettingRow(GlobalConfig.discordPresence, cursor));
         cursor += ROW_HEIGHT;
 
         rows.add(new SettingRow(GlobalConfig.stealthMode, cursor));

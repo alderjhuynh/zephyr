@@ -6,6 +6,18 @@ pluginManagement {
 		}
 		mavenCentral()
 		gradlePluginPortal()
+		maven {
+			name = 'Seedfinding'
+			url = 'https://maven.seedfinding.com/'
+		}
+		maven {
+			name = 'Seedfinding Snapshots'
+			url = 'https://maven-snapshots.seedfinding.com/'
+		}
+		maven {
+			name = 'LattiCG'
+			url = 'https://maven.latticg.com/'
+		}
 	}
 }
 

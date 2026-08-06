@@ -76,7 +76,13 @@
 		"disable.NauseaOverlay.NauseaVignetteMixin",
 		"commands.ChatInterceptMixin",
 		"commands.CommandSuggestionsMixin",
-		"commands.CommandSuggestionsAccessor"
+		"commands.CommandSuggestionsAccessor",
+		"qol.Seedcracker.ClientPacketListenerMixin",
+		"qol.Seedcracker.ClientLevelMixin",
+		"qol.Seedcracker.LocalPlayerMixin",
+		"qol.AppleSkin.HudMixin",
+		"qol.AppleSkin.FoodDataAccessor",
+		"qol.ArmorRenderer.HudMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

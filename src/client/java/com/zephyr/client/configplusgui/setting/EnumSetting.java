@@ -1,10 +1,5 @@
 package com.zephyr.client.configplusgui.setting;
 
-/**
- * Renders as a cyclable value label in the click-gui (click to advance to the next
- * constant). Use for module behaviors that are more than a simple on/off switch but
- * don't need a numeric range, e.g. {@code SpeedMine}'s Haste/Damage mode.
- */
 public final class EnumSetting<T extends Enum<T>> extends Setting<T> {
     private final Class<T> enumType;
     private final T[] values;

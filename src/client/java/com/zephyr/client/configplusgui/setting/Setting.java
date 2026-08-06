@@ -1,11 +1,5 @@
 package com.zephyr.client.configplusgui.setting;
 
-/**
- * A single configurable value exposed by a {@link com.zephyr.client.module}
- * in the click-gui's right-click customization panel. Extend this for new setting
- * types (see {@link BooleanSetting}, {@link NumberSetting}, {@link EnumSetting}); the
- * gui and {@code ConfigManager} both dispatch on the concrete subclass.
- */
 public abstract class Setting<T> {
     private final String name;
     private T value;

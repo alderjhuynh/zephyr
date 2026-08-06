@@ -15,6 +15,21 @@ repositories {
 
 	// Needed for the DiscordIPC library used for Discord Rich Presence.
 	mavenCentral()
+
+	// Needed for the seedfinding libraries used by the Seedcracker module
+	// (structure placement / Java-Random reversal math). Same pins as SeedcrackerX.
+	maven {
+		name = 'Seedfinding'
+		url = 'https://maven.seedfinding.com/'
+	}
+	maven {
+		name = 'Seedfinding Snapshots'
+		url = 'https://maven-snapshots.seedfinding.com/'
+	}
+	maven {
+		name = 'LattiCG'
+		url = 'https://maven.latticg.com/'
+	}
 }
 
 loom {
@@ -49,6 +64,19 @@ dependencies {
 		exclude group: "org.slf4j"
 		exclude group: "com.google.code.gson"
 	}
+
+	// Seedcracker module: pure-math seedfinding libraries (structure placement, biome
+	// sources, LCG/Java-Random reversal). Each is bundled into the mod jar via the
+	// "shade" configuration below. Pinned to the exact commits SeedcrackerX uses.
+	shade("com.seedfinding:mc_math:${project.seedfinding_math_version}") { transitive = false }
+	shade("com.seedfinding:mc_seed:${project.seedfinding_seed_version}") { transitive = false }
+	shade("com.seedfinding:mc_core:${project.seedfinding_core_version}") { transitive = false }
+	shade("com.seedfinding:mc_noise:${project.seedfinding_noise_version}") { transitive = false }
+	shade("com.seedfinding:mc_biome:${project.seedfinding_biome_version}") { transitive = false }
+	shade("com.seedfinding:mc_terrain:${project.seedfinding_terrain_version}") { transitive = false }
+	shade("com.seedfinding:mc_feature:${project.seedfinding_feature_version}") { transitive = false }
+	shade("com.seedfinding:mc_reversal:${project.seedfinding_reversal_version}") { transitive = false }
+	shade("com.seedfinding:latticg:${project.latticg_version}") { transitive = false }
 }
 
 // Bundle every jar resolved from the "shade" configuration (DiscordIPC itself plus its

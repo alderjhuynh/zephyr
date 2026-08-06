@@ -15,23 +15,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Registers every module and owns the master list the click-gui and config loader
- * both read from. Call {@link #init()} once from {@code ZephyrClient.onInitializeClient()}.
- */
 public final class ModuleManager {
     private static final List<Module> MODULES = new ArrayList<>();
 
     private ModuleManager() {
     }
 
-    /**
-     * To add a new module: write your {@link Module} subclass with a public static
-     * {@code INSTANCE}, then add one {@code register(...)} line below. It will
-     * automatically show up in the click-gui (tab + search), get its enabled
-     * state and settings persisted to disk, and get ticked while enabled.
-     */
     public static void init() {
+        // movement
         register(Aerodynamics.INSTANCE);
         register(AirJump.INSTANCE);
         register(AntiHunger.INSTANCE);
@@ -43,62 +34,67 @@ public final class ModuleManager {
         register(Sprint.INSTANCE);
         register(Step.INSTANCE);
         register(TridentBoost.INSTANCE);
+        // disable
         register(disableAxeStripping.INSTANCE);
         register(disableBlockBreakingCooldown.INSTANCE);
-        register(disableBlockBreakingParticles.INSTANCE);
         register(disableBlockOutline.INSTANCE);
+        register(disableBlockBreakingParticles.INSTANCE);
         register(disableBossbar.INSTANCE);
         register(disableDeadMobInteraction.INSTANCE);
         register(disableDeadMobRendering.INSTANCE);
-        register(disableFirstPersonEffectParticles.INSTANCE);
         register(disableFirstPersonFire.INSTANCE);
+        register(disableFirstPersonEffectParticles.INSTANCE);
         register(disableFluidFog.INSTANCE);
         register(disableFogRendering.INSTANCE);
         register(disableNauseaOverlay.INSTANCE);
-        register(disableNetherPortalSound.INSTANCE);
         register(disablePortalGuiClosing.INSTANCE);
+        register(disableNetherPortalSound.INSTANCE);
         register(disableRainEffects.INSTANCE);
         register(disableScoreboard.INSTANCE);
         register(disableShovelPathing.INSTANCE);
         register(disableTotemAnimation.INSTANCE);
-        register(Sneak.INSTANCE);
-        register(FreeCam.INSTANCE);
-        register(SafeWalk.INSTANCE);
-        register(RenderInvisibility.INSTANCE);
-        register(SpeedMine.INSTANCE);
-        register(PickBeforePlace.INSTANCE);
-        register(PeriodicUse.INSTANCE);
-        register(PeriodicAttack.INSTANCE);
-        register(ItemRestock.INSTANCE);
-        register(HoldUse.INSTANCE);
-        register(HoldAttack.INSTANCE);
-        register(GuiMove.INSTANCE);
-        register(FastUse.INSTANCE);
-        register(FastAttack.INSTANCE);
-        register(DurabilitySwap.INSTANCE);
+        // qol
+        register(AppleSkin.INSTANCE);
+        register(ArmorRenderer.INSTANCE);
         register(AutoTool.INSTANCE);
-        register(ShieldBreaker.INSTANCE);
+        register(ContainerESP.INSTANCE);
+        register(DurabilitySwap.INSTANCE);
+        register(FastAttack.INSTANCE);
+        register(FastUse.INSTANCE);
+        register(FreeCam.INSTANCE);
+        register(FullBright.INSTANCE);
+        register(GuiMove.INSTANCE);
+        register(HoldAttack.INSTANCE);
+        register(HoldUse.INSTANCE);
+        register(InventoryPackets.INSTANCE);
+        register(ItemRestock.INSTANCE);
+        register(PeriodicAttack.INSTANCE);
+        register(PeriodicUse.INSTANCE);
+        register(PickBeforePlace.INSTANCE);
+        register(PlayerESP.INSTANCE);
+        register(PotionSaver.INSTANCE);
+        register(RenderInvisibility.INSTANCE);
+        register(SafeWalk.INSTANCE);
+        register(Seedcracker.INSTANCE);
+        register(Sneak.INSTANCE);
+        register(SpeedMine.INSTANCE);
+        register(TimeChanger.INSTANCE);
+        register(Tracer.INSTANCE);
+        register(Xray.INSTANCE);
+        register(Zoom.INSTANCE);
+        // combat
+        register(AnimeProtagonist.INSTANCE);
+        register(AutoPlace.INSTANCE);
         register(BreachSwap.INSTANCE);
         register(Criticals.INSTANCE);
-        register(LungeSwap.INSTANCE);
-        register(Knockback.INSTANCE);
-        register(HitAssist.INSTANCE);
-        register(Reach.INSTANCE);
-        register(PlayerESP.INSTANCE);
-        register(Xray.INSTANCE);
-        register(KillAura.INSTANCE);
-        register(AnimeProtagonist.INSTANCE);
-        register(FullBright.INSTANCE);
-        register(TimeChanger.INSTANCE);
-        register(Zoom.INSTANCE);
         register(DensitySwap.INSTANCE);
-        register(AutoPlace.INSTANCE);
+        register(HitAssist.INSTANCE);
+        register(KillAura.INSTANCE);
         register(KillWyvern.INSTANCE);
-        register(PotionSaver.INSTANCE);
-        register(ContainerESP.INSTANCE);
-        register(Tracer.INSTANCE);
-        register(InventoryPackets.INSTANCE);
-        register(DiscordPresence.INSTANCE);
+        register(Knockback.INSTANCE);
+        register(LungeSwap.INSTANCE);
+        register(Reach.INSTANCE);
+        register(ShieldBreaker.INSTANCE);
 
         ConfigManager.load(MODULES);
     }
@@ -111,7 +107,6 @@ public final class ModuleManager {
         return Collections.unmodifiableList(MODULES);
     }
 
-    /** Finds a registered module by name, ignoring case, or null if not found. */
     public static Module get(String name) {
         for (Module module : MODULES) {
             if (module.getName().equalsIgnoreCase(name)) {
@@ -121,7 +116,6 @@ public final class ModuleManager {
         return null;
     }
 
-    /** Number of modules currently enabled, for the HUD overlay's {@code %modules_on%} token. */
     public static int enabledCount() {
         int count = 0;
         for (Module module : MODULES) {
