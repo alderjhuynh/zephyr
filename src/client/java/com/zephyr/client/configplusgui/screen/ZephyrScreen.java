@@ -1,6 +1,7 @@
 package com.zephyr.client.configplusgui.screen;
 
 import com.zephyr.client.configplusgui.config.GlobalConfig;
+import com.zephyr.client.configplusgui.hud.PartyManager;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -67,51 +68,145 @@ public abstract class ZephyrScreen extends Screen {
     protected int panelHeight;
 
     private final int enterDirection;
+    private final boolean slideVertically;
     private final long openedAtNanos = System.nanoTime();
 
     protected enum Nav {
         MAIN {
             @Override
-            Screen create(int direction) {
-                return new ClickGuiScreen(direction);
+            Screen create(int direction, boolean slideVertically) {
+                return new ClickGuiScreen(direction, slideVertically);
             }
         },
         KEYBIND {
             @Override
-            Screen create(int direction) {
+            Screen create(int direction, boolean slideVertically) {
                 return new KeybindGuiScreen(direction);
             }
         },
         PROFILES {
             @Override
-            Screen create(int direction) {
+            Screen create(int direction, boolean slideVertically) {
                 return new ProfileGuiScreen(direction);
             }
         },
         CONFIG {
             @Override
-            Screen create(int direction) {
+            Screen create(int direction, boolean slideVertically) {
                 return new ConfigGuiScreen(direction);
+            }
+        },
+        SECRET {
+            @Override
+            Screen create(int direction, boolean slideVertically) {
+                return new SecretGuiScreen(direction);
+            }
+
+            @Override
+            Nav forward() {
+                return CREDITS;
+            }
+
+            @Override
+            Nav backward() {
+                return MAIN;
+            }
+        },
+        CREDITS {
+            @Override
+            Screen create(int direction, boolean slideVertically) {
+                return new CreditsGuiScreen(direction);
+            }
+
+            @Override
+            Nav forward() {
+                return MAIN;
+            }
+
+            @Override
+            Nav backward() {
+                return SECRET;
             }
         };
 
-        abstract Screen create(int direction);
+        abstract Screen create(int direction, boolean slideVertically);
 
         Nav next() {
             Nav[] values = values();
-            return values[(ordinal() + 1) % values.length];
+            Nav result = values[(ordinal() + 1) % values.length];
+            // The secret and credits screens are hidden easter eggs: the normal Tab
+            // cycle skips over them entirely (Tab inside either returns straight to
+            // the module list via next() -> MAIN).
+            while (result == SECRET || result == CREDITS) {
+                result = values[(result.ordinal() + 1) % values.length];
+            }
+            return result;
+        }
+
+        /** Previous screen in the normal cycle, skipping the hidden easter-egg screens. */
+        Nav previous() {
+            Nav[] values = values();
+            Nav result = values[(ordinal() - 1 + values.length) % values.length];
+            while (result == SECRET || result == CREDITS) {
+                result = values[(result.ordinal() - 1 + values.length) % values.length];
+            }
+            return result;
+        }
+
+        /**
+         * Next screen in the hidden three-screen cycle (main -> ??? -> credits). Any
+         * regular screen hops straight into the cycle at ???.
+         */
+        Nav forward() {
+            return SECRET;
+        }
+
+        /**
+         * Previous screen in the hidden three-screen cycle (main -> credits -> ???).
+         * Any regular screen hops straight into the cycle at credits.
+         */
+        Nav backward() {
+            return CREDITS;
         }
     }
 
     protected ZephyrScreen(Component title, int enterDirection) {
+        this(title, enterDirection, false);
+    }
+
+    protected ZephyrScreen(Component title, int enterDirection, boolean slideVertically) {
         super(title);
         this.enterDirection = enterDirection;
+        this.slideVertically = slideVertically;
     }
 
     protected abstract Nav currentNav();
 
     public final Screen next() {
-        return currentNav().next().create(1);
+        return currentNav().next().create(1, false);
+    }
+
+    /**
+     * Tab-cycle resolution for {@link KeybindManager}: holding the Down arrow while
+     * cycling moves forward through the hidden three-screen cycle (main, ???, credits)
+     * and holding Up moves backward through it. The whole cycle slides vertically, so
+     * the new screen drops in from the bottom going forward and from the top going
+     * backward. Holding Left instead cycles backward through the normal screens (config,
+     * profiles, keybinds, main), sliding horizontally like a plain Tab. A plain Tab
+     * without arrows keeps the normal screen cycle (main, keybinds, profiles, config),
+     * and Tab inside either hidden screen always returns to the module list.
+     */
+    public final Screen advance(boolean holdingDown, boolean holdingUp, boolean holdingLeft) {
+        if (holdingDown) {
+            return currentNav().forward().create(1, true);
+        }
+        if (holdingUp) {
+            return currentNav().backward().create(-1, true);
+        }
+        if (holdingLeft) {
+            return currentNav().previous().create(-1, false);
+        }
+        return next();
     }
 
     @Override
@@ -140,17 +235,21 @@ public abstract class ZephyrScreen extends Screen {
     }
 
     protected final void withPanelSlide(Runnable renderBody) {
-        int offset = slideOffsetPx();
-        if (offset == 0) {
+        int xOffset = slideVertically ? 0 : slideOffsetPx();
+        int yOffset = slideVertically ? slideOffsetPx() : 0;
+        if (xOffset == 0 && yOffset == 0) {
             renderBody.run();
             return;
         }
         int trueX = panelX;
-        panelX = trueX + offset;
+        int trueY = panelY;
+        panelX = trueX + xOffset;
+        panelY = trueY + yOffset;
         try {
             renderBody.run();
         } finally {
             panelX = trueX;
+            panelY = trueY;
         }
     }
 
@@ -171,12 +270,22 @@ public abstract class ZephyrScreen extends Screen {
         return (int) Math.round((1 - eased) * enterDirection * (panelWidth + SCREEN_MARGIN));
     }
 
+    /** Bottom-right screen indicator; the secret menu replaces it with "???". */
+    protected String indicatorText() {
+        return currentNav().name();
+    }
+
     protected void renderChrome(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         graphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, PANEL_BG);
         graphics.fill(panelX, panelY, panelX + panelWidth, panelY + 2, accent());
-        graphics.text(this.font, "ZEPHYR", panelX + PADDING, panelY + 8, accent(), false);
 
-        String indicator = currentNav().name();
+        int titleY = panelY + 8;
+        if (PartyManager.wobble) {
+            titleY += (int) (Math.sin(System.currentTimeMillis() / 120.0) * 2);
+        }
+        graphics.text(this.font, "ZEPHYR", panelX + PADDING, titleY, accent(), false);
+
+        String indicator = indicatorText();
         int indicatorWidth = this.font.width(indicator);
         int indicatorX = panelX + panelWidth - indicatorWidth;
         int indicatorY = panelY + panelHeight + INDICATOR_GAP;

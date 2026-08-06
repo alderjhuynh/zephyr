@@ -4,6 +4,7 @@ import com.zephyr.client.configplusgui.config.GlobalConfig;
 import com.zephyr.client.configplusgui.config.ProfileManager;
 import com.zephyr.client.configplusgui.hud.HudRenderer;
 import com.zephyr.client.configplusgui.hud.NotificationManager;
+import com.zephyr.client.configplusgui.hud.PartyManager;
 import com.zephyr.client.configplusgui.keybind.GuiKeybindHandler;
 import com.zephyr.client.configplusgui.keybind.KeybindManager;
 import com.zephyr.client.configplusgui.module.ModuleManager;
@@ -43,6 +44,7 @@ ZephyrClient implements ClientModInitializer {
 			guiKeybindHandler.tick(client);
 			CommandPrefixHandler.tick(client);
 			ModuleManager.tick(client);
+			PartyManager.tick();
 
 			tickCount++;
 			double interval = GlobalConfig.autosaveIntervalSeconds();

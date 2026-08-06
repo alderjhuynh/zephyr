@@ -159,7 +159,16 @@ public final class KeybindManager {
         boolean wasDown = SYSTEM_WAS_DOWN.getOrDefault(SystemAction.CYCLE_SCREEN, false);
 
         if (down && !wasDown) {
-            client.gui.setScreen(current.next());
+            // Holding Down while cycling moves forward through the hidden
+            // main/???/credits cycle, holding Up moves backward through it, and
+            // holding Left moves backward through the normal screens (same polling
+            // pattern as isDown()); the screen resolves the Tab-with-arrow target
+            // and animation direction itself.
+            long windowHandle = client.getWindow().handle();
+            boolean holdingDown = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_DOWN) == GLFW.GLFW_PRESS;
+            boolean holdingUp = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_UP) == GLFW.GLFW_PRESS;
+            boolean holdingLeft = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_LEFT) == GLFW.GLFW_PRESS;
+            client.gui.setScreen(current.advance(holdingDown, holdingUp, holdingLeft));
         }
         SYSTEM_WAS_DOWN.put(SystemAction.CYCLE_SCREEN, down);
     }

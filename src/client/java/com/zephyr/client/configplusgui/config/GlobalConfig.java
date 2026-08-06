@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import com.zephyr.Zephyr;
 import com.zephyr.client.configplusgui.hud.Corner;
 import com.zephyr.client.configplusgui.hud.HudMode;
+import com.zephyr.client.configplusgui.hud.PartyManager;
 import com.zephyr.client.configplusgui.hud.ThemeColor;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
@@ -218,21 +219,21 @@ public final class GlobalConfig {
 
     /** Effective accent: the custom color when enabled, otherwise the theme preset. */
     public static int accent() {
-        return useCustomColor.get() ? customAccent() : themeColor.accent();
+        return PartyManager.rainbowAccent(useCustomColor.get() ? customAccent() : themeColor.accent());
     }
 
     /** Partially transparent accent, e.g. the click-gui scroll bar. */
     public static int accentDim() {
-        return useCustomColor.get()
+        return PartyManager.rainbowAccent(useCustomColor.get()
                 ? (0x66000000 | (customAccent() & 0x00FFFFFF))
-                : themeColor.accentDim();
+                : themeColor.accentDim());
     }
 
     /** Faint accent wash behind enabled/highlighted rows. */
     public static int enabledBg() {
-        return useCustomColor.get()
+        return PartyManager.rainbowAccent(useCustomColor.get()
                 ? (0x40000000 | (customAccent() & 0x00FFFFFF))
-                : themeColor.enabledBg();
+                : themeColor.enabledBg());
     }
 
     /** Derived from the Hue/Saturation/Value sliders via HSV-to-RGB. */

@@ -80,6 +80,9 @@ public final class NotificationManager {
         graphics.fill(x, y, x + TOAST_WIDTH, y + TOAST_HEIGHT, ZephyrScreen.PANEL_BG);
 
         int accent = toast.enabledNow() ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
+        if (PartyManager.confetti) {
+            accent = PartyManager.confettiAccent(accent);
+        }
         graphics.fill(x, y, x + TOAST_WIDTH, y + 2, accent);
 
         graphics.text(font, toast.moduleName(), x + 8, y + 9, ZephyrScreen.TEXT_MAIN, false);

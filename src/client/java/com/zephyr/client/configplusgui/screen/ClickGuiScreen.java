@@ -39,11 +39,11 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private NumberSetting draggingSetting = null;
 
     public ClickGuiScreen() {
-        this(0);
+        this(0, false);
     }
 
-    ClickGuiScreen(int enterDirection) {
-        super(Component.literal("Zephyr"), enterDirection);
+    ClickGuiScreen(int enterDirection, boolean slideVertically) {
+        super(Component.literal("Zephyr"), enterDirection, slideVertically);
     }
 
     @Override
