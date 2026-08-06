@@ -43,7 +43,8 @@ public final class KeybindManager {
     public enum SystemAction {
         OPEN_MENU("Open Menu", new Keybind(GLFW.GLFW_KEY_L, GLFW.GLFW_KEY_ENTER, Keybind.UNSET)),
         CYCLE_SCREEN("Cycle Screen", new Keybind(GLFW.GLFW_KEY_TAB, Keybind.UNSET, Keybind.UNSET)),
-        STEALTH_MODE("Stealth Mode", new Keybind(GLFW.GLFW_KEY_F6, Keybind.UNSET, Keybind.UNSET));
+        STEALTH_MODE("Stealth Mode", new Keybind(GLFW.GLFW_KEY_F6, Keybind.UNSET, Keybind.UNSET)),
+        COMMAND_PREFIX("Command Prefix", new Keybind(GLFW.GLFW_KEY_PERIOD, Keybind.UNSET, Keybind.UNSET));
 
         public final String label;
         public final Keybind defaultBind;

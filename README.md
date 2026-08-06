@@ -1,6 +1,6 @@
 # Zephyr
 
-A client-side hacked client / utility mod for **Minecraft 26.2**, built on [Fabric](https://fabricmc.net/). Zephyr packs over 50 modules into four categories, Movement, Combat, QoL, and Disable, with a fully clickable GUI, configurable keybinds, configurable profiles, and Discord Rich Presence.
+A client-side hacked client / utility mod for **Minecraft 26.2**, built on [Fabric](https://fabricmc.net/). Zephyr packs over 60 modules into four categories, Movement, Combat, QoL, and Disable, with a fully clickable GUI, a chat command system, configurable keybinds, configurable profiles, and Discord Rich Presence.
 
 > **Use at your own risk.** Zephyr modifies client behavior and may violate the rules of the servers you play on. Use it only on servers where such modifications are allowed.
 
@@ -31,6 +31,7 @@ A client-side hacked client / utility mod for **Minecraft 26.2**, built on [Fabr
 - Press **`L` + `Enter`** to open the main menu (a clickable module list with search and category tabs).
 - Press **`Tab`** while the menu is open to cycle between the other screens (global settings, keybinds, profiles, and back).
 - **Left-click** a module to toggle it on or off; **right-click** it to open its settings panel.
+- Press the **Command Prefix** key (default **`.`**) to open chat with the Zephyr prefix pre-typed and run a command like `.z module Flight on` (see [Commands](#commands)).
 - Toggle state, settings, keybinds, and the active profile are all saved to `config/zephyr/` when you quit the game.
 
 Everything, including the menu itself, can be rebound from the **Keybinds** screen. Keybinds support up to three keys held together (e.g. `G` or `Ctrl` + `B`).
@@ -52,9 +53,22 @@ The **Settings** screen holds client-wide options:
 | Keybind Conflict Warnings | Warns via toast when a new bind collides with an existing one |
 | Stealth Mode | Snapshots and force-disables every module, restoring them when turned off |
 
+## Commands
+
+Zephyr's chat commands give you quick control over the client without opening the GUI. The command prefix is set by the **Command Prefix** keybind (default **`.`**); any chat message starting with it is intercepted client-side and never sent to the server.
+
+| Command | Description |
+| --- | --- |
+| `.z` | Shows diagnostics: mod version, active profile, and enabled/total module count |
+| `.z module <name> <on\|off\|toggle>` | Controls a module by name, e.g. `.z module KillAura on` |
+
+- Tab-completion works in the chat box: type the prefix and start typing, and commands and arguments are suggested as you go.
+- Names or arguments containing spaces can be double-quoted, e.g. `.z module "Anime Protagonist" toggle`.
+
 ## Features
 
 - **Click GUI**: searchable module list with per-category tabs and per-module settings panels
+- **Commands**: chat-based control with `.z`, including tab-completion and argument suggestions
 - **Global settings**: theme/custom accent colors, toast popups, HUD overlay, and other client-wide options
 - **Profiles**: save and switch between different module/setting configurations
 - **Keybinds**: bind any module or system action to up to three simultaneous keys, all editable in-game
@@ -72,6 +86,7 @@ The **Settings** screen holds client-wide options:
 | Flight | Enables client flight |
 | High Jump | Increases jump height |
 | No Fall | Prevents fall damage packets |
+| No Slowdown | Cancels the movement speed reduction from using items, webs, or water |
 | Sprint | Automatically sprints while moving |
 | Step | Raises the step height |
 | Trident Boost | Enables dry riptide boosts |
@@ -85,7 +100,10 @@ The **Settings** screen holds client-wide options:
 | Breach Swap | Enables Breach Swapping under a certain fall distance |
 | Criticals | Creates falling packets to enable crits and mace slams |
 | Density Swap | Enables Density Swapping over a certain fall distance |
+| Hit Assist | Sends the attack packet anyway when you miss, if you were looking close enough to an entity |
 | KillAura | Automatically attacks for you |
+| Kill Wyvern | "Say hello" to a specific player |
+| Knockback | Reduces the amount of knockback you take |
 | Lunge Swap | Automatically attempts a Lunge Swap when attacking without a target |
 | Reach | Increases reach distance |
 | Shieldbreaker | Automatically breaks shields |
@@ -100,6 +118,7 @@ The **Settings** screen holds client-wide options:
 | Durability Swap | Saves tools with low durability from being used to mine blocks |
 | Fast Attack | Simulates attack actions multiple times per tick |
 | Fast Use | Simulates use actions multiple times per tick |
+| FreeCam | Detaches the camera to fly freely while your player stays in place |
 | FullBright | Increases gamma |
 | Gui Move | Allows movement inputs while GUIs are open |
 | Hold Attack | Continually simulates pressing the attack key |
@@ -112,9 +131,13 @@ The **Settings** screen holds client-wide options:
 | PlayerESP | Glows nearby players |
 | Potion Saver | Attempts to extend the duration of potions |
 | Render Invisibility | Renders invisible players as translucent |
+| Safe Walk | Prevents you from walking off block edges until you jump |
 | Sneak | Automatically sneaks |
 | Speed Mine | Speeds up block breaking via synthetic Haste or predicted damage packets |
+| Time Changer | Changes the time of day client-side |
+| Tracers | Draws lines from your crosshair to nearby players |
 | Xray | Outlines blocks in a list through walls |
+| Zoom | Smoothly zooms your FOV in to a custom level while enabled |
 
 ### Disable
 
@@ -122,16 +145,22 @@ The **Settings** screen holds client-wide options:
 | --- | --- |
 | Disable Axe Stripping | Prevents axe stripping |
 | Disable Block Cooldown | Removes block breaking cooldown |
+| Disable Block Outline | Hides the black outline on the targeted block |
 | Disable Block Particles | Hides block breaking particles |
+| Disable Bossbar | Hides bossbars |
 | Disable Dead Mob Interaction | Blocks interactions with dead mobs |
 | Disable Dead Mob Rendering | Hides dead mobs |
+| Disable First-Person Fire | Lowers or removes the first-person fire overlay while on fire |
 | Disable First-Person Particles | Hides your own status particles |
+| Disable Fluid Fog | Removes fog while underwater or in lava for better visibility |
 | Disable Fog | Hides fog rendering |
 | Disable Nausea | Hides nausea overlays |
 | Disable Portal GUI Closing | Keeps GUIs open in portals |
 | Disable Portal Sound | Mutes nether portal ambience |
 | Disable Rain | Hides rain and rain sounds |
+| Disable Scoreboard | Hides the sidebar scoreboard |
 | Disable Shovel Pathing | Prevents shovel pathing |
+| Disable Totem Animation | Prevents the totem of undying pop-up animation and effects |
 
 ---
 

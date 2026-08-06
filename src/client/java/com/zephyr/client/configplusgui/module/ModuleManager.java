@@ -39,22 +39,31 @@ public final class ModuleManager {
         register(Flight.INSTANCE);
         register(HighJump.INSTANCE);
         register(NoFall.INSTANCE);
+        register(NoSlowdown.INSTANCE);
         register(Sprint.INSTANCE);
         register(Step.INSTANCE);
         register(TridentBoost.INSTANCE);
         register(disableAxeStripping.INSTANCE);
         register(disableBlockBreakingCooldown.INSTANCE);
         register(disableBlockBreakingParticles.INSTANCE);
+        register(disableBlockOutline.INSTANCE);
+        register(disableBossbar.INSTANCE);
         register(disableDeadMobInteraction.INSTANCE);
         register(disableDeadMobRendering.INSTANCE);
         register(disableFirstPersonEffectParticles.INSTANCE);
+        register(disableFirstPersonFire.INSTANCE);
+        register(disableFluidFog.INSTANCE);
         register(disableFogRendering.INSTANCE);
         register(disableNauseaOverlay.INSTANCE);
         register(disableNetherPortalSound.INSTANCE);
         register(disablePortalGuiClosing.INSTANCE);
         register(disableRainEffects.INSTANCE);
+        register(disableScoreboard.INSTANCE);
         register(disableShovelPathing.INSTANCE);
+        register(disableTotemAnimation.INSTANCE);
         register(Sneak.INSTANCE);
+        register(FreeCam.INSTANCE);
+        register(SafeWalk.INSTANCE);
         register(RenderInvisibility.INSTANCE);
         register(SpeedMine.INSTANCE);
         register(PickBeforePlace.INSTANCE);
@@ -72,17 +81,23 @@ public final class ModuleManager {
         register(BreachSwap.INSTANCE);
         register(Criticals.INSTANCE);
         register(LungeSwap.INSTANCE);
+        register(Knockback.INSTANCE);
+        register(HitAssist.INSTANCE);
         register(Reach.INSTANCE);
         register(PlayerESP.INSTANCE);
         register(Xray.INSTANCE);
         register(KillAura.INSTANCE);
         register(AnimeProtagonist.INSTANCE);
         register(FullBright.INSTANCE);
+        register(TimeChanger.INSTANCE);
+        register(Zoom.INSTANCE);
         register(DensitySwap.INSTANCE);
         register(AutoPlace.INSTANCE);
         register(KillWyvern.INSTANCE);
         register(PotionSaver.INSTANCE);
         register(ContainerESP.INSTANCE);
+        register(Tracer.INSTANCE);
+        register(InventoryPackets.INSTANCE);
         register(DiscordPresence.INSTANCE);
 
         ConfigManager.load(MODULES);
@@ -94,6 +109,16 @@ public final class ModuleManager {
 
     public static List<Module> getModules() {
         return Collections.unmodifiableList(MODULES);
+    }
+
+    /** Finds a registered module by name, ignoring case, or null if not found. */
+    public static Module get(String name) {
+        for (Module module : MODULES) {
+            if (module.getName().equalsIgnoreCase(name)) {
+                return module;
+            }
+        }
+        return null;
     }
 
     /** Number of modules currently enabled, for the HUD overlay's {@code %modules_on%} token. */

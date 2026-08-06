@@ -7,6 +7,9 @@ import com.zephyr.client.configplusgui.hud.NotificationManager;
 import com.zephyr.client.configplusgui.keybind.GuiKeybindHandler;
 import com.zephyr.client.configplusgui.keybind.KeybindManager;
 import com.zephyr.client.configplusgui.module.ModuleManager;
+import com.zephyr.client.commands.CommandManager;
+import com.zephyr.client.commands.CommandPrefixHandler;
+import com.zephyr.client.commands.ZCommand;
 import com.zephyr.client.discord.DiscordPresenceManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -34,9 +37,11 @@ ZephyrClient implements ClientModInitializer {
 		ModuleManager.init();
 		ProfileManager.init();
 		KeybindManager.init();
+		CommandManager.register(ZCommand.INSTANCE);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			guiKeybindHandler.tick(client);
+			CommandPrefixHandler.tick(client);
 			ModuleManager.tick(client);
 
 			tickCount++;
