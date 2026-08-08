@@ -133,18 +133,21 @@ Enable it from the click-GUI (Category: QoL) or with `.z module AppleSkin on`. I
 
 | Module            | Description                                                                                 |
 |-------------------|---------------------------------------------------------------------------------------------|
+| AnchorAura        | Charges a respawn anchor in a target's face and detonates it, shielding yourself behind a glowstone block |
 | Anime Protagonist | Attempts to teleport behind a hit entity                                                    |
 | Auto Place        | Automatically places a specified block on a hit entity                                      |
 | Breach Swap       | Enables Breach Swapping under a certain fall distance                                       |
 | Criticals         | Creates falling packets to enable crits and mace slams                                      |
 | Density Swap      | Enables Density Swapping over a certain fall distance                                       |
 | Hit Assist        | Sends the attack packet anyway when you miss, if you were looking close enough to an entity |
+| InstaCart         | Automatically places a rail and TNT minecart to catch your own flaming arrows               |
 | KillAura          | Automatically attacks for you                                                               |
-| Kill Wyvern       | "Say hello" to a specific player                                                            |
 | Knockback         | Reduces the amount of knockback you take                                                    |
 | Lunge Swap        | Automatically attempts a Lunge Swap when attacking without a target                         |
 | Reach             | Increases reach distance                                                                    |
 | Shieldbreaker     | Automatically breaks shields                                                                |
+| TriggerBot        | Attacks whenever an entity is in your crosshair and your cooldown is full                   |
+| XBowCart          | Places a rail, TNT minecart, and fire to catch your own crossbow arrows                     |
 
 ### QoL
 
@@ -158,7 +161,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module AppleSkin on`. I
 | Durability Swap     | Saves tools with low durability from being used to mine blocks                                       |
 | Fast Attack         | Simulates attack actions multiple times per tick                                                     |
 | Fast Use            | Simulates use actions multiple times per tick                                                        |
-| FreeCam             | Detaches the camera to fly freely while your player stays in place                                   |
+| FreeCam             | Detaches the camera to fly freely while your player stays in place; configure flight mode, speed, perspective, hand, and interaction behavior |
 | FullBright          | Increases gamma                                                                                      |
 | Gui Move            | Allows movement inputs while GUIs are open                                                           |
 | Hold Attack         | Continually simulates pressing the attack key                                                        |
@@ -177,7 +180,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module AppleSkin on`. I
 | Speed Mine          | Speeds up block breaking via synthetic Haste or predicted damage packets                             |
 | Time Changer        | Changes the time of day client-side                                                                  |
 | Tracers             | Draws lines from your crosshair to nearby players                                                    |
-| Xray                | Outlines blocks in a list through walls                                                              |
+| Xray                | Outlines blocks in a list through walls, with presets or a custom list with per-block colors        |
 | Zoom                | Smoothly zooms your FOV in to a custom level while enabled                                           |
 
 ### Disable
