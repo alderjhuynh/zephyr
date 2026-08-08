@@ -77,7 +77,6 @@
 		"combat.Reach.PlayerMixin",
 		"combat.AbstractArrowInvoker",
 		"qol.PlayerESP.EntityGlowMixin",
-		"qol.MobESP.EntityGlowMixin",
 		"combat.KillAura.AttackMixin",
 		"combat.Knockback.ClientPacketListenerMixin",
 		"combat.HitAssist.MinecraftMixin",
