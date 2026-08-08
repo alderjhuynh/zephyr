@@ -1,6 +1,7 @@
 package com.zephyr.client.module.combat.KillAura;
 
 import com.zephyr.client.configplusgui.module.Category;
+import com.zephyr.client.configplusgui.setting.BooleanSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
@@ -12,17 +13,20 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 
 public final class KillAura extends Module {
     public static final KillAura INSTANCE = new KillAura();
     private KillAura() {
         super("KillAura", "Automatically attacks for you", Category.COMBAT);
         addSetting(mode);
+        addSetting(playersOnly);
         addSetting(distanceMult);
     }
 
     private final NumberSetting distanceMult = new NumberSetting("Discard Target Distance Multiplier", 3, 1, 3, 1);
     private final EnumSetting<KillAura.Mode> mode = new EnumSetting<>("Mode", KillAura.Mode.AURA);
+    private final BooleanSetting playersOnly = new BooleanSetting("Players Only", false);
     public enum Mode {
         AURA,
         ASSIST
@@ -79,6 +83,7 @@ public final class KillAura extends Module {
         for (Entity entity : client.level.entitiesForRendering()) {
             if (!(entity instanceof LivingEntity living)) continue;
             if (living == player || !living.isAlive()) continue;
+            if (playersOnly.get() && !(living instanceof Player)) continue;
 
             double distanceSq = player.distanceToSqr(living);
             if (distanceSq > reachSq) continue;

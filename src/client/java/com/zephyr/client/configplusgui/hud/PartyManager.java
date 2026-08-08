@@ -7,23 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Runtime-only "party mode" state exposed by the hidden secret menu. Everything here
- * is a session easter egg: nothing is persisted, and every flag resets on launch.
- * <p>
- * Holds the {@code rainbow} / {@code uwu} / {@code confetti} / {@code wobble} /
- * {@code roulette} toggles, the {@link #rainbowAccent(int)} hue-cycling helper used
- * by {@link com.zephyr.client.configplusgui.config.GlobalConfig} (and the toast
- * border) so rainbow reaches every panel, toast and HUD element without touching
- * persistence, the {@link #uwuify(String)} chat transform, and the module roulette
- * timer that periodically picks a random enabled module and disables it. {@link #tick()}
- * is driven from ZephyrClient's existing client tick.
- */
 public final class PartyManager {
     private static final Random RANDOM = new Random();
-    /** How long the roulette waits between spins. */
     private static final long ROULETTE_INTERVAL_NANOS = 5_000_000_000L;
-    /** Full hue cycle length; 2000ms keeps the rainbow lively without strobe. */
     private static final long RAINBOW_CYCLE_MILLIS = 2000L;
 
     public static boolean rainbow;
@@ -40,7 +26,6 @@ public final class PartyManager {
     private PartyManager() {
     }
 
-    /** Called every client tick; drives the module roulette timer. */
     public static void tick() {
         if (!roulette) return;
         long now = System.nanoTime();
@@ -69,15 +54,10 @@ public final class PartyManager {
         NotificationManager.notify(victim.getName(), false);
     }
 
-    /**
-     * Hue-cycling accent override. When rainbow mode is off this just returns the
-     * fallback untouched, so every call site behaves exactly as before.
-     */
     public static int rainbowAccent(int fallback) {
         return rainbow ? hueAccent(fallback) : fallback;
     }
 
-    /** Always-rainbow accent used by the confetti toast border, regardless of the rainbow flag. */
     public static int confettiAccent(int fallback) {
         return hueAccent(fallback);
     }
@@ -106,7 +86,6 @@ public final class PartyManager {
         return (red << 16) | (green << 8) | blue;
     }
 
-    /** Uwu-ifies outgoing chat. Commands are intentionally left alone by the mixin. */
     public static String uwuify(String input) {
         if (input == null || input.isEmpty()) return input;
 
@@ -128,12 +107,10 @@ public final class PartyManager {
         return text;
     }
 
-    /** How many messages have been uwu-ified this session. */
     public static int uwuCount() {
         return uwuCount;
     }
 
-    /** How many modules the roulette has spun off this session. */
     public static int rouletteSpins() {
         return rouletteSpins;
     }

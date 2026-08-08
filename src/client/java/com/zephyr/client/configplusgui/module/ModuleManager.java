@@ -84,17 +84,20 @@ public final class ModuleManager {
         register(Zoom.INSTANCE);
         // combat
         register(AnimeProtagonist.INSTANCE);
+        register(AnchorAura.INSTANCE);
         register(AutoPlace.INSTANCE);
         register(BreachSwap.INSTANCE);
         register(Criticals.INSTANCE);
         register(DensitySwap.INSTANCE);
         register(HitAssist.INSTANCE);
+        register(InstaCart.INSTANCE);
         register(KillAura.INSTANCE);
-        register(KillWyvern.INSTANCE);
         register(Knockback.INSTANCE);
         register(LungeSwap.INSTANCE);
         register(Reach.INSTANCE);
         register(ShieldBreaker.INSTANCE);
+        register(TriggerBot.INSTANCE);
+        register(XBowCart.INSTANCE);
 
         ConfigManager.load(MODULES);
     }

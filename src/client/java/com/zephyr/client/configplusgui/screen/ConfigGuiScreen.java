@@ -4,6 +4,7 @@ import com.zephyr.client.configplusgui.config.GlobalConfig;
 import com.zephyr.client.configplusgui.hud.ThemeColor;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.configplusgui.setting.Setting;
 import com.zephyr.client.configplusgui.setting.StringSetting;
@@ -76,6 +77,8 @@ public final class ConfigGuiScreen extends ZephyrScreen {
             renderEnumRow(graphics, setting.getName(), enumSetting, top, mouseX, mouseY);
         } else if (setting instanceof StringSetting stringSetting) {
             renderStringRow(graphics, setting.getName(), stringSetting, top);
+        } else if (setting instanceof ListSetting listSetting) {
+            renderListRow(graphics, setting.getName(), listSetting, top);
         }
     }
 
@@ -129,6 +132,16 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         graphics.text(this.font, label, panelX + PADDING + 8, top + 9, TEXT_MAIN, false);
 
         String value = setting.get();
+        int valueWidth = this.font.width(value);
+        graphics.text(this.font, value, panelX + panelWidth - PADDING - 8 - valueWidth, top + 9, TEXT_DIM, false);
+    }
+
+    private void renderListRow(GuiGraphicsExtractor graphics, String label, ListSetting setting, int top) {
+        graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT, ROW_BG);
+
+        graphics.text(this.font, label, panelX + PADDING + 8, top + 9, TEXT_MAIN, false);
+
+        String value = setting.get().size() + " entries";
         int valueWidth = this.font.width(value);
         graphics.text(this.font, value, panelX + panelWidth - PADDING - 8 - valueWidth, top + 9, TEXT_DIM, false);
     }

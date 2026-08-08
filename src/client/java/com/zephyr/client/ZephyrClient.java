@@ -1,5 +1,6 @@
 package com.zephyr.client;
 
+import com.zephyr.client.configplusgui.secretsettings.bettermovement.BetterMovement;
 import com.zephyr.client.configplusgui.config.GlobalConfig;
 import com.zephyr.client.configplusgui.config.ProfileManager;
 import com.zephyr.client.configplusgui.hud.HudRenderer;
@@ -45,6 +46,7 @@ ZephyrClient implements ClientModInitializer {
 			CommandPrefixHandler.tick(client);
 			ModuleManager.tick(client);
 			PartyManager.tick();
+			BetterMovement.tick(client);
 
 			tickCount++;
 			double interval = GlobalConfig.autosaveIntervalSeconds();

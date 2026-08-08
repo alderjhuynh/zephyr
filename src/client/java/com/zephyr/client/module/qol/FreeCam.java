@@ -3,126 +3,227 @@ package com.zephyr.client.module.qol;
 import com.zephyr.client.configplusgui.module.Category;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
+import com.zephyr.client.configplusgui.setting.EnumSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
-import net.minecraft.client.DeltaTracker;
+import com.zephyr.client.module.qol.freecam.FlightMode;
+import com.zephyr.client.module.qol.freecam.FreeCamera;
+import com.zephyr.client.module.qol.freecam.InteractionMode;
+import com.zephyr.client.module.qol.freecam.Perspective;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.client.player.ClientInput;
+import net.minecraft.client.player.KeyboardInput;
+import net.minecraft.world.level.block.Block;
 
-/**
- * Detaches the camera from the player so it can fly around freely while the
- * player's body stays in place. Look and movement are driven per-frame by the
- * {@code Camera} mixin; mouse look is redirected here by the {@code Entity.turn}
- * mixin, and the {@code KeyboardInput} mixin freezes the real player's input.
- */
 public final class FreeCam extends Module {
     public static final FreeCam INSTANCE = new FreeCam();
+    public static final Minecraft MC = Minecraft.getInstance();
 
-    /** Matches the yaw/pitch multiplier Minecraft applies inside {@code Entity.turn}. */
-    private static final double MOUSE_SENSITIVITY_FACTOR = 0.15;
-
-    private final NumberSetting speed = new NumberSetting("Speed", 5.0, 0.5, 30.0, 0.5);
+    private final EnumSetting<FlightMode> flightMode = new EnumSetting<>("Flight Mode", FlightMode.DEFAULT);
+    private final NumberSetting horizontalSpeed = new NumberSetting("Horizontal Speed", 1.0, 0.5, 30.0, 0.5);
+    private final NumberSetting verticalSpeed = new NumberSetting("Vertical Speed", 1.0, 0.5, 30.0, 0.5);
+    private final EnumSetting<Perspective> initialPerspective = new EnumSetting<>("Initial Perspective", Perspective.INSIDE);
     private final BooleanSetting showPlayer = new BooleanSetting("Show Player", true);
+    private final BooleanSetting showHand = new BooleanSetting("Show Hand", false);
+    private final BooleanSetting fullBright = new BooleanSetting("Full Bright", false);
+    private final BooleanSetting showSubmersionFog = new BooleanSetting("Show Submersion Fog", false);
+    private final BooleanSetting outlinePlayer = new BooleanSetting("Outline Player", false);
+    private final BooleanSetting freezePlayer = new BooleanSetting("Freeze Player", false);
+    private final BooleanSetting disableOnDamage = new BooleanSetting("Disable on Damage", true);
+    private final BooleanSetting allowInteract = new BooleanSetting("Allow Interactions", false);
+    private final EnumSetting<InteractionMode> interactionMode = new EnumSetting<>("Interaction Mode", InteractionMode.CAMERA);
+    private final BooleanSetting ignoreCollision = new BooleanSetting("Ignore Collision", true);
+    private final BooleanSetting checkInitialCollision = new BooleanSetting("Check Initial Collision", false);
 
-    private Vec3 pos;
-    private float yaw;
-    private float pitch;
+    private boolean suppressPerspectiveGuard;
+    private boolean disableNextTick;
+
+    private FreeCamera freeCamera;
+    private CameraType rememberedF5;
 
     private FreeCam() {
         super("FreeCam", "Detaches the camera to fly freely while your player stays in place", Category.QOL);
-        addSetting(speed);
+        addSetting(flightMode);
+        addSetting(horizontalSpeed);
+        addSetting(verticalSpeed);
+        addSetting(initialPerspective);
         addSetting(showPlayer);
+        addSetting(showHand);
+        addSetting(fullBright);
+        addSetting(showSubmersionFog);
+        addSetting(outlinePlayer);
+        addSetting(freezePlayer);
+        addSetting(disableOnDamage);
+        addSetting(allowInteract);
+        addSetting(interactionMode);
+        addSetting(ignoreCollision);
+        addSetting(checkInitialCollision);
     }
 
     @Override
     protected void onEnable() {
-        initialize();
+        MC.smartCull = false;
+        rememberedF5 = MC.options.getCameraType();
+        // The Options mixin prevents perspective changes while enabled, so this flag
+        // lets us force first-person (needed when freecam is toggled from third person).
+        suppressPerspectiveGuard = true;
+        try {
+            if (MC.gameRenderer.mainCamera().isDetached()) {
+                MC.options.setCameraType(CameraType.FIRST_PERSON);
+            }
+        } finally {
+            suppressPerspectiveGuard = false;
+        }
+        createCamera();
     }
 
     @Override
     protected void onDisable() {
-        pos = null;
+        MC.smartCull = true;
+        if (freeCamera != null) {
+            if (MC.player != null) {
+                MC.setCameraEntity(MC.player);
+            }
+            freeCamera.despawn();
+            freeCamera.input = new ClientInput();
+            freeCamera = null;
+        }
+        if (MC.player != null) {
+            MC.player.input = new KeyboardInput(MC.options);
+        }
+        if (rememberedF5 != null) {
+            MC.options.setCameraType(rememberedF5);
+            rememberedF5 = null;
+        }
     }
 
-    /**
-     * Initializes the camera from the player's current eye position/rotation.
-     * Called on enable, and lazily from the camera mixin to cover modules that
-     * are toggled on before a world (and therefore a player) exists.
-     */
-    public void initialize() {
-        Minecraft client = Minecraft.getInstance();
-        if (client.player == null) return;
-        pos = client.player.getEyePosition();
-        yaw = client.player.getViewYRot(1.0F);
-        pitch = client.player.getViewXRot(1.0F);
+    @Override
+    public void tick(Minecraft client) {
+        if (disableNextTick) {
+            disableNextTick = false;
+            setEnabled(false);
+            return;
+        }
+        // Covers the case where freecam is enabled before a world (and therefore a
+        // player) exists - the camera entity is created as soon as one is available.
+        createCamera();
     }
 
-    /**
-     * Moves the camera based on the movement keys, called every rendered frame so
-     * motion is smooth and proportional to real time rather than the 20 TPS tick.
-     */
-    public void onCameraUpdate(DeltaTracker deltaTracker) {
-        if (pos == null) return;
-        Minecraft client = Minecraft.getInstance();
-        if (client.player == null || client.level == null || client.gui.screen() != null) return;
-
-        float deltaTicks = Math.min(deltaTracker.getRealtimeDeltaTicks(), 1.0F);
-        float distance = speed.get().floatValue() * (deltaTicks / 20.0F);
-
-        double yawRad = Math.toRadians(yaw);
-        double pitchRad = Math.toRadians(pitch);
-
-        Vec3 movement = Vec3.ZERO;
-        if (client.options.keyUp.isDown()) {
-            movement = movement.add(
-                    -Math.sin(yawRad) * Math.cos(pitchRad),
-                    -Math.sin(pitchRad),
-                    Math.cos(yawRad) * Math.cos(pitchRad));
-        }
-        if (client.options.keyDown.isDown()) {
-            movement = movement.subtract(
-                    -Math.sin(yawRad) * Math.cos(pitchRad),
-                    -Math.sin(pitchRad),
-                    Math.cos(yawRad) * Math.cos(pitchRad));
-        }
-        if (client.options.keyRight.isDown()) {
-            movement = movement.add(-Math.cos(yawRad), 0, Math.sin(yawRad));
-        }
-        if (client.options.keyLeft.isDown()) {
-            movement = movement.subtract(-Math.cos(yawRad), 0, Math.sin(yawRad));
-        }
-        if (client.options.keyJump.isDown()) {
-            movement = movement.add(0, 1, 0);
-        }
-        if (client.options.keyShift.isDown()) {
-            movement = movement.subtract(0, 1, 0);
-        }
-
-        if (movement.lengthSqr() > 1.0E-4) {
-            movement = movement.normalize().scale(distance);
-        }
-        pos = pos.add(movement);
+    private void createCamera() {
+        if (freeCamera != null || MC.player == null || MC.level == null) return;
+        freeCamera = new FreeCamera(-420);
+        freeCamera.copyPosition(MC.player);
+        freeCamera.applyPerspective(initialPerspective.get(), shouldCheckInitialCollision());
+        freeCamera.spawn();
+        MC.setCameraEntity(freeCamera);
     }
 
-    /** Applies camera look deltas (already sensitivity-scaled by the mouse handler). */
-    public void onLook(double yawDelta, double pitchDelta) {
-        yaw = Mth.wrapDegrees(yaw + (float) yawDelta * (float) MOUSE_SENSITIVITY_FACTOR);
-        pitch = Mth.clamp(pitch + (float) pitchDelta * (float) MOUSE_SENSITIVITY_FACTOR, -90.0F, 90.0F);
+    /** True while the camera entity exists and is being used. */
+    public static boolean isActive() {
+        return INSTANCE.isEnabled() && getFreeCamera() != null;
     }
 
-    public Vec3 getPos() {
-        return pos;
+    public static FreeCamera getFreeCamera() {
+        return INSTANCE.freeCamera;
     }
 
-    public float getYaw() {
-        return yaw;
+    public static boolean isPlayerControlEnabled() {
+        return false;
     }
 
-    public float getPitch() {
-        return pitch;
+    public static FlightMode getFlightMode() {
+        return INSTANCE.flightMode.get();
     }
 
-    public boolean shouldShowPlayer() {
-        return showPlayer.get();
+    public static double getHorizontalSpeed() {
+        return INSTANCE.horizontalSpeed.get();
+    }
+
+    public static double getVerticalSpeed() {
+        return INSTANCE.verticalSpeed.get();
+    }
+
+    public static Perspective getInitialPerspective() {
+        return INSTANCE.initialPerspective.get();
+    }
+
+    public static boolean shouldShowPlayer() {
+        return INSTANCE.showPlayer.get();
+    }
+
+    public static boolean shouldHidePlayer() {
+        return !INSTANCE.showPlayer.get();
+    }
+
+    public static boolean shouldShowHand() {
+        return INSTANCE.showHand.get();
+    }
+
+    public static boolean shouldHideHand() {
+        return !INSTANCE.showHand.get();
+    }
+
+    public static boolean isFullBrightEnabled() {
+        return INSTANCE.fullBright.get();
+    }
+
+    public static boolean shouldShowSubmersionFog() {
+        return INSTANCE.showSubmersionFog.get();
+    }
+
+    public static boolean shouldHideSubmersionFog() {
+        return !INSTANCE.showSubmersionFog.get();
+    }
+
+    public static boolean isOutlineEnabled() {
+        return INSTANCE.outlinePlayer.get();
+    }
+
+    public static boolean shouldFreezePlayer() {
+        return INSTANCE.freezePlayer.get();
+    }
+
+    public static boolean shouldDisableOnDamage() {
+        return INSTANCE.disableOnDamage.get();
+    }
+
+    public static boolean shouldPreventInteractions() {
+        return !INSTANCE.allowInteract.get();
+    }
+
+    public static boolean allowInteractionsFromPlayer() {
+        return INSTANCE.allowInteract.get() && INSTANCE.interactionMode.get() == InteractionMode.PLAYER;
+    }
+
+    public static boolean allowInteractionsFromCamera() {
+        return INSTANCE.allowInteract.get() && INSTANCE.interactionMode.get() == InteractionMode.CAMERA;
+    }
+
+    public static boolean ignoreCollision() {
+        return INSTANCE.ignoreCollision.get();
+    }
+
+    public static boolean ignoreCollisionWith(Block block) {
+        return INSTANCE.ignoreCollision.get();
+    }
+
+    public static boolean shouldCheckInitialCollision() {
+        return INSTANCE.checkInitialCollision.get() || !INSTANCE.ignoreCollision.get();
+    }
+
+    /** True only while {@link #onEnable()} is forcing first-person. */
+    public static boolean isSuppressingPerspectiveGuard() {
+        return INSTANCE.suppressPerspectiveGuard;
+    }
+
+    public static void disableNextTick() {
+        INSTANCE.disableNextTick = true;
+    }
+
+    /** Disables freecam if the player disconnects or respawns. */
+    public static void onDisconnect() {
+        if (INSTANCE.isEnabled()) {
+            INSTANCE.setEnabled(false);
+        }
     }
 }

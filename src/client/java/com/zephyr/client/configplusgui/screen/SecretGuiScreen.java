@@ -1,5 +1,6 @@
 package com.zephyr.client.configplusgui.screen;
 
+import com.zephyr.client.configplusgui.secretsettings.bettermovement.BetterMovement;
 import com.zephyr.client.configplusgui.hud.PartyManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -136,6 +137,12 @@ public final class SecretGuiScreen extends ZephyrScreen {
         rows.add(new ToggleRow("Wobble", () -> PartyManager.wobble, value -> PartyManager.wobble = value, cursor));
         cursor += ROW_HEIGHT;
         rows.add(new ToggleRow("Module Roulette", () -> PartyManager.roulette, PartyManager::setRoulette, cursor));
+        cursor += ROW_HEIGHT;
+
+        rows.add(new SectionHeader("SECRET FEATURES", cursor));
+        cursor += SECTION_HEIGHT;
+
+        rows.add(new ToggleRow("Better Movement", () -> BetterMovement.enabled, BetterMovement::setEnabled, cursor));
         cursor += ROW_HEIGHT;
 
         rows.add(new SectionHeader("SESSION STATS", cursor));

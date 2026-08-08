@@ -6,10 +6,12 @@ import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.configplusgui.setting.Setting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
@@ -28,6 +30,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private static final int SEARCH_HEIGHT = 20;
     private static final int ROW_HEIGHT = 26;
     private static final int SETTING_ROW_HEIGHT = 20;
+    private static final int LIST_ICON_SIZE = 10;
 
     private final List<Module> modules = new ArrayList<>(ModuleManager.getModules());
     private String searchQuery = "";
@@ -37,6 +40,11 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private double scrollOffset = 0;
     private Module expandedModule = null;
     private NumberSetting draggingSetting = null;
+
+    /** List setting whose "add entry" row is currently open, plus its two text inputs. */
+    private ListSetting listEditing = null;
+    private EditBox blockInputBox;
+    private EditBox colorInputBox;
 
     public ClickGuiScreen() {
         this(0, false);
@@ -66,6 +74,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         searchBox.setResponder(query -> {
             this.searchQuery = query;
             this.scrollOffset = 0;
+            clearListEditing();
         });
         this.addRenderableWidget(searchBox);
     }
@@ -148,7 +157,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
             int settingTop = top + ROW_HEIGHT + 2;
             for (SettingRowLayout settingRow : row.settingRows) {
                 renderSetting(graphics, settingRow, settingTop);
-                settingTop += SETTING_ROW_HEIGHT;
+                settingTop += settingRow.height();
             }
         }
     }
@@ -178,7 +187,68 @@ public final class ClickGuiScreen extends ZephyrScreen {
             String value = enumSetting.getDisplayValue();
             int valueWidth = this.font.width(value);
             graphics.text(this.font, value, right - valueWidth, top + 6, accent(), false);
+        } else if (settingRow.setting instanceof ListSetting listSetting) {
+            renderListSetting(graphics, listSetting, top, left, right);
         }
+    }
+
+    private void renderListSetting(GuiGraphicsExtractor graphics, ListSetting setting, int top, int left, int right) {
+        graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + SETTING_ROW_HEIGHT, ROW_BG_HOVER);
+        graphics.text(this.font, setting.getName(), left, top + 6, TEXT_DIM, false);
+
+        int addX = right - LIST_ICON_SIZE;
+        int addY = top + (SETTING_ROW_HEIGHT - LIST_ICON_SIZE) / 2;
+        graphics.fill(addX, addY, addX + LIST_ICON_SIZE, addY + LIST_ICON_SIZE, accent());
+        drawPlus(graphics, addX, addY, TEXT_ON_ACCENT);
+
+        int entryTop = top + SETTING_ROW_HEIGHT;
+        for (ListSetting.ListEntry entry : setting.get()) {
+            graphics.fill(panelX + PADDING, entryTop, panelX + panelWidth - PADDING, entryTop + SETTING_ROW_HEIGHT, ROW_BG);
+
+            int swatchX = left;
+            int swatchY = entryTop + (SETTING_ROW_HEIGHT - 8) / 2;
+            graphics.fill(swatchX, swatchY, swatchX + 8, swatchY + 8, ListSetting.parseColor(entry.color(), 0xFFFFFFFF));
+
+            graphics.text(this.font, entry.blockName(), left + 14, entryTop + 6, TEXT_MAIN, false);
+
+            int removeX = right - LIST_ICON_SIZE;
+            int removeY = entryTop + (SETTING_ROW_HEIGHT - LIST_ICON_SIZE) / 2;
+            graphics.fill(removeX, removeY, removeX + LIST_ICON_SIZE, removeY + LIST_ICON_SIZE, 0xFFE05B5B);
+            graphics.centeredText(this.font, "x", removeX + LIST_ICON_SIZE / 2, removeY, TEXT_DIM);
+
+            entryTop += SETTING_ROW_HEIGHT;
+        }
+
+        if (listEditing == setting) {
+            renderListInputRow(graphics, setting, entryTop, left, right);
+        }
+    }
+
+    private void renderListInputRow(GuiGraphicsExtractor graphics, ListSetting setting, int top, int left, int right) {
+        graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + SETTING_ROW_HEIGHT, ROW_BG_HOVER);
+
+        int blockWidth = 90;
+        int colorWidth = 60;
+        int gap = 4;
+        int commitX = right - LIST_ICON_SIZE;
+
+        blockInputBox.setX(left);
+        blockInputBox.setY(top + 4);
+        blockInputBox.setWidth(blockWidth);
+        colorInputBox.setX(left + blockWidth + gap);
+        colorInputBox.setY(top + 4);
+        colorInputBox.setWidth(colorWidth);
+
+        int commitY = top + (SETTING_ROW_HEIGHT - LIST_ICON_SIZE) / 2;
+        graphics.fill(commitX, commitY, commitX + LIST_ICON_SIZE, commitY + LIST_ICON_SIZE, accent());
+        drawPlus(graphics, commitX, commitY, TEXT_ON_ACCENT);
+    }
+
+    private static void drawPlus(GuiGraphicsExtractor graphics, int x, int y, int color) {
+        int cx = x + LIST_ICON_SIZE / 2;
+        int cy = y + LIST_ICON_SIZE / 2;
+        graphics.fill(cx - 3, cy - 1, cx + 3, cy + 1, color);
+        graphics.fill(cx - 1, cy - 3, cx + 1, cy + 3, color);
     }
 
     private static String trimDouble(double value) {
@@ -197,6 +267,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
                     if (mouseX >= tab.left && mouseX < tab.right) {
                         selectedCategory = tab.category;
                         scrollOffset = 0;
+                        clearListEditing();
                         return true;
                     }
                 }
@@ -221,17 +292,18 @@ public final class ClickGuiScreen extends ZephyrScreen {
                 } else if (button == 1) {
                     expandedModule = (expandedModule == row.module) ? null : row.module;
                 }
+                clearListEditing();
                 return true;
             }
 
             if (row.expanded) {
                 int settingTop = top + ROW_HEIGHT + 2;
                 for (SettingRowLayout settingRow : row.settingRows) {
-                    if (mouseY >= settingTop && mouseY < settingTop + SETTING_ROW_HEIGHT) {
-                        handleSettingClick(settingRow, mouseX, settingTop);
+                    if (mouseY >= settingTop && mouseY < settingTop + settingRow.height()) {
+                        handleSettingClick(settingRow, mouseX, mouseY, settingTop);
                         return true;
                     }
-                    settingTop += SETTING_ROW_HEIGHT;
+                    settingTop += settingRow.height();
                 }
             }
         }
@@ -239,7 +311,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return false;
     }
 
-    private void handleSettingClick(SettingRowLayout settingRow, double mouseX, int settingTop) {
+    private void handleSettingClick(SettingRowLayout settingRow, double mouseX, double mouseY, int settingTop) {
         if (settingRow.setting instanceof BooleanSetting boolSetting) {
             boolSetting.toggle();
         } else if (settingRow.setting instanceof NumberSetting numberSetting) {
@@ -247,7 +319,103 @@ public final class ClickGuiScreen extends ZephyrScreen {
             updateSliderFromMouse(numberSetting, mouseX);
         } else if (settingRow.setting instanceof EnumSetting<?> enumSetting) {
             enumSetting.cycle();
+        } else if (settingRow.setting instanceof ListSetting listSetting) {
+            handleListSettingClick(listSetting, mouseX, mouseY, settingTop);
         }
+    }
+
+    private void handleListSettingClick(ListSetting setting, double mouseX, double mouseY, int top) {
+        int left = panelX + PADDING + 8;
+        int right = panelX + panelWidth - PADDING - 8;
+
+        if (mouseY < top + SETTING_ROW_HEIGHT) {
+            int addX = right - LIST_ICON_SIZE;
+            int addY = top + (SETTING_ROW_HEIGHT - LIST_ICON_SIZE) / 2;
+            if (mouseX >= addX && mouseX < addX + LIST_ICON_SIZE
+                    && mouseY >= addY && mouseY < addY + LIST_ICON_SIZE) {
+                startAddingEntry(setting);
+            }
+            return;
+        }
+
+        int entryTop = top + SETTING_ROW_HEIGHT;
+        int entryIndex = (int) ((mouseY - entryTop) / SETTING_ROW_HEIGHT);
+        if (entryIndex >= 0 && entryIndex < setting.get().size()) {
+            int rowTop = entryTop + entryIndex * SETTING_ROW_HEIGHT;
+            int removeX = right - LIST_ICON_SIZE;
+            int removeY = rowTop + (SETTING_ROW_HEIGHT - LIST_ICON_SIZE) / 2;
+            if (mouseX >= removeX && mouseX < removeX + LIST_ICON_SIZE
+                    && mouseY >= removeY && mouseY < removeY + LIST_ICON_SIZE) {
+                setting.remove(entryIndex);
+            }
+            return;
+        }
+
+        if (listEditing == setting) {
+            int inputTop = top + SETTING_ROW_HEIGHT * (1 + setting.get().size());
+            int commitX = right - LIST_ICON_SIZE;
+            int commitY = inputTop + (SETTING_ROW_HEIGHT - LIST_ICON_SIZE) / 2;
+            if (mouseX >= commitX && mouseX < commitX + LIST_ICON_SIZE
+                    && mouseY >= commitY && mouseY < commitY + LIST_ICON_SIZE) {
+                commitNewEntry();
+            }
+        }
+    }
+
+    private void startAddingEntry(ListSetting setting) {
+        cancelListEditing();
+        listEditing = setting;
+        blockInputBox = new EditBox(this.font, 0, 0, 90, 12, Component.literal("Block id"));
+        blockInputBox.setHint(Component.literal("block id"));
+        blockInputBox.setBordered(false);
+        blockInputBox.setMaxLength(64);
+        colorInputBox = new EditBox(this.font, 0, 0, 60, 12, Component.literal("Color"));
+        colorInputBox.setHint(Component.literal("#rrggbb"));
+        colorInputBox.setBordered(false);
+        colorInputBox.setMaxLength(9);
+        addRenderableWidget(blockInputBox);
+        addRenderableWidget(colorInputBox);
+        blockInputBox.setFocused(true);
+        setFocused(blockInputBox);
+    }
+
+    private void commitNewEntry() {
+        if (listEditing != null) {
+            String blockName = blockInputBox != null ? blockInputBox.getValue().trim() : "";
+            String color = colorInputBox != null ? colorInputBox.getValue().trim() : "";
+            if (!blockName.isEmpty()) {
+                listEditing.add(blockName, color.isEmpty() ? "#FFFFFF" : color);
+            }
+        }
+        cancelListEditing();
+    }
+
+    private void cancelListEditing() {
+        if (blockInputBox != null) {
+            if (getFocused() == blockInputBox || getFocused() == colorInputBox) {
+                setFocused(null);
+            }
+            removeWidget(blockInputBox);
+            removeWidget(colorInputBox);
+        }
+        blockInputBox = null;
+        colorInputBox = null;
+        listEditing = null;
+    }
+
+    private void clearListEditing() {
+        if (listEditing != null) {
+            cancelListEditing();
+        }
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (event.isConfirmation() && listEditing != null) {
+            commitNewEntry();
+            return true;
+        }
+        return super.keyPressed(event);
     }
 
     @Override
@@ -320,11 +488,11 @@ public final class ClickGuiScreen extends ZephyrScreen {
             List<SettingRowLayout> settingRows = new ArrayList<>();
             if (expanded) {
                 for (Setting<?> setting : module.getSettings()) {
-                    settingRows.add(new SettingRowLayout(setting));
+                    settingRows.add(new SettingRowLayout(setting, settingHeight(setting)));
                 }
             }
 
-            int height = ROW_HEIGHT + (expanded ? settingRows.size() * SETTING_ROW_HEIGHT + 2 : 0);
+            int height = ROW_HEIGHT + (expanded ? settingRows.stream().mapToInt(SettingRowLayout::height).sum() + 2 : 0);
             layout.add(new RowLayout(module, cursor, height, expanded, settingRows));
             cursor += height;
         }
@@ -332,10 +500,17 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return layout;
     }
 
+    private int settingHeight(Setting<?> setting) {
+        if (setting instanceof ListSetting listSetting) {
+            return SETTING_ROW_HEIGHT * (1 + listSetting.get().size() + (listEditing == listSetting ? 1 : 0));
+        }
+        return SETTING_ROW_HEIGHT;
+    }
+
     private record TabLayout(Category category, String label, int left, int right) {
     }
 
-    private record SettingRowLayout(Setting<?> setting) {
+    private record SettingRowLayout(Setting<?> setting, int height) {
     }
 
     private record RowLayout(Module module, int top, int height, boolean expanded, List<SettingRowLayout> settingRows) {

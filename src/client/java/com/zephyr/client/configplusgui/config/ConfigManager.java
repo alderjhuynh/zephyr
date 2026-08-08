@@ -2,6 +2,7 @@ package com.zephyr.client.configplusgui.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -9,6 +10,7 @@ import com.zephyr.Zephyr;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.configplusgui.setting.Setting;
 import com.zephyr.client.configplusgui.setting.StringSetting;
@@ -129,6 +131,18 @@ public final class ConfigManager {
             applyEnumValue(enumSetting, element.getAsString());
         } else if (setting instanceof StringSetting stringSetting) {
             stringSetting.set(element.getAsString());
+        } else if (setting instanceof ListSetting listSetting) {
+            applyListValue(listSetting, element.getAsJsonArray());
+        }
+    }
+
+    private static void applyListValue(ListSetting setting, JsonArray array) {
+        setting.clear();
+        for (JsonElement element : array) {
+            JsonObject entry = element.getAsJsonObject();
+            String blockName = entry.has("block") ? entry.get("block").getAsString() : "";
+            String color = entry.has("color") ? entry.get("color").getAsString() : "";
+            setting.add(blockName, color);
         }
     }
 
@@ -151,6 +165,15 @@ public final class ConfigManager {
             settingsJson.addProperty(setting.getName(), enumSetting.get().name());
         } else if (setting instanceof StringSetting stringSetting) {
             settingsJson.addProperty(setting.getName(), stringSetting.get());
+        } else if (setting instanceof ListSetting listSetting) {
+            JsonArray array = new JsonArray();
+            for (ListSetting.ListEntry entry : listSetting.get()) {
+                JsonObject object = new JsonObject();
+                object.addProperty("block", entry.blockName());
+                object.addProperty("color", entry.color());
+                array.add(object);
+            }
+            settingsJson.add(setting.getName(), array);
         }
     }
 }

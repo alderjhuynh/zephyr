@@ -3,16 +3,19 @@ package com.zephyr.client.module.qol;
 import com.zephyr.client.configplusgui.module.Category;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
 import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public final class Xray extends Module {
@@ -51,26 +54,26 @@ public final class Xray extends Module {
         REDSTONE,
         LAPIS,
         QUARTZ,
-        DEBRIS
+        DEBRIS,
+        LIST
     }
 
     private final NumberSetting searchRadius =
             new NumberSetting("Search Radius", 24, 1, 30, 1);
 
+    private final ListSetting customBlocks = new ListSetting("Custom Blocks");
+
     private Xray() {
         super("Xray", "Outlines blocks in a list through walls", Category.QOL);
         addSetting(searchRadius);
         addSetting(block);
+        addSetting(customBlocks);
     }
 
     @Override
     public void tick(Minecraft client) {
         if (!isEnabled()) {
             return;
-        }
-
-        if (block.get() == Xray.BlockType.COAL) {
-            //something something
         }
 
         if (client.level == null || client.player == null) {
@@ -84,23 +87,55 @@ public final class Xray extends Module {
         BlockPos max = center.offset(SEARCH_RADIUS, SEARCH_RADIUS, SEARCH_RADIUS);
 
         try (var ignored = client.collectPerTickGizmos()) {
-            BlockPos.betweenClosedStream(min, max).forEach(pos -> {
-                BlockState state = client.level.getBlockState(pos);
-
-                String path = BuiltInRegistries.BLOCK
-                        .getKey(state.getBlock())
-                        .getPath();
-
-                if (!path.toLowerCase().contains(block.get().name().toLowerCase())) {
-                    return;
-                }
-
-                Integer color = BLOCKS.get(state.getBlock());
-                if (color != null) {
-                    Gizmos.cuboid(pos.immutable(), GizmoStyle.stroke(color))
-                            .setAlwaysOnTop();
-                }
-            });
+            if (block.get() == Xray.BlockType.LIST) {
+                renderCustom(client, min, max);
+            } else {
+                renderPreset(client, min, max);
+            }
         }
+    }
+
+    private void renderPreset(Minecraft client, BlockPos min, BlockPos max) {
+        BlockPos.betweenClosedStream(min, max).forEach(pos -> {
+            BlockState state = client.level.getBlockState(pos);
+
+            String path = BuiltInRegistries.BLOCK
+                    .getKey(state.getBlock())
+                    .getPath();
+
+            if (!path.toLowerCase().contains(block.get().name().toLowerCase())) {
+                return;
+            }
+
+            Integer color = BLOCKS.get(state.getBlock());
+            if (color != null) {
+                Gizmos.cuboid(pos.immutable(), GizmoStyle.stroke(color))
+                        .setAlwaysOnTop();
+            }
+        });
+    }
+
+    private void renderCustom(Minecraft client, BlockPos min, BlockPos max) {
+        Map<Block, Integer> colors = new HashMap<>();
+        for (ListSetting.ListEntry entry : customBlocks.get()) {
+            if (entry.blockName().isBlank()) continue;
+            Identifier id = entry.blockName().contains(":")
+                    ? Identifier.tryParse(entry.blockName())
+                    : Identifier.tryParse("minecraft:" + entry.blockName());
+            if (id == null) continue;
+            Block block = BuiltInRegistries.BLOCK.getValue(id);
+            if (block == Blocks.AIR) continue;
+            colors.put(block, ListSetting.parseColor(entry.color(), 0xFFFFFFFF));
+        }
+        if (colors.isEmpty()) return;
+
+        BlockPos.betweenClosedStream(min, max).forEach(pos -> {
+            BlockState state = client.level.getBlockState(pos);
+            Integer color = colors.get(state.getBlock());
+            if (color != null) {
+                Gizmos.cuboid(pos.immutable(), GizmoStyle.stroke(color))
+                        .setAlwaysOnTop();
+            }
+        });
     }
 }
