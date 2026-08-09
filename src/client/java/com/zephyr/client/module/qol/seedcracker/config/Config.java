@@ -1,0 +1,52 @@
+package com.zephyr.client.module.qol.seedcracker.config;
+
+import com.seedfinding.mccore.version.MCVersion;
+import com.zephyr.client.module.qol.seedcracker.Features;
+import com.zephyr.client.module.qol.seedcracker.util.FeatureToggle;
+
+public class Config {
+    private static final Config INSTANCE = new Config();
+
+    public final FeatureToggle buriedTreasure = new FeatureToggle(true);
+    public final FeatureToggle desertTemple = new FeatureToggle(true);
+    public final FeatureToggle endCity = new FeatureToggle(true);
+    public final FeatureToggle jungleTemple = new FeatureToggle(true);
+    public final FeatureToggle monument = new FeatureToggle(true);
+    public final FeatureToggle swampHut = new FeatureToggle(true);
+    public final FeatureToggle shipwreck = new FeatureToggle(true);
+    public final FeatureToggle outpost = new FeatureToggle(true);
+    public final FeatureToggle igloo = new FeatureToggle(true);
+    public final FeatureToggle trialChambers = new FeatureToggle(true);
+    public final FeatureToggle endPillars = new FeatureToggle(true);
+    public final FeatureToggle endGateway = new FeatureToggle(false);
+    public final FeatureToggle dungeon = new FeatureToggle(true);
+    public final FeatureToggle emeraldOre = new FeatureToggle(false);
+    public final FeatureToggle desertWell = new FeatureToggle(false);
+    public final FeatureToggle warpedFungus = new FeatureToggle(false);
+    public final FeatureToggle biome = new FeatureToggle(false);
+
+    public RenderType render = RenderType.XRAY;
+    public boolean active = true;
+    public boolean debug = false;
+    public boolean antiXrayBypass = true;
+
+    private MCVersion version = MCVersion.latest();
+
+    public static Config get() {
+        return INSTANCE;
+    }
+
+    public MCVersion getVersion() {
+        return version;
+    }
+
+    public void setVersion(MCVersion version) {
+        if (this.version == version) return;
+        this.version = version;
+        Features.init(version);
+    }
+
+    public enum RenderType {
+        OFF, ON, XRAY
+    }
+}
