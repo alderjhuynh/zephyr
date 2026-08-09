@@ -47,6 +47,7 @@
 		"qol.GuiMove.ClientInputAccessor",
 		"qol.GuiMove.KeyboardInputMixin",
 		"qol.GuiMove.KeyMappingAccessor",
+		"qol.InventoryRenderer.HudMixin",
 		"qol.ItemRestock.ClientPacketListenerMixin",
 		"qol.ItemRestock.MultiPlayerGameModeMixin",
 		"qol.PickBeforePlace.BlockPickInvoker",
@@ -99,7 +100,11 @@
 		"qol.Seedcracker.LocalPlayerMixin",
 		"qol.AppleSkin.HudMixin",
 		"qol.AppleSkin.FoodDataAccessor",
-		"qol.ArmorRenderer.HudMixin"
+		"qol.ArmorRenderer.HudMixin",
+		"qol.ShulkerBoxTooltip.ItemStackMixin",
+		"qol.ShulkerBoxTooltip.ItemContainerContentsMixin",
+		"qol.ShulkerBoxTooltip.GuiGraphicsMixin",
+		"qol.ShulkerBoxTooltip.ScreenMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

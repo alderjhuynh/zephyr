@@ -103,6 +103,23 @@ Enable it from the click-GUI (Category: QoL) or with `.z module AppleSkin on`. I
 
 > **Note:** I couldn't find [AppleSkin](https://github.com/squeek502/AppleSkin)'s 26.2 source, so this is a rewrite of the 1.21.x version, reworked to fit Zephyr's module and rendering systems and adapted to 26.2 MojMaps.
 
+## ShulkerBoxTooltip
+
+**ShulkerBoxTooltip** is a QoL module that shows the contents of shulker boxes and other containers right inside their tooltip, without needing to open them. It is a port of the Fabric mod [ShulkerBoxTooltip](https://github.com/Minenash/ShulkerBoxTooltip).
+
+While enabled it renders a preview of the hovered container's inventory in the item tooltip. You can preview a **Shulker Box**, **Barrel**, **Chest** (including trapped, copper and ender variants), **Decorated Pot**, **Chiseled Book Shelf**, **Shelf**, and any item holding an `ItemContainerContents` component.
+
+The module's settings control:
+
+- **Preview Type**: `Full` shows the container's whole inventory, `Compact` collapses identical stacks and shows a merged, sorted view.
+- **Preview Position**: `Inside` keeps the preview within the tooltip, `Outside` draws it to the right of the tooltip.
+- **Tooltip Type**: `Vanilla` keeps the vanilla "Contains..." line, `Mod` replaces it with a compact item count line.
+- **Window Color**: colors the preview background using the container's dye color (or grey for undyed containers), with an optional compact window.
+
+Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxTooltip on`.
+
+> **Note:** The original mod's preview keybind/locking features are intentionally left out — in Zephyr the preview is simply always shown while the module is enabled. Shulker box colors are rendered using a dedicated Zephyr texture.
+
 ## Features
 
 - **Click GUI**: searchable module list with per-category tabs and per-module settings panels
@@ -167,6 +184,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module AppleSkin on`. I
 | Hold Attack         | Continually simulates pressing the attack key                                                        |
 | Hold Use            | Continually simulates pressing the use key                                                           |
 | Inventory Packets   | Skips packets when closing the inventory, letting you use crafting slots as storage                  |
+| Inventory Renderer  | Shows your entire inventory on the HUD with item counts and durability                               |
 | Item Restock        | Swaps a totem or item for a matching one from your inventory                                         |
 | Periodic Attack     | Automatically attacks on a fixed interval                                                            |
 | Periodic Use        | Automatically right-clicks on a fixed interval                                                       |
@@ -176,6 +194,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module AppleSkin on`. I
 | Render Invisibility | Renders invisible players as translucent                                                             |
 | Safe Walk           | Prevents you from walking off block edges until you jump                                             |
 | Seedcracker         | Recovers the world seed by scanning generated structures (see [Seedcracker](#seedcracker))           |
+| ShulkerBoxTooltip   | Shows the contents of shulker boxes and other containers in their tooltip                            |
 | Sneak               | Automatically sneaks                                                                                 |
 | Speed Mine          | Speeds up block breaking via synthetic Haste or predicted damage packets                             |
 | Time Changer        | Changes the time of day client-side                                                                  |

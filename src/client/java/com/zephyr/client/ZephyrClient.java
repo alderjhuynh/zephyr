@@ -13,10 +13,15 @@ import com.zephyr.client.commands.CommandManager;
 import com.zephyr.client.commands.CommandPrefixHandler;
 import com.zephyr.client.commands.ZCommand;
 import com.zephyr.client.discord.DiscordPresenceManager;
+import com.zephyr.client.module.qol.jade.JadeRenderer;
+import com.zephyr.client.module.qol.shulkerboxtooltip.ShulkerBoxTooltipProviders;
+import com.zephyr.client.module.qol.shulkerboxtooltip.tooltip.PreviewClientTooltipComponent;
+import com.zephyr.client.module.qol.shulkerboxtooltip.tooltip.PreviewTooltipComponent;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -40,6 +45,15 @@ ZephyrClient implements ClientModInitializer {
 		ProfileManager.init();
 		KeybindManager.init();
 		CommandManager.register(ZCommand.INSTANCE);
+
+		ShulkerBoxTooltipProviders.register();
+
+		// PreviewTooltipComponent -> PreviewClientTooltipComponent conversion for ShulkerBoxTooltip.
+		ClientTooltipComponentCallback.EVENT.register(data -> {
+			if (data instanceof PreviewTooltipComponent previewData)
+				return new PreviewClientTooltipComponent(previewData);
+			return null;
+		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			guiKeybindHandler.tick(client);
@@ -71,6 +85,7 @@ ZephyrClient implements ClientModInitializer {
 					HudRenderer.render(graphics, client.font,
 							client.getWindow().getGuiScaledWidth(),
 							client.getWindow().getGuiScaledHeight());
+					JadeRenderer.render(graphics, tickCounter.getRealtimeDeltaTicks());
 				});
 
 

@@ -9,6 +9,7 @@ import com.zephyr.client.module.combat.*;
 import com.zephyr.client.module.movement.*;
 import com.zephyr.client.module.disable.*;
 import com.zephyr.client.module.qol.*;
+import com.zephyr.client.module.qol.jade.Jade;
 import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;
@@ -67,7 +68,9 @@ public final class ModuleManager {
         register(HoldAttack.INSTANCE);
         register(HoldUse.INSTANCE);
         register(InventoryPackets.INSTANCE);
+        register(InventoryRenderer.INSTANCE);
         register(ItemRestock.INSTANCE);
+        register(Jade.INSTANCE);
         register(PeriodicAttack.INSTANCE);
         register(PeriodicUse.INSTANCE);
         register(PickBeforePlace.INSTANCE);
@@ -78,6 +81,7 @@ public final class ModuleManager {
         register(Seedcracker.INSTANCE);
         register(Sneak.INSTANCE);
         register(SpeedMine.INSTANCE);
+        register(ShulkerBoxTooltip.INSTANCE);
         register(TimeChanger.INSTANCE);
         register(Tracer.INSTANCE);
         register(Xray.INSTANCE);
