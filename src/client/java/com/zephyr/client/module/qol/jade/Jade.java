@@ -53,90 +53,122 @@ public final class Jade extends Module {
         addSetting(overlayAlpha);
     }
 
+    /**
+     * Ticks the Jade overlay every game tick, delegating to {@link JadeRenderer}.
+     *
+     * @param client the running Minecraft client
+     */
     @Override
     public void tick(Minecraft client) {
         JadeRenderer.tick(client);
     }
 
+    /** Registers all built-in providers when the module is enabled. */
     @Override
     protected void onEnable() {
         ProviderRegistry.init();
     }
 
+    /** Clears the overlay state when the module is disabled. */
     @Override
     protected void onDisable() {
         JadeRenderer.reset();
     }
 
+    /** @return whether the "show mod name" overlay line is enabled */
     public boolean showModName() {
         return showModName.get();
     }
 
+    /** @return whether the "show block states" overlay line is enabled */
     public boolean showBlockStates() {
         return showBlockStates.get();
     }
 
+    /** @return whether the "show crop progress" overlay line is enabled */
     public boolean showCropProgress() {
         return showCropProgress.get();
     }
 
+    /** @return whether the "show redstone" overlay line is enabled */
     public boolean showRedstone() {
         return showRedstone.get();
     }
 
+    /** @return whether the "show TNT stability" overlay line is enabled */
     public boolean showTntStability() {
         return showTntStability.get();
     }
 
+    /** @return whether the "show beehive level" overlay line is enabled */
     public boolean showBeehive() {
         return showBeehive.get();
     }
 
+    /** @return whether the "show mob health" overlay line is enabled */
     public boolean showMobHealth() {
         return showMobHealth.get();
     }
 
+    /** @return whether the "show mob armor" overlay line is enabled */
     public boolean showMobArmor() {
         return showMobArmor.get();
     }
 
+    /** @return whether the "show horse stats" overlay line is enabled */
     public boolean showHorseStats() {
         return showHorseStats.get();
     }
 
+    /** @return whether the "show item frame" overlay line is enabled */
     public boolean showItemFrame() {
         return showItemFrame.get();
     }
 
+    /** @return the configured extended reach in blocks (0 disables extension) */
     public double extendedReach() {
         return extendedReach.get();
     }
 
+    /** @return the configured overlay anchor position */
     public OverlayPosition overlayPosition() {
         return overlayPosition.get();
     }
 
+    /** @return the configured horizontal offset in GUI pixels */
     public int xOffset() {
         return (int) Math.round(xOffset.get());
     }
 
+    /** @return the configured vertical offset in GUI pixels */
     public int yOffset() {
         return (int) Math.round(yOffset.get());
     }
 
+    /** @return whether the fade-in/out animation is enabled */
     public boolean fadeAnimation() {
         return fadeAnimation.get();
     }
 
+    /** @return the configured overall overlay opacity, clamped to [0.1, 1] */
     public float overlayAlpha() {
         return (float) (double) overlayAlpha.get();
     }
 
-    /** Convenience getters used by the providers. */
+    /**
+     * Convenience getter used by the providers.
+     *
+     * @return the border color used by the overlay tooltip
+     */
     public int borderColor() {
         return JadeColors.NORMAL;
     }
 
+    /**
+     * Convenience getter used by the providers.
+     *
+     * @return the background color used by the overlay tooltip
+     */
     public int backgroundColor() {
         return JadeColors.BAR_BACKGROUND;
     }

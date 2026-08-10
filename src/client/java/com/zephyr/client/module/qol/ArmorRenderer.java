@@ -13,6 +13,16 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Renders the player's equipped armor as two columns on either side of the HUD
+ * hotbar, each row showing the item icon plus its remaining durability.
+ *
+ * <p>The left column shows chestplate and helmet (plus the offhand item when
+ * {@link #renderHandItems()} is enabled), and the right column shows boots and
+ * leggings (plus the main hand item). Durability text is color-coded by the
+ * remaining percentage: white above 75%, green above 50%, yellow above 25%,
+ * and red below.
+ */
 public final class ArmorRenderer extends Module {
     public static final ArmorRenderer INSTANCE = new ArmorRenderer();
 
@@ -29,10 +39,17 @@ public final class ArmorRenderer extends Module {
         addSetting(renderHandItems);
     }
 
+    /** Whether the main hand and offhand items are also rendered alongside the armor. */
     public boolean renderHandItems() {
         return renderHandItems.get();
     }
 
+    /**
+     * Renders the two armor columns next to the HUD hotbar for the given player.
+     *
+     * @param graphics the HUD graphics context
+     * @param player   the player whose equipped items are drawn
+     */
     public void render(GuiGraphicsExtractor graphics, Player player) {
         if (!isEnabled() || player == null) return;
 

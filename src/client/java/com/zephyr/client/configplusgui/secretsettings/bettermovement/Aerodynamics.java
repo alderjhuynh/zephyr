@@ -4,6 +4,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * The {@link BetterMovement} air-acceleration helper. While the player is airborne,
+ * sprinting and not gliding or flying, it pushes the player along the look direction each
+ * tick, giving a smooth "air control" feel. The per-tick acceleration is multiplied by
+ * {@link WaveDash#BOOST_MULTIPLIER} while a wave-dash boost is active. Elytra boosting is
+ * disabled by the {@code AllowElytra} constant.
+ */
 public final class Aerodynamics {
     private static final double acceleration = 0.02D;
     private static final boolean AllowElytra = false;
@@ -13,14 +20,17 @@ public final class Aerodynamics {
     private Aerodynamics() {
     }
 
+    /** Marks the helper enabled. */
     public static void onEnable() {
         enabled = true;
     }
 
+    /** Marks the helper disabled. */
     public static void onDisable() {
         enabled = false;
     }
 
+    /** Applies the per-tick air-acceleration when the airborne sprint conditions hold. */
     public static void tick(Minecraft client) {
         LocalPlayer player = client.player;
         if (!AllowElytra) {
@@ -57,6 +67,7 @@ public final class Aerodynamics {
         }
     }
 
+    /** The normalized look direction used as the boost vector, or {@link Vec3#ZERO} when looking straight up/down. */
     private static Vec3 getBoostDirection(LocalPlayer player) {
         Vec3 lookDirection = player.getLookAngle();
         if (lookDirection.lengthSqr() < 1.0E-6D) {

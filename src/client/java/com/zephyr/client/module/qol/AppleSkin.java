@@ -50,6 +50,7 @@ public final class AppleSkin extends Module {
         addSetting(maxHudOverlayFlashAlpha);
     }
 
+    /** Advances the HUD overlay flash animation towards its next alpha peak each tick. */
     @Override
     public void tick(Minecraft client) {
         unclampedFlashAlpha += alphaDir * 0.125F;
@@ -62,6 +63,7 @@ public final class AppleSkin extends Module {
                 * (float) (double) maxHudOverlayFlashAlpha.get();
     }
 
+    /** Resets the flash animation state when the module is disabled. */
     @Override
     protected void onDisable() {
         resetFlash();

@@ -28,6 +28,11 @@ public enum ColorKey {
 
     private final int rgb;
 
+    /**
+     * Builds the background RGB from the dye's diffuse color, dimming it to at
+     * least 15% brightness and falling back to {@code fallbackRgb} when no dye is
+     * associated.
+     */
     ColorKey(int fallbackRgb, DyeColor dye) {
         if (dye == null) {
             this.rgb = fallbackRgb;
@@ -40,6 +45,7 @@ public enum ColorKey {
         }
     }
 
+    /** @return the preview background color as a packed RGB value */
     public int rgb() {
         return rgb;
     }

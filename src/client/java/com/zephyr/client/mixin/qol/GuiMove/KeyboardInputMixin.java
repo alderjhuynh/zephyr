@@ -17,6 +17,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin into {@link KeyboardInput} implementing the Zephyr GuiMove module.
+ *
+ * <p>Injects at the head of {@code KeyboardInput.tick}. While the module is
+ * enabled and a screen is open, the vanilla input computation is replaced with
+ * one driven directly by the physical keyboard state (bypassing the
+ * {@link KeyMapping} event pipeline, which is inactive for GUIs), and the
+ * vanilla body is cancelled so the stale {@code moveVector} calculation never
+ * runs.
+ */
 @Mixin(KeyboardInput.class)
 public abstract class KeyboardInputMixin {
 
@@ -27,6 +37,8 @@ public abstract class KeyboardInputMixin {
      * computation with one driven directly by the physical keyboard state so
      * movement keeps responding, and cancel the vanilla body so its now-stale
      * {@code moveVector} calculation never runs.
+     *
+     * @param ci mixin callback used to cancel the vanilla input computation
      */
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void zephyr$moveWhileGuiOpen(CallbackInfo ci) {
@@ -65,6 +77,15 @@ public abstract class KeyboardInputMixin {
         ci.cancel();
     }
 
+    /**
+     * Converts a positive/negative key pair into a movement impulse of -1, 0,
+     * or +1.
+     *
+     * @param positive whether the positive direction key is held
+     * @param negative whether the negative direction key is held
+     * @return 0 when both or neither are held, otherwise 1 for positive and -1
+     *         for negative
+     */
     private static float zephyr$calculateImpulse(boolean positive, boolean negative) {
         if (positive == negative) {
             return 0.0f;
@@ -73,6 +94,14 @@ public abstract class KeyboardInputMixin {
         return positive ? 1.0f : -1.0f;
     }
 
+    /**
+     * Whether the physical key bound to the given mapping is currently held
+     * down. Only keyboard (KEYSYM) bindings are considered.
+     *
+     * @param keyMapping the movement key mapping to check
+     * @param window     the current window for key state lookup
+     * @return true if the bound physical key is down
+     */
     private static boolean zephyr$isPhysicallyDown(KeyMapping keyMapping, Window window) {
         if (keyMapping.isUnbound()) {
             return false;

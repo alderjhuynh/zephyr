@@ -14,6 +14,12 @@ import net.minecraft.world.phys.Vec3;
 
 // this is highkey broken in first person, works okay in f5 though
 
+/**
+ * Draws colored lines from the player's eye position to every nearby remote
+ * player, making them easy to track. The range, line width, and whether the
+ * lines are drawn through walls are all configurable; the accent color comes
+ * from the global config.
+ */
 public final class Tracer extends Module {
     public static final Tracer INSTANCE = new Tracer();
 
@@ -28,6 +34,12 @@ public final class Tracer extends Module {
         addSetting(throughWalls);
     }
 
+    /**
+     * Draws a gizmo line from the player's eyes to each remote player within
+     * range.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (client.level == null || client.player == null) return;

@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Finds pillager outposts by matching their birch floor and chest structure.
+ */
 public class OutpostFinder extends Finder {
 
     protected static Map<Direction, List<BlockPos>> SEARCH_POSITIONS;
@@ -42,6 +45,10 @@ public class OutpostFinder extends Finder {
         });
     }
 
+    /**
+     * Recomputes the per-facing search positions for outpost scanning, including the neighbouring
+     * chunk overlap.
+     */
     public static void reloadSearchPositions() {
         SEARCH_POSITIONS = JigsawFinder.getSearchPositions(0, 0,0,0, size);
         Map<Direction, List<BlockPos>> additional = JigsawFinder.getSearchPositions(0, 0,1,0, size);
@@ -51,6 +58,9 @@ public class OutpostFinder extends Finder {
 
     }
 
+    /**
+     * @return outpost finders for the chunk and its east/south neighbours
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new OutpostFinder(world, chunkPos));
@@ -60,6 +70,11 @@ public class OutpostFinder extends Finder {
         return finders;
     }
 
+    /**
+     * Defines the outpost layout: the birch floor and the watchtower chest.
+     *
+     * @param finder the piece finder to build the structure on
+     */
     private void buildStructure(JigsawFinder finder) {
         BlockState chest = Blocks.CHEST.defaultBlockState();
         BlockState birchwood = Blocks.BIRCH_PLANKS.defaultBlockState();
@@ -69,6 +84,11 @@ public class OutpostFinder extends Finder {
         finder.fillWithOutline(4, 0, 4, 10, 0, 10, birchwood, birchwood, false);
     }
 
+    /**
+     * Runs all piece finders and records a {@code PillagerOutpost.Data} constraint for each match.
+     *
+     * @return the combined matched positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 64, (this.chunkPos.z() << 2) + 2).value();
@@ -94,6 +114,9 @@ public class OutpostFinder extends Finder {
         return combinedResult;
     }
 
+    /**
+     * @return a map of every piece finder to its matched positions
+     */
     public Map<JigsawFinder, List<BlockPos>> findInChunkPieces() {
         Map<JigsawFinder, List<BlockPos>> result = new HashMap<>();
 
@@ -104,6 +127,9 @@ public class OutpostFinder extends Finder {
         return result;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);

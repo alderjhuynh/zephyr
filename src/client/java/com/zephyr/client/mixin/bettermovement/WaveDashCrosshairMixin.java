@@ -13,6 +13,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin targeting {@link net.minecraft.client.gui.Hud}. Injects at the tail of
+ * {@code extractCrosshair} to draw a custom wave-dash crosshair sprite while the
+ * player is currently boosted by the Better Movement wave dash.
+ */
 @Mixin(Hud.class)
 public class WaveDashCrosshairMixin {
 
@@ -23,6 +28,7 @@ public class WaveDashCrosshairMixin {
             "textures/gui/sprites/crosshair/crosshair-wavedash.png"
     );
 
+    /** Draws the wave-dash crosshair over the vanilla crosshair at the end of crosshair extraction. */
     @Inject(method = "extractCrosshair", at = @At("TAIL"))
     private void zephyr$renderWaveDashCrosshair(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         Minecraft client = Minecraft.getInstance();

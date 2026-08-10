@@ -12,9 +12,11 @@ import java.util.List;
  * Registers the preview providers for every supported container item.
  */
 public final class ShulkerBoxTooltipProviders {
+    /** Static utility; not instantiable. */
     private ShulkerBoxTooltipProviders() {
     }
 
+    /** Registers a preview provider for every supported container item. */
     public static void register() {
         PreviewProviderRegistry registry = PreviewProviderRegistry.getInstance();
 

@@ -19,6 +19,16 @@ public class ProgressElement extends Element {
     private final int backgroundColor;
     private final int textColor;
 
+    /**
+     * Creates a progress bar element. The progress is clamped to [0, 1], and the
+     * width grows to fit an optional trailing label.
+     *
+     * @param text            the trailing label, or {@code null} for no label
+     * @param progress        the filled fraction of the bar (0..1)
+     * @param barColor        the ARGB color of the filled portion
+     * @param backgroundColor the ARGB color of the unfilled background
+     * @param textColor       the ARGB color of the label text
+     */
     public ProgressElement(Component text, float progress, int barColor, int backgroundColor, int textColor) {
         this.text = text;
         this.progress = Math.max(0, Math.min(1, progress));
@@ -33,6 +43,7 @@ public class ProgressElement extends Element {
         }
     }
 
+    /** Draws the background bar, filled portion, and label (if any). */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         int barY = y + (height - BAR_HEIGHT) / 2;

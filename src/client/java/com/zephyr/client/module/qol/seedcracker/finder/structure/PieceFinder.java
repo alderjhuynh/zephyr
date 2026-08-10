@@ -19,10 +19,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Matches a fixed structure layout against the world at a set of probe positions.
+ *
+ * <p>A piece is described as a map of local {@link BlockState}s built through {@link #addBlock}
+ * and {@link #fillWithOutline}. {@link #findInChunk()} slides the layout over every search
+ * position and reports the origins where all blocks match.
+ */
 public class PieceFinder extends Finder {
 
     private final BoundingBox boundingBox;
+    /** The structure layout: local position to expected block state. */
     protected Map<BlockPos, BlockState> structure = new LinkedHashMap<>();
+    /** Positions to probe for a layout match. */
     protected List<BlockPos> searchPositions = new ArrayList<>();
 
     protected Direction facing;
@@ -54,6 +63,9 @@ public class PieceFinder extends Finder {
         }
     }
 
+    /**
+     * @return the layout dimensions after applying the piece's facing
+     */
     public Vec3i getLayout() {
         if (this.facing.getAxis() != Direction.Axis.Z) {
             return new Vec3i(this.depth, this.height, this.width);
@@ -62,6 +74,11 @@ public class PieceFinder extends Finder {
         return new Vec3i(this.width, this.height, this.depth);
     }
 
+    /**
+     * Slides the structure layout over every search position and returns matching origins.
+     *
+     * @return the matched positions, in absolute world coordinates
+     */
     @Override
     public List<BlockPos> findInChunk() {
         List<BlockPos> result = new ArrayList<>();
@@ -105,6 +122,11 @@ public class PieceFinder extends Finder {
         return result;
     }
 
+    /**
+     * Sets the piece orientation: facing direction plus the matching mirror and rotation.
+     *
+     * @param facing the facing direction (null for none)
+     */
     public void setOrientation(Direction facing) {
         this.facing = facing;
 
@@ -133,6 +155,13 @@ public class PieceFinder extends Finder {
 
     }
 
+    /**
+     * Maps a layout (x, z) to its bounding-box X coordinate for this facing.
+     *
+     * @param x the layout X
+     * @param z the layout Z
+     * @return the transformed X coordinate
+     */
     protected int applyXTransform(int x, int z) {
         if (this.facing == null) {
             return x;
@@ -146,10 +175,23 @@ public class PieceFinder extends Finder {
         }
     }
 
+    /**
+     * Maps a layout Y to its bounding-box Y coordinate for this facing.
+     *
+     * @param y the layout Y
+     * @return the transformed Y coordinate
+     */
     protected int applyYTransform(int y) {
         return this.facing == null ? y : y + this.boundingBox.minY();
     }
 
+    /**
+     * Maps a layout (x, z) to its bounding-box Z coordinate for this facing.
+     *
+     * @param x the layout X
+     * @param z the layout Z
+     * @return the transformed Z coordinate
+     */
     protected int applyZTransform(int x, int z) {
         if (this.facing == null) {
             return z;
@@ -163,6 +205,14 @@ public class PieceFinder extends Finder {
         }
     }
 
+    /**
+     * Returns the block state at a layout position, defaulting to air outside the bounding box.
+     *
+     * @param ox the layout X
+     * @param oy the layout Y
+     * @param oz the layout Z
+     * @return the expected block state
+     */
     protected BlockState getBlockAt(int ox, int oy, int oz) {
         int x = this.applyXTransform(ox, oz);
         int y = this.applyYTransform(oy);
@@ -174,6 +224,19 @@ public class PieceFinder extends Finder {
                 this.structure.getOrDefault(pos, Blocks.AIR.defaultBlockState());
     }
 
+    /**
+     * Fills a box with an outline block and an interior block.
+     *
+     * @param minX the minimum X
+     * @param minY the minimum Y
+     * @param minZ the minimum Z
+     * @param maxX the maximum X
+     * @param maxY the maximum Y
+     * @param maxZ the maximum Z
+     * @param outline the block placed on the box surface
+     * @param inside the block placed inside the box (null to leave empty)
+     * @param onlyReplaceAir whether non-air positions should be left untouched
+     */
     protected void fillWithOutline(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, BlockState outline, BlockState inside, boolean onlyReplaceAir) {
         for (int y = minY; y <= maxY; ++y) {
             for (int x = minX; x <= maxX; ++x) {
@@ -191,6 +254,14 @@ public class PieceFinder extends Finder {
 
     }
 
+    /**
+     * Adds a block to the layout, applying the piece's mirror and rotation to the state.
+     *
+     * @param state the block state to add (null removes the position)
+     * @param x the layout X
+     * @param y the layout Y
+     * @param z the layout Z
+     */
     protected void addBlock(BlockState state, int x, int y, int z) {
         BlockPos pos = new BlockPos(
                 this.applyXTransform(x, z),
@@ -217,11 +288,17 @@ public class PieceFinder extends Finder {
         }
     }
 
+    /**
+     * @return always true (piece finders decide validity via their owning finder)
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return true;
     }
 
+    /**
+     * Enables debug mode, which materialises the layout in-world for visual inspection.
+     */
     public void setDebug() {
         this.debug = true;
     }

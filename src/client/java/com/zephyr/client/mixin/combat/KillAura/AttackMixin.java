@@ -10,9 +10,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin for {@link MultiPlayerGameMode}. Injects into the HEAD of {@code MultiPlayerGameMode#attack}
+ * to record the entity being attacked into {@link TargetManager}, backing KillAura's ASSIST
+ * mode.
+ */
 @Mixin(MultiPlayerGameMode.class)
 public class AttackMixin {
 
+    /** Records the attacked living entity (or clears the target for non-living entities) before the attack executes. */
     @Inject(
         method = "attack",
         at = @At("HEAD")

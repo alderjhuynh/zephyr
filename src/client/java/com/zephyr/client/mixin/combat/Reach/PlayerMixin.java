@@ -11,8 +11,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
+/**
+ * Mixin for {@link Player}. Uses {@code ModifyReturnValue} on {@code Player#blockInteractionRange}
+ * and {@code Player#entityInteractionRange} to back the {@code Reach} module, adding the
+ * configured block and entity reach bonuses to the vanilla values when the module is enabled.
+ */
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity {
+    /** Shadowed access to the player's abilities. */
     @Shadow
     public abstract Abilities getAbilities();
 
@@ -20,12 +26,14 @@ public abstract class PlayerMixin extends LivingEntity {
         super(entityType, world);
     }
 
+    /** Adds the Reach module's block reach bonus to the vanilla block interaction range. */
     @ModifyReturnValue(method = "blockInteractionRange", at = @At("RETURN"))
     private double modifyBlockInteractionRange(double original) {
         if (!Reach.INSTANCE.isEnabled()) return original;
         return Math.max(0, original + Reach.INSTANCE.blockReach.get());
     }
 
+    /** Adds the Reach module's entity reach bonus to the vanilla entity interaction range. */
     @ModifyReturnValue(method = "entityInteractionRange", at = @At("RETURN"))
     private double modifyEntityInteractionRange(double original) {
         if (!Reach.INSTANCE.isEnabled()) return original;

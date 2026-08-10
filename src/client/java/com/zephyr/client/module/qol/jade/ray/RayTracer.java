@@ -28,9 +28,20 @@ import java.util.function.Predicate;
  * at a valid entity, and honors the module's extended-reach setting.
  */
 public final class RayTracer {
+    /** Static utility; not instantiable. */
     private RayTracer() {
     }
 
+    /**
+     * Ray-casts from the camera entity's eye along its view vector and returns
+     * an accessor for the closest valid target. Reuses the vanilla crosshair hit
+     * when it already points at a valid entity, and extends both block and
+     * entity reach by {@code extendedReach}.
+     *
+     * @param mc             the running Minecraft client
+     * @param extendedReach  extra reach in blocks added on top of the player's ranges
+     * @return an accessor for the target, or {@code null} if nothing is targeted
+     */
     public static Accessor raycast(Minecraft mc, double extendedReach) {
         Entity viewEntity = mc.getCameraEntity();
         Player viewPlayer = viewEntity instanceof Player player ? player : mc.player;

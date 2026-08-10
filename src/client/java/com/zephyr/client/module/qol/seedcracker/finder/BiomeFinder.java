@@ -20,18 +20,33 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Samples biome constraints from freshly generated chunks.
+ *
+ * <p>Queries the biome at four-block intervals across the chunk, converts it to its seedfinding
+ * equivalent via {@link BiomeFixer}, and submits each unique sample as {@link BiomeData} to the
+ * {@code DataStorage} for the biome search phase.
+ */
 public class BiomeFinder extends Finder {
 
     public BiomeFinder(Level world, ChunkPos chunkPos) {
         super(world, chunkPos);
     }
 
+    /**
+     * @return a single {@link BiomeFinder} for the given chunk
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new BiomeFinder(world, chunkPos));
         return finders;
     }
 
+    /**
+     * Samples biomes across the chunk and records each newly observed one as {@link BiomeData}.
+     *
+     * @return the sampled positions of newly recorded biome constraints
+     */
     @Override
     public List<BlockPos> findInChunk() {
         List<BlockPos> result = new ArrayList<>();
@@ -69,6 +84,9 @@ public class BiomeFinder extends Finder {
         return result;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);

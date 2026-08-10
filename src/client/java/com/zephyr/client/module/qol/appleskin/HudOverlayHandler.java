@@ -26,6 +26,18 @@ public class HudOverlayHandler {
 
     private static final RenderPipeline GUI_TEXTURED = RenderPipelines.GUI_TEXTURED;
 
+    /**
+     * Draws the saturation bar (current level plus any gained) over the food bar.
+     *
+     * @param graphics         the HUD graphics context
+     * @param saturationGained the saturation that will be gained (0 for current only)
+     * @param saturationLevel  the player's current saturation
+     * @param player           the player whose HUD is drawn
+     * @param right            the right edge x of the vanilla food bar
+     * @param top              the top y of the vanilla food bar
+     * @param alpha            the overlay opacity
+     * @param guiTicks         the HUD animation tick
+     */
     public void drawSaturationOverlay(GuiGraphicsExtractor graphics, float saturationGained, float saturationLevel,
                                       Player player, int right, int top, float alpha, int guiTicks) {
         if (saturationLevel + saturationGained < 0) {
@@ -71,6 +83,19 @@ public class HudOverlayHandler {
         }
     }
 
+    /**
+     * Draws the hunger that the held food would restore over the food bar.
+     *
+     * @param graphics           the HUD graphics context
+     * @param hungerRestored     the hunger the food will add
+     * @param foodLevel          the player's current food level
+     * @param player             the player whose HUD is drawn
+     * @param right              the right edge x of the vanilla food bar
+     * @param top                the top y of the vanilla food bar
+     * @param alpha              the overlay opacity
+     * @param useRottenTextures  whether to use the rotten-food textures
+     * @param guiTicks           the HUD animation tick
+     */
     public void drawHungerOverlay(GuiGraphicsExtractor graphics, int hungerRestored, int foodLevel,
                                   Player player, int right, int top, float alpha, boolean useRottenTextures, int guiTicks) {
         if (hungerRestored <= 0) {
@@ -106,6 +131,19 @@ public class HudOverlayHandler {
         }
     }
 
+    /**
+     * Draws the health that eating the held food would eventually restore over
+     * the health bar.
+     *
+     * @param graphics        the HUD graphics context
+     * @param health          the player's current health
+     * @param modifiedHealth  the health after eating
+     * @param player          the player whose HUD is drawn
+     * @param right           the right edge x of the vanilla health bar
+     * @param top             the top y of the vanilla health bar
+     * @param alpha           the overlay opacity
+     * @param guiTicks        the HUD animation tick
+     */
     public void drawHealthOverlay(GuiGraphicsExtractor graphics, float health, float modifiedHealth,
                                   Player player, int right, int top, float alpha, int guiTicks) {
         if (modifiedHealth <= health) {
@@ -142,6 +180,15 @@ public class HudOverlayHandler {
         }
     }
 
+    /**
+     * Draws the exhaustion bar as a narrow bar underneath the food bar.
+     *
+     * @param graphics   the HUD graphics context
+     * @param exhaustion the player's current exhaustion level
+     * @param right      the right edge x of the vanilla food bar
+     * @param top        the top y of the vanilla food bar
+     * @param alpha      the overlay opacity
+     */
     public void drawExhaustionOverlay(GuiGraphicsExtractor graphics, float exhaustion, int right, int top, float alpha) {
         float maxExhaustion = FoodHelper.MAX_EXHAUSTION;
         // clamp between 0 and 1
@@ -246,6 +293,12 @@ public class HudOverlayHandler {
             }
         }
 
+        /**
+         * Returns the health-bar offsets, regenerating them when the HUD tick changes.
+         *
+         * @param guiTick the current HUD animation tick
+         * @param player  the player whose HUD is drawn
+         */
         public List<IntPoint> healthBarOffsets(int guiTick, Player player) {
             if (guiTick != lastGuiTick) {
                 generate(guiTick, player);
@@ -254,6 +307,12 @@ public class HudOverlayHandler {
             return healthBarOffsets;
         }
 
+        /**
+         * Returns the food-bar offsets, regenerating them when the HUD tick changes.
+         *
+         * @param guiTicks the current HUD animation tick
+         * @param player   the player whose HUD is drawn
+         */
         public List<IntPoint> foodBarOffsets(int guiTicks, Player player) {
             if (guiTicks != lastGuiTick) {
                 generate(guiTicks, player);
@@ -290,6 +349,13 @@ public class HudOverlayHandler {
             this.result = heldFood;
         }
 
+        /**
+         * Returns the queried food for the player's hands, re-querying when the
+         * HUD tick changes.
+         *
+         * @param guiTick the current HUD animation tick
+         * @param player  the player whose held food is queried
+         */
         public FoodHelper.QueriedFoodResult result(int guiTick, Player player) {
             if (guiTick != lastGuiTick) {
                 query(player);

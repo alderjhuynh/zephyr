@@ -6,9 +6,25 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+/**
+ * Mixin into {@link Entity} implementing the Zephyr RenderInvisibility module.
+ *
+ * <p>Redirects the {@code Entity.isInvisible()} call inside
+ * {@code Entity.isInvisibleTo} so invisible entities are always reported as
+ * visible while the module is enabled, leaving their (translucent) rendering
+ * intact instead of being hidden entirely.
+ */
 @Mixin(Entity.class)
 public abstract class InvisibilityRenderMixin {
 
+    /**
+     * Forces invisible entities to be treated as visible while the
+     * RenderInvisibility module is enabled.
+     *
+     * @param entity the entity whose invisibility is being checked
+     * @return {@code false} when the module is enabled, otherwise the original
+     *         invisibility state
+     */
     @Redirect(
             method = "isInvisibleTo",
             at = @At(

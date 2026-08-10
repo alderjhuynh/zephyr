@@ -32,10 +32,12 @@ public final class ConfigGuiScreen extends ZephyrScreen {
     private NumberSetting draggingSetting = null;
     private boolean draggingDirty = false;
 
+    /** Opens the config tab without a slide animation. */
     public ConfigGuiScreen() {
         this(0);
     }
 
+    /** Creates the config tab with the given horizontal entry slide; package-visible for {@link ZephyrScreen.Nav}. */
     ConfigGuiScreen(int enterDirection) {
         super(Component.literal("Zephyr"), enterDirection);
     }
@@ -45,6 +47,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         return Nav.CONFIG;
     }
 
+    /** Renders the chrome plus every global-setting row (checkboxes, sliders, swatches). */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         withPanelSlide(() -> {
@@ -58,6 +61,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         });
     }
 
+    /** Dispatches a row to its type-specific renderer. */
     private void renderRow(GuiGraphicsExtractor graphics, Row row, int mouseX, int mouseY) {
         if (row instanceof SettingRow settingRow) {
             renderSettingRow(graphics, settingRow.setting(), settingRow.top(), mouseX, mouseY);
@@ -68,6 +72,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Renders a generic setting row based on its concrete {@link Setting} subtype. */
     private void renderSettingRow(GuiGraphicsExtractor graphics, Setting<?> setting, int top, int mouseX, int mouseY) {
         if (setting instanceof BooleanSetting booleanSetting) {
             renderBooleanRow(graphics, booleanSetting, top, mouseX, mouseY);
@@ -82,6 +87,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Draws a checkbox row with accent fill when enabled. */
     private void renderBooleanRow(GuiGraphicsExtractor graphics, BooleanSetting setting, int top, int mouseX, int mouseY) {
         boolean enabled = setting.get();
         boolean hovered = isHovered(mouseX, mouseY, top);
@@ -97,6 +103,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         graphics.fill(boxX, boxY, boxX + BOX_SIZE, boxY + BOX_SIZE, enabled ? accent() : 0x40FFFFFF);
     }
 
+    /** Draws a labeled slider row showing the current value and filled track. */
     private void renderSliderRow(GuiGraphicsExtractor graphics, String label, NumberSetting setting, int top, int mouseX, int mouseY) {
         boolean hovered = isHovered(mouseX, mouseY, top);
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT,
@@ -114,6 +121,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         graphics.fill(left + fillWidth - 1, trackY - 2, left + fillWidth + 1, trackY + 5, accent());
     }
 
+    /** Draws a click-to-cycle enum row with the current value in accent. */
     private void renderEnumRow(GuiGraphicsExtractor graphics, String label, EnumSetting<?> setting, int top, int mouseX, int mouseY) {
         boolean hovered = isHovered(mouseX, mouseY, top);
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT,
@@ -126,6 +134,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         graphics.text(this.font, value, panelX + panelWidth - PADDING - 8 - valueWidth, top + 9, accent(), false);
     }
 
+    /** Draws a read-only row showing the string setting's current value. */
     private void renderStringRow(GuiGraphicsExtractor graphics, String label, StringSetting setting, int top) {
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT, ROW_BG);
 
@@ -136,6 +145,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         graphics.text(this.font, value, panelX + panelWidth - PADDING - 8 - valueWidth, top + 9, TEXT_DIM, false);
     }
 
+    /** Draws a read-only row summarizing a list setting's entry count. */
     private void renderListRow(GuiGraphicsExtractor graphics, String label, ListSetting setting, int top) {
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT, ROW_BG);
 
@@ -146,6 +156,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         graphics.text(this.font, value, panelX + panelWidth - PADDING - 8 - valueWidth, top + 9, TEXT_DIM, false);
     }
 
+    /** Draws the theme preset row: label, preset name and a color swatch. */
     private void renderThemeRow(GuiGraphicsExtractor graphics, int top, int mouseX, int mouseY) {
         boolean hovered = isHovered(mouseX, mouseY, top);
 
@@ -166,6 +177,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         graphics.text(this.font, value, valueRight - valueWidth - swatchSize - 6, top + 9, accent(), false);
     }
 
+    /** Draws the custom-color group: Hue/Saturation/Value sliders plus a live accent swatch and hex. */
     private void renderColorRow(GuiGraphicsExtractor graphics, int top, int mouseX, int mouseY) {
         renderSliderRow(graphics, "Hue", GlobalConfig.customHue, top, mouseX, mouseY);
         renderSliderRow(graphics, "Saturation", GlobalConfig.customSaturation, top + SLIDER_HEIGHT, mouseX, mouseY);
@@ -189,6 +201,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         graphics.text(this.font, hex, right - hexWidth, swatchTop + (SWATCH_HEIGHT - 8) / 2, TEXT_DIM, false);
     }
 
+    /** Routes left clicks to the row under the cursor (toggle/cycle/start slider drag). */
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
@@ -210,6 +223,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         return false;
     }
 
+    /** Dispatches a row click to the setting, theme or color handler. */
     private void handleRowClick(Row row, double mouseX, double mouseY) {
         if (row instanceof SettingRow settingRow) {
             handleSettingClick(settingRow.setting(), mouseX);
@@ -220,6 +234,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Handles a click on a global setting, routing special cases through their managers. */
     private void handleSettingClick(Setting<?> setting, double mouseX) {
         if (setting instanceof BooleanSetting booleanSetting) {
             if (booleanSetting == GlobalConfig.stealthMode) {
@@ -242,6 +257,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Starts dragging whichever HSV slider was clicked within the color row. */
     private void handleColorRowClick(ColorRow row, double mouseX, double mouseY) {
         for (int i = 0; i < 3; i++) {
             int sliderTop = row.top() + i * SLIDER_HEIGHT;
@@ -257,6 +273,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Updates the dragged slider live, marking it dirty so it saves on release. */
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
         if (event.button() == 0 && draggingSetting != null) {
@@ -267,6 +284,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         return super.mouseDragged(event, dragX, dragY);
     }
 
+    /** Ends a slider drag, persisting the value once when it actually changed. */
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
         if (event.button() == 0 && draggingSetting != null) {
@@ -280,12 +298,14 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         return super.mouseReleased(event);
     }
 
+    /** Starts a slider drag, positioning it at the mouse. */
     private void beginSliderDrag(NumberSetting setting, double mouseX) {
         draggingSetting = setting;
         draggingDirty = false;
         updateSliderFromMouse(setting, mouseX);
     }
 
+    /** Maps the mouse X within the slider track to the setting's 0-1 progress. */
     private void updateSliderFromMouse(NumberSetting setting, double mouseX) {
         int left = panelX + PADDING + 8;
         int right = panelX + panelWidth - PADDING - 8;
@@ -293,6 +313,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         setting.setFromProgress(progress);
     }
 
+    /** Builds the row list with Y offsets; the theme row becomes the HSV group when custom color is on. */
     private List<Row> computeRows() {
         List<Row> rows = new ArrayList<>();
         int cursor = panelY + headerHeight();
@@ -338,6 +359,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         return rows;
     }
 
+    /** Whether the mouse is inside the row's horizontal bounds and vertical span. */
     private boolean rowContains(Row row, double mouseX, double mouseY) {
         if (mouseX < panelX + PADDING || mouseX > panelX + panelWidth - PADDING) return false;
         if (row instanceof ColorRow colorRow) {
@@ -346,15 +368,18 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         return mouseY >= row.top() && mouseY < row.top() + ROW_HEIGHT;
     }
 
+    /** Hover test against a standard-height row. */
     private boolean isHovered(double mouseX, double mouseY, int top) {
         return isHovered(mouseX, mouseY, top, ROW_HEIGHT);
     }
 
+    /** Hover test against a row of the given height. */
     private boolean isHovered(double mouseX, double mouseY, int top, int height) {
         return mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING
                 && mouseY >= top && mouseY < top + height;
     }
 
+    /** Formats a slider value, trimming trailing zeros, e.g. 1.500 -> "1.5". */
     private static String trimDouble(double value) {
         return String.format("%.3f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
     }

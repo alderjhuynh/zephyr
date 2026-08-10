@@ -19,6 +19,12 @@ import net.minecraft.world.level.dimension.DimensionType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Finds emerald ore veins in mountain biomes.
+ *
+ * <p>Scans the vertical band where emerald ore generates and records an {@code EmeraldOre.Data}
+ * constraint for each vein found.
+ */
 public class EmeraldOreFinder extends BlockFinder {
 
     protected static List<BlockPos> SEARCH_POSITIONS;
@@ -28,6 +34,9 @@ public class EmeraldOreFinder extends BlockFinder {
         this.searchPositions = SEARCH_POSITIONS;
     }
 
+    /**
+     * Restricts the search to the y range where emerald ore generates (y 4..32).
+     */
     public static void reloadSearchPositions() {
         SEARCH_POSITIONS = Finder.buildSearchPositions(Finder.CHUNK_POSITIONS, pos -> {
             if (pos.getY() < 4) return true;
@@ -35,12 +44,20 @@ public class EmeraldOreFinder extends BlockFinder {
         });
     }
 
+    /**
+     * @return a single {@link EmeraldOreFinder} for the given chunk
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new EmeraldOreFinder(world, chunkPos));
         return finders;
     }
 
+    /**
+     * Scans for emerald ore and records an {@code EmeraldOre.Data} constraint for the vein found.
+     *
+     * @return the matched ore positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 0, (this.chunkPos.z() << 2) + 2).value();
@@ -59,6 +76,9 @@ public class EmeraldOreFinder extends BlockFinder {
         return result;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);

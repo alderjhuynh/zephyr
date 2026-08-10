@@ -13,11 +13,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A {@link PieceFinder} whose layout is placed using jigsaw-style rotation math.
+ *
+ * <p>Used for structures whose piece can be rotated per facing (igloos, outposts, trial chambers).
+ */
 public class JigsawFinder extends PieceFinder {
     public JigsawFinder(Level world, ChunkPos chunkPos, Direction facing, Vec3i size) {
         super(world, chunkPos, facing, size);
     }
 
+    /**
+     * Computes the per-facing search positions for a rotated structure piece.
+     *
+     * @param xRotation rotation offset on the X axis
+     * @param zRotation rotation offset on the Z axis
+     * @param xOffset X offset of the piece origin
+     * @param zOffset Z offset of the piece origin
+     * @param size the piece size
+     * @return per-facing lists of positions to probe
+     */
     public static Map<Direction, List<BlockPos>> getSearchPositions(int xRotation, int zRotation, int xOffset, int zOffset, Vec3i size) {
         Map<Direction, List<BlockPos>> positions = new HashMap<>();
 
@@ -51,6 +66,11 @@ public class JigsawFinder extends PieceFinder {
     }
 
 
+    /**
+     * Sets the piece orientation, mapping each facing to the corresponding jigsaw rotation.
+     *
+     * @param facing the facing direction (null for no rotation)
+     */
     @Override
     public void setOrientation(Direction facing) {
         this.facing = facing;
@@ -67,6 +87,13 @@ public class JigsawFinder extends PieceFinder {
         }
     }
 
+    /**
+     * Applies the facing-based X transform to a layout position.
+     *
+     * @param x the layout X
+     * @param z the layout Z
+     * @return the rotated X coordinate
+     */
     @Override
     protected int applyXTransform(int x, int z) {
         if (this.facing == null) {
@@ -82,6 +109,13 @@ public class JigsawFinder extends PieceFinder {
         }
     }
 
+    /**
+     * Applies the facing-based Z transform to a layout position.
+     *
+     * @param x the layout X
+     * @param z the layout Z
+     * @return the rotated Z coordinate
+     */
     @Override
     protected int applyZTransform(int x, int z) {
         if (this.facing == null) {

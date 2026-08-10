@@ -13,6 +13,13 @@ public class EntityAccessor extends Accessor {
     private final Entity entity;
     private final EntityHitResult hitResult;
 
+    /**
+     * Builds an entity accessor.
+     *
+     * @param level     the level containing the entity
+     * @param entity    the targeted entity
+     * @param hitResult the ray-cast hit result for the entity
+     */
     public EntityAccessor(Level level, Entity entity, EntityHitResult hitResult) {
         this.level = level;
         this.entity = entity;
@@ -34,10 +41,12 @@ public class EntityAccessor extends Accessor {
         return hitResult.getLocation();
     }
 
+    /** @return the targeted entity */
     public Entity getEntity() {
         return entity;
     }
 
+    /** @return the underlying entity hit result */
     public EntityHitResult getHitResult() {
         return hitResult;
     }

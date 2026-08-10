@@ -5,6 +5,12 @@ import org.lwjgl.glfw.GLFW;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Maps GLFW key constants to short human-readable labels used when rendering keybinds in
+ * the {@link KeybindGuiScreen} and elsewhere. Commonly used keys (modifiers, navigation,
+ * function keys) have curated names; everything else falls back to GLFW's own key name or
+ * a "Key N" placeholder. Used by {@link Keybind#getLabel()}.
+ */
 public final class GlfwKeyNames {
     private static final Map<Integer, String> NAMES = new HashMap<>();
 
@@ -41,6 +47,12 @@ public final class GlfwKeyNames {
     private GlfwKeyNames() {
     }
 
+    /**
+     * Returns the display name for a GLFW key code.
+     *
+     * @param key a GLFW key constant, e.g. {@code GLFW.GLFW_KEY_SPACE}
+     * @return the curated name if known, otherwise GLFW's own key name, otherwise "Key N"
+     */
     public static String label(int key) {
         String known = NAMES.get(key);
         if (known != null) return known;

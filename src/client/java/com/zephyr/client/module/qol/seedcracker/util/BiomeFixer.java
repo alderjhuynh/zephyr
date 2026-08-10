@@ -12,6 +12,13 @@ import net.minecraft.resources.ResourceKey;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Converts between vanilla and seedfinding biome objects.
+ *
+ * <p>Modern biomes that were renamed or added are mapped onto their closest seedfinding equivalent
+ * (e.g. "snowy_plains" to snowy tundra) so the cracker can reason about them; unknown cave/deep
+ * dark biomes fall back to the void biome.
+ */
 public class BiomeFixer {
 
     private static final Map<String, Biome> COMPATREGISTRY = new HashMap<>();
@@ -46,6 +53,12 @@ public class BiomeFixer {
         //deep_dark
     }
 
+    /**
+     * Converts a vanilla biome into its seedfinding equivalent by registry id.
+     *
+     * @param biome the vanilla biome
+     * @return the matching seedfinding biome, or the void biome when unknown
+     */
     public static Biome swap(net.minecraft.world.level.biome.Biome biome) {
         ClientPacketListener clientPacketListener = Minecraft.getInstance().getConnection();
         if (clientPacketListener == null) return Biomes.VOID;
@@ -61,6 +74,12 @@ public class BiomeFixer {
         return COMPATREGISTRY.getOrDefault(biomeID.getPath(), Biomes.VOID);
     }
 
+    /**
+     * Converts a seedfinding biome back into its vanilla equivalent using the vanilla registries.
+     *
+     * @param biome the seedfinding biome
+     * @return the matching vanilla biome, or the vanilla void biome when unknown
+     */
     public static net.minecraft.world.level.biome.Biome swap(Biome biome) {
         // internal, meh
         var biomeRegistries = VanillaRegistries.createLookup().lookupOrThrow(Registries.BIOME);

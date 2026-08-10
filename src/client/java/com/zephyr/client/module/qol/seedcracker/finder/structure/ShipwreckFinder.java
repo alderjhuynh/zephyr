@@ -30,6 +30,12 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Finds shipwrecks by analysing the blocks surrounding their chest.
+ *
+ * <p>Given a single chest, the surrounding stair/trapdoor pattern is used to identify the shipwreck
+ * variant and reconstruct its extent, which is then used to determine the wreck's origin chunk.
+ */
 public class ShipwreckFinder extends BlockFinder {
 
     public ShipwreckFinder(Level world, ChunkPos chunkPos) {
@@ -37,6 +43,9 @@ public class ShipwreckFinder extends BlockFinder {
         this.searchPositions = CHUNK_POSITIONS;
     }
 
+    /**
+     * @return shipwreck finders for the chunk and all eight neighbouring chunks
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new ShipwreckFinder(world, chunkPos));
@@ -54,6 +63,11 @@ public class ShipwreckFinder extends BlockFinder {
         return finders;
     }
 
+    /**
+     * Scans for single shipwreck chests and validates them via {@link #onChestFound}.
+     *
+     * @return the validated chest positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 64, (this.chunkPos.z() << 2) + 2).value();
@@ -79,6 +93,13 @@ public class ShipwreckFinder extends BlockFinder {
 
     /**
      * Source: https://github.com/skyrising/casual-mod/blob/master/src/main/java/de/skyrising/casual/ShipwreckFinder.java
+     */
+    /**
+     * Classifies the shipwreck variant from the blocks around a chest and, when the wreck's origin
+     * chunk can be derived, records a {@code Shipwreck.Data} constraint.
+     *
+     * @param pos the chest position
+     * @return true if a valid shipwreck was recorded
      */
     private boolean onChestFound(BlockPos pos) {
         BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
@@ -218,6 +239,9 @@ public class ShipwreckFinder extends BlockFinder {
         return false;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);

@@ -10,13 +10,17 @@ import net.minecraft.world.phys.Vec3;
  * based on {@link #isBlock()}.
  */
 public abstract class Accessor {
+    /** @return whether the target is a block rather than an entity */
     public abstract boolean isBlock();
 
+    /** @return whether the target is an entity rather than a block */
     public boolean isEntity() {
         return !isBlock();
     }
 
+    /** @return the level the target resides in */
     public abstract Level getLevel();
 
+    /** @return the exact hit position in world coordinates */
     public abstract Vec3 getHitLocation();
 }

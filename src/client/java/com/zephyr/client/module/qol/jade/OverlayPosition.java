@@ -20,6 +20,7 @@ public enum OverlayPosition {
         this.displayName = displayName;
     }
 
+    /** @return the human-readable label shown in the settings GUI */
     public String getDisplayName() {
         return displayName;
     }

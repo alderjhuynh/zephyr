@@ -12,17 +12,33 @@ import net.minecraft.world.level.block.Block;
  * up the Fabric mod container by namespace and falls back to the raw namespace.
  */
 public final class ModIdentification {
+    /** Static utility; not instantiable. */
     private ModIdentification() {
     }
 
+    /**
+     * @param block the block to look up
+     * @return the display name of the mod that registered the block
+     */
     public static String getModName(Block block) {
         return getModName(BuiltInRegistries.BLOCK.getKey(block));
     }
 
+    /**
+     * @param entity the entity to look up
+     * @return the display name of the mod that registered the entity type
+     */
     public static String getModName(Entity entity) {
         return getModName(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
     }
 
+    /**
+     * Resolves a mod display name from a registry identifier's namespace.
+     *
+     * @param id the registry identifier of the block or entity type
+     * @return the mod name, "Minecraft" for the vanilla namespace, or the raw
+     *         namespace when no mod container is found
+     */
     private static String getModName(Identifier id) {
         if (id == null) {
             return "Minecraft";

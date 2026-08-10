@@ -15,6 +15,18 @@ import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.world.level.block.Block;
 
+/**
+ * Detaches the in-game camera from the player to allow free, noclip-like
+ * movement while the player character stays in place. When enabled a
+ * {@link FreeCamera} entity is spawned at the player's position and becomes the
+ * camera target; the third-person view is forced back on disable.
+ *
+ * <p>The module exposes a large set of static query methods so that the freecam
+ * render and physics mixins can read the current settings. Configuration covers
+ * flight mode, horizontal/vertical speed, initial perspective, whether the
+ * player, hand, or submersion fog are drawn, full bright, collision behavior,
+ * and whether interactions are permitted from the player or camera.
+ */
 public final class FreeCam extends Module {
     public static final FreeCam INSTANCE = new FreeCam();
     public static final Minecraft MC = Minecraft.getInstance();
@@ -60,6 +72,10 @@ public final class FreeCam extends Module {
         addSetting(checkInitialCollision);
     }
 
+    /**
+     * Sets up the detached camera: remembers the current third-person view,
+     * forces first-person while freecam is active, and spawns the camera entity.
+     */
     @Override
     protected void onEnable() {
         MC.smartCull = false;
@@ -77,6 +93,7 @@ public final class FreeCam extends Module {
         createCamera();
     }
 
+    /** Tears the freecam down: despawns the camera, restores player control and the remembered third-person view. */
     @Override
     protected void onDisable() {
         MC.smartCull = true;
@@ -97,6 +114,12 @@ public final class FreeCam extends Module {
         }
     }
 
+    /**
+     * Handles a deferred disable request and ensures the camera entity exists
+     * once the player has joined a world.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (disableNextTick) {
@@ -123,90 +146,112 @@ public final class FreeCam extends Module {
         return INSTANCE.isEnabled() && getFreeCamera() != null;
     }
 
+    /** The currently active camera entity, or {@code null} while freecam is not active. */
     public static FreeCamera getFreeCamera() {
         return INSTANCE.freeCamera;
     }
 
+    /** Whether the player's own movement input is forwarded to the camera (always {@code false}). */
     public static boolean isPlayerControlEnabled() {
         return false;
     }
 
+    /** The configured camera flight mode. */
     public static FlightMode getFlightMode() {
         return INSTANCE.flightMode.get();
     }
 
+    /** The configured horizontal movement speed. */
     public static double getHorizontalSpeed() {
         return INSTANCE.horizontalSpeed.get();
     }
 
+    /** The configured vertical movement speed. */
     public static double getVerticalSpeed() {
         return INSTANCE.verticalSpeed.get();
     }
 
+    /** The perspective the camera should start in when freecam is enabled. */
     public static Perspective getInitialPerspective() {
         return INSTANCE.initialPerspective.get();
     }
 
+    /** Whether the player model is rendered while freecam is active. */
     public static boolean shouldShowPlayer() {
         return INSTANCE.showPlayer.get();
     }
 
+    /** Whether the player model is hidden while freecam is active. */
     public static boolean shouldHidePlayer() {
         return !INSTANCE.showPlayer.get();
     }
 
+    /** Whether the first-person hand is rendered while freecam is active. */
     public static boolean shouldShowHand() {
         return INSTANCE.showHand.get();
     }
 
+    /** Whether the first-person hand is hidden while freecam is active. */
     public static boolean shouldHideHand() {
         return !INSTANCE.showHand.get();
     }
 
+    /** Whether full-bright rendering is forced while freecam is active. */
     public static boolean isFullBrightEnabled() {
         return INSTANCE.fullBright.get();
     }
 
+    /** Whether submersion fog (water/lava) is shown from the camera. */
     public static boolean shouldShowSubmersionFog() {
         return INSTANCE.showSubmersionFog.get();
     }
 
+    /** Whether submersion fog (water/lava) is hidden from the camera. */
     public static boolean shouldHideSubmersionFog() {
         return !INSTANCE.showSubmersionFog.get();
     }
 
+    /** Whether an outline is drawn around the frozen player model. */
     public static boolean isOutlineEnabled() {
         return INSTANCE.outlinePlayer.get();
     }
 
+    /** Whether the player should be frozen in place while freecam is active. */
     public static boolean shouldFreezePlayer() {
         return INSTANCE.freezePlayer.get();
     }
 
+    /** Whether freecam automatically disables when the player takes damage. */
     public static boolean shouldDisableOnDamage() {
         return INSTANCE.disableOnDamage.get();
     }
 
+    /** Whether player interactions (attacking/using) are blocked entirely. */
     public static boolean shouldPreventInteractions() {
         return !INSTANCE.allowInteract.get();
     }
 
+    /** Whether interactions are performed from the frozen player's position. */
     public static boolean allowInteractionsFromPlayer() {
         return INSTANCE.allowInteract.get() && INSTANCE.interactionMode.get() == InteractionMode.PLAYER;
     }
 
+    /** Whether interactions are performed from the camera's position. */
     public static boolean allowInteractionsFromCamera() {
         return INSTANCE.allowInteract.get() && INSTANCE.interactionMode.get() == InteractionMode.CAMERA;
     }
 
+    /** Whether the camera ignores block collision while flying. */
     public static boolean ignoreCollision() {
         return INSTANCE.ignoreCollision.get();
     }
 
+    /** Whether the camera ignores collision with the given block. */
     public static boolean ignoreCollisionWith(Block block) {
         return INSTANCE.ignoreCollision.get();
     }
 
+    /** Whether the camera should check for collision when it is first spawned. */
     public static boolean shouldCheckInitialCollision() {
         return INSTANCE.checkInitialCollision.get() || !INSTANCE.ignoreCollision.get();
     }
@@ -216,6 +261,7 @@ public final class FreeCam extends Module {
         return INSTANCE.suppressPerspectiveGuard;
     }
 
+    /** Requests that freecam be disabled on the next client tick. */
     public static void disableNextTick() {
         INSTANCE.disableNextTick = true;
     }

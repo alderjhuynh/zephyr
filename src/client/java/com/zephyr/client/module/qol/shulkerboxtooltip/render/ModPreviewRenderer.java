@@ -21,29 +21,31 @@ public class ModPreviewRenderer extends BasePreviewRenderer {
     private static final Identifier SLOT_HIGHLIGHT_FRONT_SPRITE = Identifier.withDefaultNamespace(
             "container/slot_highlight_front");
 
+    /** Package-private singleton constructor using 18x18 slots with 8px padding. */
     ModPreviewRenderer() {
         super(18, 18, 8, 8);
     }
 
+    /** @return the pixel width of the rendered window */
     @Override
     public int getWidth() {
         return 14 + Math.min(this.getMaxRowSize(), this.getInvSize()) * 18;
     }
 
+    /** @return the pixel height of the rendered window */
     @Override
     public int getHeight() {
         return 14 + (int) Math.ceil(this.getInvSize() / (double) this.getMaxRowSize()) * 18;
     }
 
+    /** @return the number of slots shown by the current preview type */
     private int getInvSize() {
         return this.previewType == PreviewType.COMPACT ?
                 Math.max(1, this.compactItems.size()) :
                 this.provider.getInventoryMaxSize(this.previewContext);
     }
 
-    /**
-     * Sets the color of the preview window.
-     */
+    /** Sets the color of the preview window. */
     private int getColor() {
         ColorKey key;
 
@@ -55,12 +57,14 @@ public class ModPreviewRenderer extends BasePreviewRenderer {
         return 0xFF000000 | key.rgb();
     }
 
+    /** @return the texture override, or the default ShulkerBoxTooltip sprite */
     private Identifier getTexture() {
         if (this.textureOverride != null)
             return this.textureOverride;
         return DEFAULT_TEXTURE_LIGHT;
     }
 
+    /** Draws the tinted nine-slice window sized to fit the current preview. */
     private void drawBackground(int x, int y, GuiGraphicsExtractor graphics) {
         int invSize = this.getInvSize();
         int slotSize = 18;
@@ -75,6 +79,7 @@ public class ModPreviewRenderer extends BasePreviewRenderer {
                 padding + (rows * slotSize), this.getColor());
     }
 
+    /** Draws the window background, slots, and hovered-slot tooltip. */
     @Override
     public void draw(RenderContext context) {
         if (this.compactItems.isEmpty() || this.previewType == PreviewType.NO_PREVIEW)
@@ -100,6 +105,7 @@ public class ModPreviewRenderer extends BasePreviewRenderer {
         this.drawInnerTooltip(x, y, graphics, font, mouseX, mouseY);
     }
 
+    /** Draws a single 18x18 slot, highlighting it and rendering its item. */
     @Override
     protected void drawSlot(ItemStack stack, int x, int y, GuiGraphicsExtractor graphics, Font font, int slot,
                             boolean isHighlighted, boolean shortItemCount) {

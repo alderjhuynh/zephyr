@@ -13,6 +13,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin targeting {@link net.minecraft.client.gui.Hud}. Injects at the tail of
+ * {@code extractCrosshair} to replace the vanilla crosshair with a custom glide
+ * crosshair sprite while the player is gliding via Better Movement.
+ */
 @Mixin(Hud.class)
 public class GlideCrosshairMixin {
 
@@ -23,6 +28,7 @@ public class GlideCrosshairMixin {
             "textures/gui/sprites/crosshair/crosshair-glide.png"
     );
 
+    /** Draws the glide crosshair over the vanilla crosshair at the end of crosshair extraction. */
     @Inject(method = "extractCrosshair", at = @At("TAIL"))
     private void zephyr$renderGlideCrosshair(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (!BetterMovement.enabled) return;

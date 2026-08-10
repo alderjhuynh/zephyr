@@ -10,9 +10,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.zephyr.client.module.qol.FreeCam.MC;
 
+/**
+ * Mixin into {@link LocalPlayer} that reports the local player as the
+ * controlled camera and redirects the player's view rotations to the Zephyr
+ * FreeCam module's {@link FreeCamera}.
+ *
+ * <p>{@code isControlledCamera} returning true keeps third-party mods (e.g.
+ * Baritone) working during freecam, while {@code getViewXRot}/{@code getViewYRot}
+ * make any remaining player-rotation consumers follow the camera.
+ */
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin {
-    // Needed for Baritone compatibility.
+    /**
+     * Makes the local player report itself as the controlled camera while
+     * FreeCam is active; needed for Baritone compatibility.
+     *
+     * @param cir mixin callback used to override the result
+     */
     @Inject(method = "isControlledCamera", at = @At("HEAD"), cancellable = true)
     private void zephyr$isControlledCamera(CallbackInfoReturnable<Boolean> cir) {
         if (FreeCam.INSTANCE.isEnabled() && freecam$this() == MC.player) {
@@ -20,7 +34,13 @@ public abstract class LocalPlayerMixin {
         }
     }
 
-    // Makes rotation depend upon FreeCamera rather than the player.
+    /**
+     * Makes the player's X-view rotation come from the FreeCamera when player
+     * control and player-mode interactions are both disabled.
+     *
+     * @param partialTick the current partial tick
+     * @param cir         mixin callback used to override the rotation
+     */
     @Inject(method = "getViewXRot", at = @At("HEAD"), cancellable = true)
     private void zephyr$getViewXRot(float partialTick, CallbackInfoReturnable<Float> cir) {
         if (FreeCam.isActive() && !FreeCam.isPlayerControlEnabled() && !FreeCam.allowInteractionsFromPlayer()) {
@@ -28,7 +48,13 @@ public abstract class LocalPlayerMixin {
         }
     }
 
-    // Makes rotation depend upon FreeCamera rather than the player.
+    /**
+     * Makes the player's Y-view rotation come from the FreeCamera when player
+     * control and player-mode interactions are both disabled.
+     *
+     * @param partialTick the current partial tick
+     * @param cir         mixin callback used to override the rotation
+     */
     @Inject(method = "getViewYRot", at = @At("HEAD"), cancellable = true)
     private void zephyr$getViewYRot(float partialTick, CallbackInfoReturnable<Float> cir) {
         if (FreeCam.isActive() && !FreeCam.isPlayerControlEnabled() && !FreeCam.allowInteractionsFromPlayer()) {
@@ -36,6 +62,11 @@ public abstract class LocalPlayerMixin {
         }
     }
 
+    /**
+     * Casts the mixin {@code this} reference back to {@link LocalPlayer}.
+     *
+     * @return this object as a local player
+     */
     @Unique
     private LocalPlayer freecam$this() {
         return (LocalPlayer) (Object) this;

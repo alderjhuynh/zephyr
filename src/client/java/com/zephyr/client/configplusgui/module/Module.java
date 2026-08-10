@@ -20,10 +20,12 @@ public abstract class Module {
 
     private boolean enabled;
 
+    /** Creates a module that starts disabled. */
     protected Module(String name, String description, Category category) {
         this(name, description, category, false);
     }
 
+    /** Creates a module with an explicit initial enabled state (e.g. for always-on features). */
     protected Module(String name, String description, Category category, boolean enabledByDefault) {
         this.name = name;
         this.description = description;
@@ -39,26 +41,35 @@ public abstract class Module {
         settings.add(setting);
     }
 
+    /** The module's unique display name, also used as the config/profile key. */
     public final String getName() {
         return name;
     }
 
+    /** Short description shown in the click-gui. */
     public final String getDescription() {
         return description;
     }
 
+    /** The tab this module appears under in the click-gui. */
     public final Category getCategory() {
         return category;
     }
 
+    /** The module's exposed settings, read-only; populated via {@link #addSetting}. */
     public final List<Setting<?>> getSettings() {
         return Collections.unmodifiableList(settings);
     }
 
+    /** Whether the module is currently enabled. */
     public final boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Enables or disables the module, firing {@link #onEnable()} / {@link #onDisable()}
+     * on the transition. No-ops when the state is unchanged.
+     */
     public final void setEnabled(boolean enabled) {
         if (this.enabled == enabled) return;
         this.enabled = enabled;
@@ -78,6 +89,7 @@ public abstract class Module {
         this.enabled = enabled;
     }
 
+    /** Flips the module between enabled and disabled. */
     public final void toggle() {
         setEnabled(!enabled);
     }

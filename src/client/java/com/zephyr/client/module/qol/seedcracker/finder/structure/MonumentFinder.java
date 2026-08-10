@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Finds ocean monuments by matching their prismarine structure at y 56.
+ */
 public class MonumentFinder extends Finder {
 
     protected static List<BlockPos> SEARCH_POSITIONS;
@@ -40,10 +43,16 @@ public class MonumentFinder extends Finder {
         this.finders.add(finder);
     }
 
+    /**
+     * Restricts the search to the single y layer where the monument base generates (y 56).
+     */
     public static void reloadSearchPositions() {
         SEARCH_POSITIONS = buildSearchPositions(CHUNK_POSITIONS, pos -> pos.getY() != 56);
     }
 
+    /**
+     * @return monument finders for the chunk and its west/south neighbours
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new MonumentFinder(world, chunkPos));
@@ -53,6 +62,11 @@ public class MonumentFinder extends Finder {
         return finders;
     }
 
+    /**
+     * Runs the monument piece finder and records a {@code Monument.Data} constraint for each match.
+     *
+     * @return the matched positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 64, (this.chunkPos.z() << 2) + 2).value();
@@ -82,6 +96,9 @@ public class MonumentFinder extends Finder {
         return combinedResult;
     }
 
+    /**
+     * @return a map of every piece finder to its matched positions
+     */
     public Map<PieceFinder, List<BlockPos>> findInChunkPieces() {
         Map<PieceFinder, List<BlockPos>> result = new HashMap<>();
 
@@ -92,11 +109,19 @@ public class MonumentFinder extends Finder {
         return result;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);
     }
 
+    /**
+     * Defines the monument base layout: prismarine pillars, ring and lanterns.
+     *
+     * @param finder the piece finder to build the structure on
+     */
     public void buildStructure(PieceFinder finder) {
         BlockState prismarine = Blocks.PRISMARINE.defaultBlockState();
         BlockState prismarineBricks = Blocks.PRISMARINE_BRICKS.defaultBlockState();

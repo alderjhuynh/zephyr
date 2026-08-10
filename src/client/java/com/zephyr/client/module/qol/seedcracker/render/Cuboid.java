@@ -7,6 +7,12 @@ import net.minecraft.gizmos.Gizmos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 
+/**
+ * A coloured box used to outline discovered structures/decorators in-world.
+ *
+ * <p>Wraps an {@link AABB}, an ARGB colour and a cached center position. Instances are created by
+ * finders and rendered through the gizmo system via {@link #render()}.
+ */
 public class Cuboid {
     private final AABB box;
     private final int argb;
@@ -30,14 +36,23 @@ public class Cuboid {
         this(AABB.encapsulatingFullBlocks(pos, pos.offset(size)), argb);
     }
 
+    /**
+     * @return the center position of this cuboid
+     */
     public BlockPos getCenterPos() {
         return this.centerPos;
     }
 
+    /**
+     * @return the ARGB colour of this cuboid
+     */
     public int getArgb() {
         return this.argb;
     }
 
+    /**
+     * @return the axis-aligned bounding box of this cuboid
+     */
     public AABB getBox() {
         return this.box;
     }

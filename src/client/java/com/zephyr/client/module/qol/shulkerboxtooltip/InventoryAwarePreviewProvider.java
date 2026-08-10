@@ -15,11 +15,23 @@ public class InventoryAwarePreviewProvider<I extends Container> extends BlockEnt
 
     private final ThreadLocal<I> cachedInventory = ThreadLocal.withInitial(() -> null);
 
+    /**
+     * Creates a provider whose inventory size comes from a lazily-created,
+     * thread-locally cached {@link Container}.
+     *
+     * @param maxRowSize        the number of slots per preview row
+     * @param inventoryFactory  supplies the backing container
+     */
     public InventoryAwarePreviewProvider(int maxRowSize, Supplier<? extends I> inventoryFactory) {
         super(27, false, maxRowSize, maxRowSize);
         this.inventoryFactory = inventoryFactory;
     }
 
+    /**
+     * Returns the cached container, creating it once per thread on first use.
+     *
+     * @return the backing container instance
+     */
     private I getInventory() {
         I inv = this.cachedInventory.get();
         if (inv == null) {
@@ -29,16 +41,19 @@ public class InventoryAwarePreviewProvider<I extends Container> extends BlockEnt
         return inv;
     }
 
+    /** @return whether the item's contents should be previewed at all */
     @Override
     public boolean showTooltipHints(PreviewContext context) {
         return this.shouldDisplay(context);
     }
 
+    /** @return the container's slot count */
     @Override
     public int getInventoryMaxSize(PreviewContext context) {
         return this.getInventory().getContainerSize();
     }
 
+    /** @return whether the backing container supports loot tables */
     @Override
     public boolean canUseLootTables() {
         return this.getInventory() instanceof RandomizableContainer;

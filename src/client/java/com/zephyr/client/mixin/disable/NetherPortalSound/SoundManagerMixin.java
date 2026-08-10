@@ -11,9 +11,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+/**
+ * Mixin targeting {@link SoundManager} that backs the
+ * {@code disableNetherPortalSound} module.
+ */
 @Mixin(SoundManager.class)
 public class SoundManagerMixin {
 
+    /**
+     * Intercepts {@code SoundManager#play} at its head and blocks the looping nether
+     * portal ambience ({@code block.portal.ambient}) from being started when the module
+     * is enabled, reporting the sound as not started.
+     *
+     * @param sound the sound instance about to be played
+     * @param cir   the cancellable return-value callback
+     */
     @Inject(method = "play(Lnet/minecraft/client/resources/sounds/SoundInstance;)Lnet/minecraft/client/sounds/SoundEngine$PlayResult;",
             at = @At("HEAD"),
             cancellable = true)

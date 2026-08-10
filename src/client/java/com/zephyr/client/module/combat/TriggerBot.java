@@ -9,6 +9,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
+/**
+ * Attacks whenever a valid entity is in the crosshair and the player's attack cooldown is
+ * fully charged. Combines the player's base entity interaction range with the {@code Reach}
+ * module's entity reach bonus.
+ */
 public final class TriggerBot extends Module {
     public static final TriggerBot INSTANCE = new TriggerBot();
 
@@ -16,6 +21,7 @@ public final class TriggerBot extends Module {
         super("TriggerBot", "Attacks whenever an entity is in your crosshair and your cooldown is full", Category.COMBAT);
     }
 
+    /** Attacks the crosshair entity each tick once it is in range and the cooldown is ready. */
     @Override
     public void tick(Minecraft client) {
         if (client == null || client.player == null || client.gameMode == null || client.level == null) return;

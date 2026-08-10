@@ -7,9 +7,15 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * The looping, positional sound played while {@link Glide#isGliding}. Every tick it tracks
+ * the player's position so the sound follows them, scales its volume with movement speed,
+ * and stops itself once the player is gone or the glide ends.
+ */
 public class GlideSound extends AbstractTickableSoundInstance {
     private final LocalPlayer player;
 
+    /** Creates a looping glide sound that follows the given player. */
     public GlideSound(LocalPlayer player, SoundEvent sound) {
         super(sound, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
         this.player = player;

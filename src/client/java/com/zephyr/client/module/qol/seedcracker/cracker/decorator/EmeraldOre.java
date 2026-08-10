@@ -8,6 +8,13 @@ import com.seedfinding.mccore.version.MCVersion;
 import com.seedfinding.mccore.version.VersionMap;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 
+/**
+ * Emerald ore decorator.
+ *
+ * <p>Models the emerald ore vein placement roll: between 3 and 25 candidate positions are rolled
+ * per chunk (the bound depends on version), and a match is confirmed when one of them equals the
+ * observed block offset.
+ */
 public class EmeraldOre extends Decorator<Decorator.Config, EmeraldOre.Data> {
 
     public static final VersionMap<Config> CONFIGS = new VersionMap<Config>()
@@ -24,6 +31,15 @@ public class EmeraldOre extends Decorator<Decorator.Config, EmeraldOre.Data> {
         return "emerald_ore";
     }
 
+    /**
+     * Rolls the candidate ore positions in the chunk and returns whether one matches the observed
+     * block offset.
+     *
+     * @param data the observed emerald ore placement
+     * @param structureSeed the structure/world seed
+     * @param rand the seedfinding random already seeded on the decorator seed
+     * @return true if a rolled position matches the observed one
+     */
     @Override
     public boolean canStart(Data data, long structureSeed, ChunkRand rand) {
         if (this.getVersion().isNewerThan(MCVersion.v1_17_1)) return true;
@@ -52,6 +68,15 @@ public class EmeraldOre extends Decorator<Decorator.Config, EmeraldOre.Data> {
         return false;
     }
 
+    /**
+     * Vanilla path: emerald ore placement is currently unconstrained for recent versions, so this
+     * always accepts.
+     *
+     * @param data the observed placement
+     * @param structureSeed the candidate world seed
+     * @param rand the vanilla random
+     * @return always true
+     */
     @Override
     public boolean canStart(EmeraldOre.Data data, long structureSeed, WorldgenRandom rand) {
         return true;
@@ -79,22 +104,41 @@ public class EmeraldOre extends Decorator<Decorator.Config, EmeraldOre.Data> {
         return dimension == Dimension.OVERWORLD;
     }
 
+    /**
+     * @param biome the biome to validate
+     * @return true for mountain-type biomes where emerald ore generates
+     */
     @Override
     public boolean isValidBiome(Biome biome) {
         return biome == Biomes.GRAVELLY_MOUNTAINS || biome == Biomes.MODIFIED_GRAVELLY_MOUNTAINS
                 || biome == Biomes.MOUNTAINS || biome == Biomes.WOODED_MOUNTAINS || biome == Biomes.MOUNTAIN_EDGE;
     }
 
+    /**
+     * @return the dimension this decorator generates in
+     */
     @Override
     public Dimension getValidDimension() {
         return Dimension.OVERWORLD;
     }
 
 
+    /**
+     * Builds emerald ore placement data from a block position.
+     *
+     * @param blockX the observed block X
+     * @param blockY the observed block Y
+     * @param blockZ the observed block Z
+     * @param biome the biome the ore was found in
+     * @return the placement data
+     */
     public EmeraldOre.Data at(int blockX, int blockY, int blockZ, Biome biome) {
         return new EmeraldOre.Data(this, blockX, blockY, blockZ, biome);
     }
 
+    /**
+     * Placement data for an {@link EmeraldOre}: the chunk-internal offset and block height.
+     */
     public static class Data extends Decorator.Data<EmeraldOre> {
         public final int offsetX;
         public final int blockY;

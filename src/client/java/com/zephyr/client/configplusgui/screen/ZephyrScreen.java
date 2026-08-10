@@ -170,18 +170,31 @@ public abstract class ZephyrScreen extends Screen {
         }
     }
 
+    /**
+     * Creates a screen that slides in horizontally on entry.
+     *
+     * @param enterDirection 1 to enter from the right, -1 from the left, 0 for no slide
+     */
     protected ZephyrScreen(Component title, int enterDirection) {
         this(title, enterDirection, false);
     }
 
+    /**
+     * Creates a screen with a configurable slide direction and axis.
+     *
+     * @param enterDirection  1 for forward, -1 for backward, 0 for no slide
+     * @param slideVertically true to slide along the Y axis instead of X
+     */
     protected ZephyrScreen(Component title, int enterDirection, boolean slideVertically) {
         super(title);
         this.enterDirection = enterDirection;
         this.slideVertically = slideVertically;
     }
 
+    /** The {@link Nav} entry this screen represents, used for Tab-cycle navigation. */
     protected abstract Nav currentNav();
 
+    /** The next screen in the normal cycle ({@link Nav#next()}), sliding in horizontally. */
     public final Screen next() {
         return currentNav().next().create(1, false);
     }
@@ -215,9 +228,11 @@ public abstract class ZephyrScreen extends Screen {
         initWidgets();
     }
 
+    /** Hook for subclasses to create their widgets after the panel layout is computed. */
     protected void initWidgets() {
     }
 
+    /** Recomputes the centered panel size/position to always fit the current window. */
     private void calculateLayout() {
         int maxWidth = Math.max(MIN_PANEL_WIDTH, this.width - SCREEN_MARGIN * 2);
         int maxHeight = Math.max(MIN_PANEL_HEIGHT, this.height - SCREEN_MARGIN * 2);
@@ -229,11 +244,16 @@ public abstract class ZephyrScreen extends Screen {
         panelY = Math.max(0, (this.height - panelHeight) / 2);
     }
 
+    /** Zephyr screens never pause the game. */
     @Override
     public boolean isPauseScreen() {
         return false;
     }
 
+    /**
+     * Runs {@code renderBody} with the panel offset by the ongoing entry slide; the panel
+     * position is restored even if rendering throws.
+     */
     protected final void withPanelSlide(Runnable renderBody) {
         int xOffset = slideVertically ? 0 : slideOffsetPx();
         int yOffset = slideVertically ? slideOffsetPx() : 0;
@@ -259,6 +279,7 @@ public abstract class ZephyrScreen extends Screen {
                 (long) (BASE_SLIDE_DURATION_NANOS * GlobalConfig.animationSpeed()));
     }
 
+    /** Current horizontal/vertical slide offset for the entry animation, 0 once settled. */
     private int slideOffsetPx() {
         if (enterDirection == 0) return 0;
         long duration = slideDurationNanos();
@@ -275,6 +296,7 @@ public abstract class ZephyrScreen extends Screen {
         return currentNav().name();
     }
 
+    /** Draws the shared panel background, accent strip, "ZEPHYR" title and bottom-right indicator. */
     protected void renderChrome(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         graphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, PANEL_BG);
         graphics.fill(panelX, panelY, panelX + panelWidth, panelY + 2, accent());
@@ -292,10 +314,12 @@ public abstract class ZephyrScreen extends Screen {
         graphics.text(this.font, indicator, indicatorX, indicatorY, TEXT_DIM, false);
     }
 
+    /** Vertical space above the scrollable list: the title (plus subclass chrome). */
     protected int headerHeight() {
         return TITLE_HEIGHT;
     }
 
+    /** Saves all module state before leaving any Zephyr screen. */
     @Override
     public void onClose() {
         ModuleManager.saveAll();

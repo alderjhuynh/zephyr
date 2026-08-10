@@ -11,8 +11,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin targeting {@link net.minecraft.network.Connection}. Injects at the head
+ * of the {@code send(Packet, ChannelFutureListener, boolean)} overload and feeds
+ * every outgoing {@link ServerboundMovePlayerPacket} through
+ * {@link NoFall#onSendPacket}, which rewrites the packet's on-ground flag to
+ * true while the No Fall module is enabled. Backs the No Fall module.
+ */
 @Mixin(Connection.class)
 public class ClientConnectionMixin {
+    /** Rewrites outgoing move packets to mark the player as on ground. */
     @Inject(
             method = "send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;Z)V",
             at = @At("HEAD"),

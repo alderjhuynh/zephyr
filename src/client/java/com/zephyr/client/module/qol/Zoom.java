@@ -30,11 +30,13 @@ public final class Zoom extends Module {
         addSetting(smoothness);
     }
 
+    /** Clears the zoom-out flag so the FOV transitions toward the zoom target. */
     @Override
     protected void onEnable() {
         zoomingOut = false;
     }
 
+    /** Marks the module as returning to the original FOV so it settles smoothly. */
     @Override
     protected void onDisable() {
         zoomingOut = true;

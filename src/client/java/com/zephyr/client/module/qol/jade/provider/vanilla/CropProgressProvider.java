@@ -26,6 +26,10 @@ import java.util.Locale;
 public class CropProgressProvider implements IComponentProvider {
     public static final CropProgressProvider INSTANCE = new CropProgressProvider();
 
+    /**
+     * Appends a "Growth: X%" (or "Mature") row for targeted growing blocks when
+     * the corresponding module setting is enabled.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!Jade.INSTANCE.showCropProgress() || !(accessor instanceof BlockAccessor block)) {

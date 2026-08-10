@@ -18,6 +18,10 @@ import net.minecraft.network.chat.Component;
 public class ModNameProvider implements IComponentProvider {
     public static final ModNameProvider INSTANCE = new ModNameProvider();
 
+    /**
+     * Appends the mod display name of the target's block or entity type when the
+     * "Show Mod Name" setting is enabled.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!Jade.INSTANCE.showModName()) {

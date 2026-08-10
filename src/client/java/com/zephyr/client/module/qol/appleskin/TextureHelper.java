@@ -27,6 +27,13 @@ public final class TextureHelper {
         FULL
     }
 
+    /**
+     * Returns the food sprite identifier for the given food state, using the
+     * rotten variants when the food is rotten.
+     *
+     * @param isRotten whether to use the rotten-food sprites
+     * @param type     the food icon state (empty/half/full)
+     */
     public static Identifier getFoodTexture(boolean isRotten, FoodType type) {
         return switch (type) {
             case EMPTY -> isRotten ? FOOD_EMPTY_HUNGER_TEXTURE : FOOD_EMPTY_TEXTURE;
@@ -49,6 +56,13 @@ public final class TextureHelper {
         HALF
     }
 
+    /**
+     * Returns the heart sprite identifier for the given heart state, using the
+     * hardcore variants when the world is hardcore.
+     *
+     * @param hardcore whether to use the hardcore sprites
+     * @param type     the heart icon state (container/full/half)
+     */
     public static Identifier getHeartTexture(boolean hardcore, HeartType type) {
         return switch (type) {
             case CONTAINER -> hardcore ? HEART_HARDCORE_CONTAINER : HEART_CONTAINER;

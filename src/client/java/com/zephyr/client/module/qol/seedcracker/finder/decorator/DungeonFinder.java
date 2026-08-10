@@ -30,6 +30,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Finds dungeons by locating mob spawners and analysing their cobblestone floors.
+ *
+ * <p>The floor block pattern is captured as floor-call data used to reverse the dungeon's RNG. When
+ * the anti-x-ray bypass is enabled, the floor is re-read after forcing the server to send the
+ * blocks via {@link BlockUpdateQueue}.
+ */
 public class DungeonFinder extends BlockFinder {
 
     protected static Set<BlockPos> POSSIBLE_FLOOR_POSITIONS = PosIterator.create(
@@ -43,6 +50,9 @@ public class DungeonFinder extends BlockFinder {
         this.searchPositions = CHUNK_POSITIONS;
     }
 
+    /**
+     * @return dungeon finders for the chunk and its neighbours whose surrounding chunks are loaded
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
 
@@ -66,6 +76,13 @@ public class DungeonFinder extends BlockFinder {
         return true;
     }
 
+    /**
+     * Heuristic that detects a likely anti-x-ray hidden dungeon: a ring of solid blocks around the
+     * spawner with a solid block above them.
+     *
+     * @param pos the spawner position
+     * @return true if the surrounding pattern suggests the floor is being hidden by the server
+     */
     private boolean AntiXRay(BlockPos pos) {
         Set<BlockPos> XRAY_TEST_POS = new HashSet<>();
         XRAY_TEST_POS.add(new BlockPos(4, 0, 0));
@@ -91,6 +108,12 @@ public class DungeonFinder extends BlockFinder {
         return false;
     }
 
+    /**
+     * Locates the spawner, verifies it has a plausible dungeon floor, and records a dungeon
+     * placement constraint (deep dungeon for 1.18+ below-sea-level positions).
+     *
+     * @return the matching spawner positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         //Gets all the positions with a mob spawner in the chunk.
@@ -172,6 +195,14 @@ public class DungeonFinder extends BlockFinder {
         return result;
     }
 
+    /**
+     * Queues the dungeon floor blocks through the {@link BlockUpdateQueue} so the server re-sends
+     * them, then starts the given cracker thread once the blocks arrive.
+     *
+     * @param pos the spawner position
+     * @param size the dungeon size
+     * @param startCracker the thread to run after the blocks are available
+     */
     public void blockUpdateExploit(BlockPos pos, Vec3i size, Thread startCracker) {
         ArrayList<BlockPos> floorBlocks = new ArrayList<>();
         for (int xo = -size.getX(); xo <= size.getX(); xo++) {
@@ -182,6 +213,13 @@ public class DungeonFinder extends BlockFinder {
         Seedcracker.get().getDataStorage().blockUpdateQueue.add(floorBlocks, pos, startCracker);
     }
 
+    /**
+     * Determines the dungeon's X/Z extent (3 or 4 blocks) by counting cobblestone above the floor
+     * line on the far edge.
+     *
+     * @param spawnerPos the spawner position
+     * @return the dungeon size
+     */
     public Vec3i getDungeonSize(BlockPos spawnerPos) {
 
         int x = PosIterator.create(spawnerPos.offset(4, 3, -4), spawnerPos.offset(4, 3, 4)).stream().filter(pos ->
@@ -193,6 +231,13 @@ public class DungeonFinder extends BlockFinder {
         return new Vec3i(x, 0, z);
     }
 
+    /**
+     * Records the floor block pattern below the spawner as dungeon floor-call data.
+     *
+     * @param dungeonSize the dungeon size
+     * @param spawnerPos the spawner position
+     * @return the floor-call array (cobblestone, mossy, other-block or air)
+     */
     public int[] getFloorCalls(Vec3i dungeonSize, BlockPos spawnerPos) {
         int[] floorCalls = new int[(dungeonSize.getX() * 2 + 1) * (dungeonSize.getZ() * 2 + 1)];
         int i = 0;
@@ -215,6 +260,9 @@ public class DungeonFinder extends BlockFinder {
         return floorCalls;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);

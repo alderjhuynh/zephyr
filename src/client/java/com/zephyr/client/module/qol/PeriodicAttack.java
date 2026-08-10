@@ -11,7 +11,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
-/** Repeats an attack (entity hit / block hit / air swing) every N ticks while enabled. */
+/**
+ * Repeats an attack (entity hit, block hit, or air swing) every N ticks while
+ * enabled. The interval is configurable; the attack targets whatever the
+ * crosshair is currently pointing at.
+ */
 public final class PeriodicAttack extends Module {
     public static final PeriodicAttack INSTANCE = new PeriodicAttack();
 
@@ -28,6 +32,11 @@ public final class PeriodicAttack extends Module {
         addSetting(delayTicks);
     }
 
+    /**
+     * Counts ticks and performs an attack once the configured delay has elapsed.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (client.player == null || client.level == null || client.gameMode == null) return;
@@ -42,6 +51,7 @@ public final class PeriodicAttack extends Module {
         }
     }
 
+    /** Resets the tick counter when the module is disabled. */
     @Override
     protected void onDisable() {
         tickCounter = 0;

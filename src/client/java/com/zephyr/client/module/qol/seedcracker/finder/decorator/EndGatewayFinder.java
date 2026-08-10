@@ -20,6 +20,12 @@ import net.minecraft.world.level.dimension.DimensionType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Finds end gateways in the End by scanning for {@link Blocks#END_GATEWAY} blocks.
+ *
+ * <p>Gateways are only credited when their height above the end stone is between 3 and 9 blocks,
+ * which is the range matching a legitimately generated gateway.
+ */
 public class EndGatewayFinder extends BlockFinder {
 
     public EndGatewayFinder(Level world, ChunkPos chunkPos) {
@@ -27,12 +33,21 @@ public class EndGatewayFinder extends BlockFinder {
         this.searchPositions = CHUNK_POSITIONS;
     }
 
+    /**
+     * @return a single {@link EndGatewayFinder} for the given chunk
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new EndGatewayFinder(world, chunkPos));
         return finders;
     }
 
+    /**
+     * Scans for gateway blocks and records an {@code EndGateway.Data} constraint for those at a
+     * valid height.
+     *
+     * @return the matched gateway positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 64, (this.chunkPos.z() << 2) + 2).value();
@@ -58,6 +73,12 @@ public class EndGatewayFinder extends BlockFinder {
         return newResult;
     }
 
+    /**
+     * Measures the number of end-stone blocks directly below a gateway position.
+     *
+     * @param pos the gateway position
+     * @return the height above the first non-end-stone block, minus one
+     */
     private int findHeight(BlockPos pos) {
         int height = 0;
 
@@ -78,6 +99,9 @@ public class EndGatewayFinder extends BlockFinder {
         return height - 1;
     }
 
+    /**
+     * @return true for the End dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isEnd(dimension);

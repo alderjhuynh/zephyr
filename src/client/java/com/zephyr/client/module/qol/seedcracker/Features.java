@@ -26,7 +26,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * Holds every seedfinding {@link Feature} instance used by the seedcracker.
+ *
+ * <p>Features are constructed once per selected {@link MCVersion} in {@link #init(MCVersion)}
+ * and exposed as static singletons so finders and the cracker can reference them. Structures
+ * that participate in region-based seed reduction are additionally collected in
+ * {@link #STRUCTURE_TYPES}.
+ */
 public class Features {
+    /** All region-based structure features currently available for the active version. */
     public static final ArrayList<RegionStructure<?, ?>> STRUCTURE_TYPES = new ArrayList<>();
 
     public static BuriedTreasure BURIED_TREASURE;
@@ -47,6 +56,13 @@ public class Features {
     public static DeepDungeon DEEP_DUNGEON;
     public static WarpedFungus WARPED_FUNGUS;
 
+    /**
+     * (Re)initialises every feature singleton for the given Minecraft version, clearing the
+     * previously built {@link #STRUCTURE_TYPES} list first. Features that fail to construct are
+     * disabled via their associated {@link Finder.Type} toggle and skipped.
+     *
+     * @param version the Minecraft version to build features for
+     */
     public static void init(MCVersion version) {
         STRUCTURE_TYPES.clear();
 
@@ -71,6 +87,14 @@ public class Features {
         STRUCTURE_TYPES.trimToSize();
     }
 
+    /**
+     * Constructs a feature through the given supplier, disabling the finder type and returning
+     * null if construction fails.
+     *
+     * @param finderType the finder type to disable on failure
+     * @param lambda the feature constructor
+     * @return the constructed feature, or null on failure
+     */
     private static <F extends Feature<?, ?>> F safe(Finder.Type finderType, Supplier<F> lambda) {
         try {
             return lambda.get();
@@ -81,6 +105,14 @@ public class Features {
         }
     }
 
+    /**
+     * Constructs a region structure feature and, on success, appends it to the given list.
+     *
+     * @param list the list to add successfully constructed structures to
+     * @param finderType the finder type to disable on failure
+     * @param lambda the feature constructor
+     * @return the constructed feature, or null on failure
+     */
     private static <F extends RegionStructure<?, ?>> F safe(List<RegionStructure<?, ?>> list, Finder.Type finderType, Supplier<F> lambda) {
         F initializedFeature = safe(finderType, lambda);
         if (initializedFeature != null) list.add(initializedFeature);

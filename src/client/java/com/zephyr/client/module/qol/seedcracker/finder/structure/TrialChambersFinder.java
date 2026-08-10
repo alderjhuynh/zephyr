@@ -30,6 +30,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Finds trial chambers by matching their tuff-brick chamber end structures.
+ *
+ * <p>Two distinct end layouts are probed per facing (see {@link #buildEnd1} and
+ * {@link #buildEnd2}), each also including an ominous vault.
+ */
 public class TrialChambersFinder extends Finder {
 
     protected static Map<Direction, List<BlockPos>> SEARCH_POSITIONS;
@@ -52,16 +58,30 @@ public class TrialChambersFinder extends Finder {
         });
     }
 
+    /**
+     * Recomputes the per-facing search positions for trial chamber scanning.
+     */
     public static void reloadSearchPositions() {
         SEARCH_POSITIONS = JigsawFinder.getSearchPositions(0, 0,0,0, size);
     }
 
+    /**
+     * @return a single {@link TrialChambersFinder} for the given chunk
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new TrialChambersFinder(world, chunkPos));
         return finders;
     }
 
+    /**
+     * Builds the ominous vault layout (copper grate base, polished tuff frame, vault block).
+     *
+     * @param finder the piece finder to build the structure on
+     * @param x the layout X of the vault corner
+     * @param y the layout Y of the vault corner
+     * @param z the layout Z of the vault corner
+     */
     public static void buildOminousVault(JigsawFinder finder, int x, int y, int z) {
         var air = Blocks.AIR.defaultBlockState();
         var polishedTuff = Blocks.POLISHED_TUFF.defaultBlockState();
@@ -100,6 +120,12 @@ public class TrialChambersFinder extends Finder {
         finder.addBlock(chiseledTuff, x + 1, y + 2, z + 2);
     }
 
+    /**
+     * Builds the first trial chamber end layout: tuff brick walls/floor/ceiling, copper rings and
+     * an ominous vault.
+     *
+     * @param finder the piece finder to build the structure on
+     */
     public static void buildEnd1(JigsawFinder finder) {
         var air = Blocks.AIR.defaultBlockState();
         var tuffBricks = Blocks.TUFF_BRICKS.defaultBlockState();
@@ -156,6 +182,12 @@ public class TrialChambersFinder extends Finder {
         buildOminousVault(finder, 8, 13, 10);
     }
 
+    /**
+     * Builds the second trial chamber end layout: tuff brick room with water, copper grates, a
+     * chest and an ominous vault.
+     *
+     * @param finder the piece finder to build the structure on
+     */
     public static void buildEnd2(JigsawFinder finder) {
         var water = Blocks.WATER.defaultBlockState();
         var tuffBricks = Blocks.TUFF_BRICKS.defaultBlockState();
@@ -193,6 +225,11 @@ public class TrialChambersFinder extends Finder {
         buildOminousVault(finder, 8, 1, 15);
     }
 
+    /**
+     * Runs all piece finders and records a {@code TrialChambers.Data} constraint for each match.
+     *
+     * @return the combined matched positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 64, (this.chunkPos.z() << 2) + 2).value();
@@ -220,6 +257,9 @@ public class TrialChambersFinder extends Finder {
         return combinedResult;
     }
 
+    /**
+     * @return a map of every piece finder to its matched positions
+     */
     public Map<JigsawFinder, List<BlockPos>> findInChunkPieces() {
         Map<JigsawFinder, List<BlockPos>> result = new HashMap<>();
 
@@ -230,6 +270,9 @@ public class TrialChambersFinder extends Finder {
         return result;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);

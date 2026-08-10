@@ -11,6 +11,12 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Profile management screen. Shows every profile from {@link ProfileManager} with a "new
+ * profile" input row at the top. Clicking a row applies that profile (swapping the live
+ * module state); each row has rename ("R") and delete ("x") icon buttons. Profile names are
+ * committed with Enter, and Escape cancels an in-progress rename.
+ */
 public final class ProfileGuiScreen extends ZephyrScreen {
     private static final int NEW_PROFILE_ROW_HEIGHT = 22;
     private static final int ROW_HEIGHT = 24;
@@ -23,10 +29,12 @@ public final class ProfileGuiScreen extends ZephyrScreen {
 
     private double scrollOffset = 0;
 
+    /** Opens the profile screen without a slide animation. */
     public ProfileGuiScreen() {
         this(0);
     }
 
+    /** Creates the profile screen with the given horizontal entry slide; package-visible for {@link ZephyrScreen.Nav}. */
     ProfileGuiScreen(int enterDirection) {
         super(Component.literal("Zephyr"), enterDirection);
     }
@@ -41,6 +49,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         return TITLE_HEIGHT + NEW_PROFILE_ROW_HEIGHT;
     }
 
+    /** Creates the "new profile" input row and resets any stale rename state. */
     @Override
     protected void initWidgets() {
         int boxY = panelY + TITLE_HEIGHT + 2;
@@ -54,6 +63,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         renameEditBox = null;
     }
 
+    /** Renders the chrome, keeps widgets tracking the panel, and draws the scrolled profile list. */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         withPanelSlide(() -> {
@@ -87,6 +97,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         });
     }
 
+    /** Draws one profile row: name (accent when active), rename icon and conditional delete icon. */
     private void renderRow(GuiGraphicsExtractor graphics, Row row, int scroll, int mouseX, int mouseY) {
         int top = row.top - scroll;
         boolean active = row.name.equals(ProfileManager.getActiveProfile());
@@ -124,6 +135,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Applies the clicked profile, or starts a rename/delete when an icon was hit. */
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
@@ -169,6 +181,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         return false;
     }
 
+    /** Opens the inline rename box over the given profile's row. */
     private void startRename(String name) {
         cancelRename();
         renamingProfile = name;
@@ -184,6 +197,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         this.setFocused(renameEditBox);
     }
 
+    /** Tears down the rename box and clears rename state. */
     private void cancelRename() {
         if (renameEditBox != null) {
             if (this.getFocused() == renameEditBox) {
@@ -195,6 +209,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         renamingProfile = null;
     }
 
+    /** Submits the renamed profile through {@link ProfileManager#renameProfile}. */
     private void commitRename() {
         if (renamingProfile != null && renameEditBox != null) {
             ProfileManager.renameProfile(renamingProfile, renameEditBox.getValue());
@@ -202,6 +217,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         cancelRename();
     }
 
+    /** Enter commits the active rename or creates a new profile; Escape cancels a rename. */
     @Override
     public boolean keyPressed(KeyEvent event) {
         int key = event.key();
@@ -229,12 +245,14 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         return super.keyPressed(event);
     }
 
+    /** Scrolls the profile list by the wheel delta. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         scrollOffset -= scrollY * ROW_HEIGHT;
         return true;
     }
 
+    /** Looks up a profile row by name, or {@code null} if absent. */
     private Row findRow(String name) {
         if (name == null) return null;
         for (Row row : computeRows()) {
@@ -243,6 +261,7 @@ public final class ProfileGuiScreen extends ZephyrScreen {
         return null;
     }
 
+    /** Builds one row per profile in {@link ProfileManager} order. */
     private List<Row> computeRows() {
         List<Row> rows = new ArrayList<>();
         int cursor = panelY + headerHeight();

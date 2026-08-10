@@ -19,6 +19,13 @@ public class BlockAccessor extends Accessor {
     private final BlockState state;
     private final BlockEntity blockEntity;
 
+    /**
+     * Builds a block accessor, capturing the current block state and block entity.
+     *
+     * @param level     the level containing the block
+     * @param pos       the position of the targeted block
+     * @param hitResult the ray-cast hit result for the block
+     */
     public BlockAccessor(Level level, BlockPos pos, BlockHitResult hitResult) {
         this.level = level;
         this.pos = pos;
@@ -42,22 +49,27 @@ public class BlockAccessor extends Accessor {
         return hitResult.getLocation();
     }
 
+    /** @return the position of the targeted block */
     public BlockPos getPosition() {
         return pos;
     }
 
+    /** @return the underlying block hit result */
     public BlockHitResult getHitResult() {
         return hitResult;
     }
 
+    /** @return the block state at the target when this accessor was built */
     public BlockState getBlockState() {
         return state;
     }
 
+    /** @return the block at the target */
     public Block getBlock() {
         return state.getBlock();
     }
 
+    /** @return the block entity at the target, or null if none exists */
     public BlockEntity getBlockEntity() {
         return blockEntity;
     }

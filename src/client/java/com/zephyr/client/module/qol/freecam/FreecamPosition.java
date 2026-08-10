@@ -6,6 +6,12 @@ import net.minecraft.world.level.ChunkPos;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+/**
+ * A mutable snapshot of the camera's position and rotation, used to compute
+ * the freecam placement. Movement is expressed in the camera's local
+ * forward/up/right axes, which are derived from the yaw and pitch the same way
+ * the vanilla camera computes its own axis planes.
+ */
 public class FreecamPosition {
     public double x;
     public double y;
@@ -19,6 +25,12 @@ public class FreecamPosition {
     private final Vector3f diagonalPlane = new Vector3f(1.0F, 0.0F, 0.0F);
     private final Vector3f horizontalPlane = new Vector3f(0.0F, 0.0F, 1.0F);
 
+    /**
+     * Captures the entity's current position and rotation, aligning the y to the
+     * entity's eyes when it is not swimming.
+     *
+     * @param entity the entity to snapshot
+     */
     public FreecamPosition(Entity entity) {
         x = entity.getX();
         y = getSwimmingY(entity);
@@ -26,7 +38,10 @@ public class FreecamPosition {
         setRotation(entity.getYRot(), entity.getXRot());
     }
 
-    // From net.minecraft.client.render.Camera.setRotation
+    /**
+     * Sets the yaw and pitch and recomputes the local axis planes from them.
+     * Mirrors {@code net.minecraft.client.render.Camera.setRotation}.
+     */
     public void setRotation(float yaw, float pitch) {
         this.pitch = pitch;
         this.yaw = yaw;
@@ -42,19 +57,32 @@ public class FreecamPosition {
         diagonalPlane.rotate(rotation);
     }
 
-    // Invert the rotation so that it is mirrored
-    // As-per net.minecraft.client.render.Camera.update
+    /**
+     * Inverts the rotation so the camera looks back at its original direction,
+     * matching the vanilla camera's mirrored third-person view.
+     */
     public void mirrorRotation() {
         setRotation(yaw + 180.0F, -pitch);
     }
 
-    // Move forward/backward relative to the current rotation
+    /**
+     * Moves forward (positive) or backward (negative) relative to the current
+     * rotation.
+     *
+     * @param distance the distance to move along the forward axis
+     */
     public void moveForward(double distance) {
         move(distance, 0, 0);
     }
 
-    // Move relative to current rotation
-    // From net.minecraft.client.render.Camera.moveBy
+    /**
+     * Moves along the camera's local axes. Mirrors
+     * {@code net.minecraft.client.render.Camera.moveBy}.
+     *
+     * @param fwd   distance along the forward axis
+     * @param up    distance along the up axis
+     * @param right distance along the right axis
+     */
     public void move(double fwd, double up, double right) {
         x += (double) horizontalPlane.x() * fwd
            + (double) verticalPlane.x()   * up
@@ -69,6 +97,7 @@ public class FreecamPosition {
            + (double) diagonalPlane.z()   * right;
     }
 
+    /** The chunk containing this position. */
     public ChunkPos getChunkPos() {
         return new ChunkPos((int) (x / 16), (int) (z / 16));
     }

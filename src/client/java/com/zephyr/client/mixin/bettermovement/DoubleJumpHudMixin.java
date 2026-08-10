@@ -14,6 +14,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin targeting {@link net.minecraft.client.gui.Hud}. Injects at the tail of
+ * {@code extractRenderState} to draw the Better Movement double-jump cooldown
+ * icon. It renders while the player is on the ground (not elytra-flying or
+ * gliding) and the double-jump is on cooldown, with the frame animation derived
+ * from the interpolated remaining cooldown.
+ */
 @Mixin(Hud.class)
 public class DoubleJumpHudMixin {
 
@@ -31,6 +38,7 @@ public class DoubleJumpHudMixin {
         }
     }
 
+    /** Renders the double-jump cooldown icon at the end of the HUD's render-state extraction. */
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void zephyr$renderDoubleJumpCooldown(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         Minecraft client = Minecraft.getInstance();

@@ -11,9 +11,24 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin targeting {@link LivingEntityRenderer} that backs the
+ * {@code disableDeadMobRendering} module.
+ */
 @Mixin(LivingEntityRenderer.class)
 public class DeadMobRenderingMixin {
 
+    /**
+     * Cancels {@code LivingEntityRenderer#submit} at its head for entities currently
+     * in their death animation (positive {@code deathTime}) so that dead mobs are not
+     * rendered while the module is enabled.
+     *
+     * @param state       the living entity render state for the entity
+     * @param matrices    the pose stack for rendering
+     * @param queue       the submit node collector for the entity geometry
+     * @param cameraState the camera render state for the current frame
+     * @param ci          the cancellable injection callback
+     */
     @Inject(method = "submit", at = @At("HEAD"), cancellable = true)
     private void cancelDeadMobRendering(
             LivingEntityRenderState state,

@@ -9,6 +9,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * The root {@code .z} command. With no arguments it prints client diagnostics
+ * (version, active profile, enabled module count, command prefix); it also
+ * delegates to the {@code module} subcommand (enabling/disabling/toggling any
+ * registered module by name) and to {@link SeedcrackerCommand} for the
+ * {@code seedcracker} subcommand.
+ */
 public final class ZCommand extends Command {
     public static final ZCommand INSTANCE = new ZCommand();
 
@@ -16,6 +23,14 @@ public final class ZCommand extends Command {
         super("z", "Shows diagnostics or controls modules: .z module <name> <on|off|toggle> | .z seedcracker <command>");
     }
 
+    /**
+     * Offers tab-completion for the {@code module} subcommand (module names and
+     * state keywords) and delegates to the seedcracker command's own suggestions
+     * for the {@code seedcracker} subcommand.
+     *
+     * @param args the arguments parsed up to the cursor
+     * @return the candidate completions for the current argument position
+     */
     @Override
     public List<String> suggest(String[] args) {
         if (args.length == 1) {
@@ -35,6 +50,13 @@ public final class ZCommand extends Command {
         return List.of("module", "seedcracker");
     }
 
+    /**
+     * Dispatches the root command: prints diagnostics when invoked bare,
+     * forwards the {@code module} subcommand to the module control handler, and
+     * forwards {@code seedcracker} arguments to {@link SeedcrackerCommand}.
+     *
+     * @param args the positional arguments after {@code .z}
+     */
     @Override
     public void execute(String[] args) {
         if (args.length == 0) {

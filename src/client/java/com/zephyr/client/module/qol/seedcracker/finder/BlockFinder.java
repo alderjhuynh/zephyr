@@ -13,9 +13,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Base finder that locates specific block states within a chunk.
+ *
+ * <p>Subclasses supply the target block(s) and the list of positions to probe; {@link #findInChunk()}
+ * returns every probe position whose current block state matches one of the targets.
+ */
 public abstract class BlockFinder extends Finder {
 
     private final Set<BlockState> targetBlockStates = new HashSet<>();
+    /** Positions within the chunk to probe for the target block states. */
     protected List<BlockPos> searchPositions = new ArrayList<>();
 
     public BlockFinder(Level world, ChunkPos chunkPos, Block block) {
@@ -28,6 +35,11 @@ public abstract class BlockFinder extends Finder {
         this.targetBlockStates.addAll(Arrays.stream(blockStates).toList());
     }
 
+    /**
+     * Scans the configured search positions and returns those holding a target block state.
+     *
+     * @return the matching block positions, in absolute world coordinates
+     */
     @Override
     public List<BlockPos> findInChunk() {
         List<BlockPos> result = new ArrayList<>();

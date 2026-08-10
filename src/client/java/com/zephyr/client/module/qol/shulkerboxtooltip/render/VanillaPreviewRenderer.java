@@ -25,29 +25,35 @@ public class VanillaPreviewRenderer extends BasePreviewRenderer {
 
     private int lastNonEmptySlot;
 
+    /** Package-private singleton constructor using 24x24 bundle-style slots. */
     VanillaPreviewRenderer() {
         super(24, 24, 0, 0);
     }
 
+    /** @return the number of slots per row, capped by the inventory size */
     @Override
     protected int getMaxRowSize() {
         return Math.min(super.getMaxRowSize(), this.getInvSize());
     }
 
+    /** @return the pixel width of the grid */
     @Override
     public int getWidth() {
         return this.getMaxRowSize() * 24;
     }
 
+    /** @return the pixel height of the grid */
     @Override
     public int getHeight() {
         return this.getRowCount() * 24;
     }
 
+    /** @return the number of rows in the grid */
     private int getRowCount() {
         return (int) Math.ceil(this.getInvSize() / (double) this.getMaxRowSize());
     }
 
+    /** @return the number of slots shown, trimming trailing empty slots in full mode */
     protected int getInvSize() {
         if (this.previewType == PreviewType.COMPACT)
             return Math.max(1, this.compactItems.size());
@@ -55,6 +61,7 @@ public class VanillaPreviewRenderer extends BasePreviewRenderer {
             return this.lastNonEmptySlot + 1;
     }
 
+    /** Stores the preview data and records the last non-empty slot for sizing. */
     @Override
     public void setPreview(PreviewContext context, PreviewProvider provider) {
         super.setPreview(context, provider);
@@ -65,11 +72,13 @@ public class VanillaPreviewRenderer extends BasePreviewRenderer {
         }
     }
 
+    /** Adjusts the slot lookup to account for the renderer's missing padding. */
     @Override
     protected int getSlotAt(int x, int y) {
         return super.getSlotAt(x - 1, y - 1);
     }
 
+    /** Draws the slot grid centered horizontally, plus the hovered-slot tooltip. */
     @Override
     public void draw(RenderContext context) {
         if (this.compactItems.isEmpty() || this.previewType == PreviewType.NO_PREVIEW)
@@ -87,6 +96,7 @@ public class VanillaPreviewRenderer extends BasePreviewRenderer {
         this.drawInnerTooltip(x, y, graphics, font, mouseX, mouseY);
     }
 
+    /** Draws a single 24x24 bundle-style slot with its background and item. */
     @Override
     protected void drawSlot(ItemStack stack, int x, int y, GuiGraphicsExtractor graphics, Font font, int slot,
                             boolean isHighlighted, boolean shortItemCount) {

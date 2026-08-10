@@ -13,6 +13,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin targeting {@link net.minecraft.client.gui.Hud}. Injects at the tail of
+ * {@code extractRenderState} to draw the Better Movement dash cooldown icon near
+ * the center of the screen while a dash cooldown is active. The icon is a frame
+ * animation whose frame is chosen from the remaining cooldown, and it is only
+ * rendered when Better Movement is enabled.
+ */
 @Mixin(Hud.class)
 public class DashHudMixin {
 
@@ -30,6 +37,7 @@ public class DashHudMixin {
         }
     }
 
+    /** Renders the dash cooldown icon at the end of the HUD's render-state extraction. */
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void zephyr$renderDashCooldown(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         Minecraft client = Minecraft.getInstance();

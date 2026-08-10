@@ -15,12 +15,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin for {@link MultiPlayerGameMode}. Injects into the HEAD of {@code MultiPlayerGameMode#attack}
+ * to back the {@code ShieldBreaker} module: when the crosshair player is blocking with a
+ * shield, the mixin swaps to the last axe in the hotbar and re-triggers the attack via
+ * {@link ForceAttackMixin} so the shield-breaking axe swing is used.
+ */
 @Mixin(MultiPlayerGameMode.class)
 public class AttackEntityMixin {
 
     private static int previousSlot = -1;
     private static boolean isProcessingAttack = false;
 
+    /** Returns the hotbar slot of the last axe item, or -1 if no axe is present. */
     private static int findBestSlot(Minecraft client) {
         int bestSlot = -1;
         int bestLevel = -1;
@@ -32,6 +39,7 @@ public class AttackEntityMixin {
         return bestSlot;
     }
 
+    /** Swaps to an axe and re-attacks at the HEAD of an attack when the target is blocking with a shield. */
     @Inject(method = "attack", at = @At("HEAD"))
     private void beforeAttack(Player player, Entity entity, CallbackInfo ci) {
         if (isProcessingAttack) return;

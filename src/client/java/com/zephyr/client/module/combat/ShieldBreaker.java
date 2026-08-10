@@ -8,12 +8,21 @@ import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Automatically breaks a blocking opponent's shield: when attacking a player in the
+ * crosshair who is blocking with a shield, the ShieldBreaker attack mixin swaps to the last
+ * axe in the hotbar so the shield is disabled.
+ */
 public final class ShieldBreaker extends Module {
     public static final ShieldBreaker INSTANCE = new ShieldBreaker();
     private ShieldBreaker() {
         super("Shieldbreaker", "Automatically breaks shields", Category.COMBAT);
     }
 
+    /**
+     * Checks whether the given remote player is actively blocking with a shield and roughly
+     * facing the local attacker (the shield must be pointed at the attacker to block).
+     */
     public static boolean isTargetBlockingWithShield(RemotePlayer target, LocalPlayer attacker) {
         if (target == null || attacker == null) return false;
 
@@ -28,6 +37,7 @@ public final class ShieldBreaker extends Module {
         return dot > 0.3;
     }
 
+    /** Returns the remote player currently under the crosshair, or null if there is none. */
     public static RemotePlayer getCrosshairPlayer() {
         Minecraft client = Minecraft.getInstance();
 

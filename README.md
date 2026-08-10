@@ -118,7 +118,7 @@ The module's settings control:
 
 Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxTooltip on`.
 
-> **Note:** The original mod's preview keybind/locking features are intentionally left out — in Zephyr the preview is simply always shown while the module is enabled. Shulker box colors are rendered using a dedicated Zephyr texture.
+> **Note:** The original mod's preview keybind/locking features are intentionally left out, in Zephyr the preview is simply always shown while the module is enabled. Shulker box colors are rendered using a dedicated Zephyr texture.
 
 ## Features
 
@@ -148,59 +148,59 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 
 ### Combat
 
-| Module            | Description                                                                                 |
-|-------------------|---------------------------------------------------------------------------------------------|
+| Module            | Description                                                                                               |
+|-------------------|-----------------------------------------------------------------------------------------------------------|
 | AnchorAura        | Charges a respawn anchor in a target's face and detonates it, shielding yourself behind a glowstone block |
-| Anime Protagonist | Attempts to teleport behind a hit entity                                                    |
-| Auto Place        | Automatically places a specified block on a hit entity                                      |
-| Breach Swap       | Enables Breach Swapping under a certain fall distance                                       |
-| Criticals         | Creates falling packets to enable crits and mace slams                                      |
-| Density Swap      | Enables Density Swapping over a certain fall distance                                       |
-| Hit Assist        | Sends the attack packet anyway when you miss, if you were looking close enough to an entity |
-| InstaCart         | Automatically places a rail and TNT minecart to catch your own flaming arrows               |
-| KillAura          | Automatically attacks for you                                                               |
-| Knockback         | Reduces the amount of knockback you take                                                    |
-| Lunge Swap        | Automatically attempts a Lunge Swap when attacking without a target                         |
-| Reach             | Increases reach distance                                                                    |
-| Shieldbreaker     | Automatically breaks shields                                                                |
-| TriggerBot        | Attacks whenever an entity is in your crosshair and your cooldown is full                   |
-| XBowCart          | Places a rail, TNT minecart, and fire to catch your own crossbow arrows                     |
+| Anime Protagonist | Attempts to teleport behind a hit entity                                                                  |
+| Auto Place        | Automatically places a specified block on a hit entity                                                    |
+| Breach Swap       | Enables Breach Swapping under a certain fall distance                                                     |
+| Criticals         | Creates falling packets to enable crits and mace slams                                                    |
+| Density Swap      | Enables Density Swapping over a certain fall distance                                                     |
+| Hit Assist        | Sends the attack packet anyway when you miss, if you were looking close enough to an entity               |
+| InstaCart         | Automatically places a rail and TNT minecart to catch your own flaming arrows                             |
+| KillAura          | Automatically attacks for you                                                                             |
+| Knockback         | Reduces the amount of knockback you take                                                                  |
+| Lunge Swap        | Automatically attempts a Lunge Swap when attacking without a target                                       |
+| Reach             | Increases reach distance                                                                                  |
+| Shieldbreaker     | Automatically breaks shields                                                                              |
+| TriggerBot        | Attacks whenever an entity is in your crosshair and your cooldown is full                                 |
+| XBowCart          | Places a rail, TNT minecart, and fire to catch your own crossbow arrows                                   |
 
 ### QoL
 
-| Module              | Description                                                                                          |
-|---------------------|------------------------------------------------------------------------------------------------------|
-| AppleSkin           | Food-related HUD improvements: saturation, exhaustion, and hunger/health restored while holding food |
-| ArmorRenderer       | Shows equipped armor and held items on the HUD with their durability                                 |
-| Auto Tool           | Swaps to the correct tool to mine a block                                                            |
-| Container ESP       | Outlines containers                                                                                  |
-| Discord Presence    | Shows Zephyr Client as your Discord presence                                                         |
-| Durability Swap     | Saves tools with low durability from being used to mine blocks                                       |
-| Fast Attack         | Simulates attack actions multiple times per tick                                                     |
-| Fast Use            | Simulates use actions multiple times per tick                                                        |
+| Module              | Description                                                                                                                                   |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| AppleSkin           | Food-related HUD improvements: saturation, exhaustion, and hunger/health restored while holding food                                          |
+| ArmorRenderer       | Shows equipped armor and held items on the HUD with their durability                                                                          |
+| Auto Tool           | Swaps to the correct tool to mine a block                                                                                                     |
+| Container ESP       | Outlines containers                                                                                                                           |
+| Discord Presence    | Shows Zephyr Client as your Discord presence                                                                                                  |
+| Durability Swap     | Saves tools with low durability from being used to mine blocks                                                                                |
+| Fast Attack         | Simulates attack actions multiple times per tick                                                                                              |
+| Fast Use            | Simulates use actions multiple times per tick                                                                                                 |
 | FreeCam             | Detaches the camera to fly freely while your player stays in place; configure flight mode, speed, perspective, hand, and interaction behavior |
-| FullBright          | Increases gamma                                                                                      |
-| Gui Move            | Allows movement inputs while GUIs are open                                                           |
-| Hold Attack         | Continually simulates pressing the attack key                                                        |
-| Hold Use            | Continually simulates pressing the use key                                                           |
-| Inventory Packets   | Skips packets when closing the inventory, letting you use crafting slots as storage                  |
-| Inventory Renderer  | Shows your entire inventory on the HUD with item counts and durability                               |
-| Item Restock        | Swaps a totem or item for a matching one from your inventory                                         |
-| Periodic Attack     | Automatically attacks on a fixed interval                                                            |
-| Periodic Use        | Automatically right-clicks on a fixed interval                                                       |
-| Pick Before Place   | Forces a block pick action before placing a block                                                    |
-| PlayerESP           | Glows nearby players                                                                                 |
-| Potion Saver        | Attempts to extend the duration of potions                                                           |
-| Render Invisibility | Renders invisible players as translucent                                                             |
-| Safe Walk           | Prevents you from walking off block edges until you jump                                             |
-| Seedcracker         | Recovers the world seed by scanning generated structures (see [Seedcracker](#seedcracker))           |
-| ShulkerBoxTooltip   | Shows the contents of shulker boxes and other containers in their tooltip                            |
-| Sneak               | Automatically sneaks                                                                                 |
-| Speed Mine          | Speeds up block breaking via synthetic Haste or predicted damage packets                             |
-| Time Changer        | Changes the time of day client-side                                                                  |
-| Tracers             | Draws lines from your crosshair to nearby players                                                    |
-| Xray                | Outlines blocks in a list through walls, with presets or a custom list with per-block colors        |
-| Zoom                | Smoothly zooms your FOV in to a custom level while enabled                                           |
+| FullBright          | Increases gamma                                                                                                                               |
+| Gui Move            | Allows movement inputs while GUIs are open                                                                                                    |
+| Hold Attack         | Continually simulates pressing the attack key                                                                                                 |
+| Hold Use            | Continually simulates pressing the use key                                                                                                    |
+| Inventory Packets   | Skips packets when closing the inventory, letting you use crafting slots as storage                                                           |
+| Inventory Renderer  | Shows your entire inventory on the HUD with item counts and durability                                                                        |
+| Item Restock        | Swaps a totem or item for a matching one from your inventory                                                                                  |
+| Periodic Attack     | Automatically attacks on a fixed interval                                                                                                     |
+| Periodic Use        | Automatically right-clicks on a fixed interval                                                                                                |
+| Pick Before Place   | Forces a block pick action before placing a block                                                                                             |
+| PlayerESP           | Glows nearby players                                                                                                                          |
+| Potion Saver        | Attempts to extend the duration of potions                                                                                                    |
+| Render Invisibility | Renders invisible players as translucent                                                                                                      |
+| Safe Walk           | Prevents you from walking off block edges until you jump                                                                                      |
+| Seedcracker         | Recovers the world seed by scanning generated structures (see [Seedcracker](#seedcracker))                                                    |
+| ShulkerBoxTooltip   | Shows the contents of shulker boxes and other containers in their tooltip                                                                     |
+| Sneak               | Automatically sneaks                                                                                                                          |
+| Speed Mine          | Speeds up block breaking via synthetic Haste or predicted damage packets                                                                      |
+| Time Changer        | Changes the time of day client-side                                                                                                           |
+| Tracers             | Draws lines from your crosshair to nearby players                                                                                             |
+| Xray                | Outlines blocks in a list through walls, with presets or a custom list with per-block colors                                                  |
+| Zoom                | Smoothly zooms your FOV in to a custom level while enabled                                                                                    |
 
 ### Disable
 
@@ -236,6 +236,91 @@ Requires JDK 25+ and an internet connection for Gradle.
 ```
 
 The finished mod jar will be in `build/libs/`.
+
+---
+
+## Developer
+
+Zephyr is a Fabric mod with two source sets: `main` (the common entry point and mixin configs) and `client` (everything else). The client source set lives under `src/client/java/com/zephyr/client` and is where all of the actual client logic resides.
+
+### Project layout
+
+```
+src/main/java/com/zephyr/          Mod entry point (Zephyr) and the common mixin config
+src/main/resources/                fabric.mod.json, mixin configs, icon
+src/client/java/com/zephyr/client/
+├── ZephyrClient.java              Client initializer: wires up every system
+├── configplusgui/                 The core framework ("config plus GUI")
+│   ├── config/                    GlobalConfig, ConfigManager, ProfileManager, StealthManager
+│   ├── module/                    Module (base class), Category, ModuleManager
+│   ├── setting/                   Setting<T> + Boolean/Number/Enum/String/List settings
+│   ├── keybind/                   Keybind (up to 3 GLFW keys), KeybindManager, GuiKeybindHandler
+│   ├── screen/                    The Zephyr menu screens (ClickGui, Keybinds, Profiles, Config, ...)
+│   ├── hud/                       HudRenderer, NotificationManager, PartyManager, ThemeColor, ...
+│   └── secretsettings/            The hidden "Better Movement" feature (dash, glide, double jump, ...)
+├── commands/                      Chat command system (.z ...)
+├── discord/                       Discord Rich Presence
+├── mixin/                         One package per feature area; each class targets one vanilla class
+│   ├── bettermovement/  combat/  disable/  movement/  qol/  commands/
+└── module/                        The modules themselves, grouped by Category
+    ├── combat/  disable/  movement/
+    └── qol/                       Includes large self-contained features: seedcracker/, jade/,
+                                   shulkerboxtooltip/, appleskin/, freecam/
+```
+
+### How a module works
+
+A module is a class that extends `Module` and is registered once through `ModuleManager.init()`. The framework does the rest:
+
+- `ModuleManager` exposes it to the click-GUI, the `.z module <name> ...` command, and keybind toggles.
+- While a module is enabled, `Module.tick(Minecraft)` is called every client tick.
+- `onEnable()` / `onDisable()` fire on state transitions; use them to hook or unhook mixins, or to start/stop renderers.
+- Settings created with `addSetting(...)` are automatically rendered as controls, saved to `config/zephyr/modules.json`, and included in profiles.
+
+To add a new module:
+
+1. Create a class extending `Module` with a private constructor calling `super(name, description, category)`, and a `public static final` singleton instance (modules are singletons: see any existing module).
+2. Add settings with `addSetting(...)` if needed.
+3. Override `tick` / `onEnable` / `onDisable` as appropriate.
+4. Register it in `ModuleManager.init()`.
+5. If it needs to change vanilla behavior, add a mixin in the matching `mixin/` package and register it in `src/client/resources/zephyr.client.mixins.json`.
+
+### Mixins
+
+Mixins are organized in `src/client/java/com/zephyr/client/mixin` mirroring the module they serve (e.g. `mixin/qol/FreeCam/` backs `module/qol/FreeCam`). Every mixin class documents the vanilla class it targets, the method it injects into, and which module it backs. Mixin accessors/invokers live alongside their mixins. New mixins must be added to the `"client"` array in `src/client/resources/zephyr.client.mixins.json`.
+
+### The module framework (`configplusgui`)
+
+| Component        | Purpose                                                                                          |
+|------------------|--------------------------------------------------------------------------------------------------|
+| `Module`         | Base class for every toggleable feature (name, description, category, settings, lifecycle)       |
+| `ModuleManager`  | Registry of all modules; tick dispatch, lookup by name, save orchestration                       |
+| `Setting<T>`     | Base of a typed setting value; subtypes are rendered and persisted automatically                 |
+| `KeybindManager` | Maps up to three simultaneous GLFW keys to a module or a `SystemAction` (open menu, prefix, ...) |
+| `GlobalConfig`   | Client-wide settings: theme color, animation speed, HUD mode, autosave interval, stealth mode    |
+| `ConfigManager`  | (De)serializes every module's state/settings to `config/zephyr/modules.json`                     |
+| `ProfileManager` | Named snapshots of the full module state, switchable at runtime                                  |
+| `ZephyrScreen`   | Base for all menu screens: shared chrome, panel sizing, and the slide animation                  |
+
+### Commands
+
+`commands/Command` is the abstract base; `CommandManager` handles registration, dispatch, and tab-completion (via Brigadier `Suggestions`). The `.z` command is `ZCommand`, and Seedcracker's sub-commands are handled by `SeedcrackerCommand`. `CommandPrefixHandler` intercepts the configurable prefix keybind and opens chat pre-filled; `mixin/commands/ChatInterceptMixin` makes sure prefixed messages never reach the server.
+
+### Config, profiles, and persistence
+
+All client data is persisted under `.minecraft/config/zephyr/`:
+
+| File            | Contents                                                        |
+|-----------------|-----------------------------------------------------------------|
+| `modules.json`  | Every module's enabled state and setting values                 |
+| `keybinds.json` | System-action and per-module keybinds                           |
+| `profiles/`     | One JSON snapshot per named profile                             |
+
+Saves happen on quit and on a configurable autosave interval (`GlobalConfig.autosaveIntervalSeconds`). Profiles are captured through the same (de)serialization used by `ConfigManager`.
+
+### Generated documentation
+
+Run `./gradlew javadoc` to build the HTML API docs into `build/docs/javadoc/`. Every public class and method across the codebase is documented.
 
 ---
 

@@ -18,15 +18,23 @@ import java.util.function.Supplier;
  * Preview provider for shulker box items.
  */
 public class ShulkerBoxPreviewProvider extends InventoryAwarePreviewProvider<ShulkerBoxBlockEntity> {
+    /**
+     * Creates a shulker box preview provider.
+     *
+     * @param maxRowSize           the number of slots per preview row
+     * @param blockEntitySupplier  supplies the block entity template backing the preview
+     */
     public ShulkerBoxPreviewProvider(int maxRowSize, Supplier<? extends ShulkerBoxBlockEntity> blockEntitySupplier) {
         super(maxRowSize, blockEntitySupplier);
     }
 
+    /** Shulker boxes always advertise tooltip hints. */
     @Override
     public boolean showTooltipHints(PreviewContext context) {
         return true;
     }
 
+    /** @return the window color key derived from the box's dye color */
     @Override
     public ColorKey getWindowColorKey(PreviewContext context) {
         DyeColor dye = ((ShulkerBoxBlock) Block.byItem(context.stack().getItem())).getColor();
@@ -53,6 +61,10 @@ public class ShulkerBoxPreviewProvider extends InventoryAwarePreviewProvider<Shu
         };
     }
 
+    /**
+     * Adds the item-count line, or the vanilla "???????" hint when the box has a
+     * loot table component.
+     */
     @Override
     public List<Component> addTooltip(PreviewContext context) {
         ItemStack stack = context.stack();

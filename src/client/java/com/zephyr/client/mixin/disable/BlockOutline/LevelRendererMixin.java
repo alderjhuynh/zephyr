@@ -10,9 +10,22 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin targeting {@link LevelRenderer} that backs the
+ * {@code disableBlockOutline} module.
+ */
 @Mixin(LevelRenderer.class)
 public class LevelRendererMixin {
 
+    /**
+     * Cancels {@code LevelRenderer#submitBlockOutline} at its head so that the black
+     * outline around the targeted block is never rendered while the module is enabled.
+     *
+     * @param poseStack       the pose stack used for rendering
+     * @param collector       the submit node collector for the outline geometry
+     * @param levelRenderState the level render state for the current frame
+     * @param ci              the cancellable injection callback
+     */
     @Inject(method = "submitBlockOutline", at = @At("HEAD"), cancellable = true)
     private void zephyr$hideBlockOutline(PoseStack poseStack, SubmitNodeCollector collector, LevelRenderState levelRenderState, CallbackInfo ci) {
         if (!disableBlockOutline.INSTANCE.isEnabled()) return;

@@ -3,10 +3,17 @@ package com.zephyr.client.configplusgui.screen;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
+/**
+ * One of the two hidden "easter egg" screens (alongside {@link SecretGuiScreen}), reachable
+ * only by holding Up/Down while pressing the Cycle Screen keybind. Shows the mod's author
+ * credit and a thank-you message on a simple two-row panel. Enters and exits vertically
+ * like the rest of the hidden cycle.
+ */
 public final class CreditsGuiScreen extends ZephyrScreen {
     private static final int SECTION_HEIGHT = 20;
     private static final int ROW_HEIGHT = 24;
 
+    /** Creates the credits screen with a vertical slide; package-visible for {@link ZephyrScreen.Nav}. */
     CreditsGuiScreen(int enterDirection) {
         super(Component.literal("Zephyr"), enterDirection, true);
     }
@@ -21,6 +28,7 @@ public final class CreditsGuiScreen extends ZephyrScreen {
         return "CREDITS";
     }
 
+    /** Renders the two credit rows: author line and thank-you line. */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         withPanelSlide(() -> {

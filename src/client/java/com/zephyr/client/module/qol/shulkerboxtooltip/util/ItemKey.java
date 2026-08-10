@@ -16,6 +16,12 @@ public class ItemKey {
     private final DataComponentMap components;
     private final boolean ignoreComponents;
 
+    /**
+     * Creates a key for the given stack.
+     *
+     * @param stack            the stack to key
+     * @param ignoreComponents whether components are excluded from equality/hashing
+     */
     public ItemKey(ItemStack stack, boolean ignoreComponents) {
         this.item = stack.getItem();
         this.id = BuiltInRegistries.ITEM.getId(this.item);
@@ -23,11 +29,17 @@ public class ItemKey {
         this.ignoreComponents = ignoreComponents;
     }
 
+    /** @return a hash based on the item id and, unless ignored, its components */
     @Override
     public int hashCode() {
         return 31 * id + (this.ignoreComponents || components == null ? 0 : components.hashCode());
     }
 
+    /**
+     * @param other the object to compare against
+     * @return whether both keys reference the same item with equal components
+     *         (components skipped when {@code ignoreComponents} is set)
+     */
     @Override
     public boolean equals(Object other) {
         if (this == other)

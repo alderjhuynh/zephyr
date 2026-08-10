@@ -14,6 +14,12 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Map;
 
+/**
+ * Highlights nearby storage containers in the world with colored outlines.
+ * While enabled, a configurable radius around the player is searched each tick
+ * and every chest, barrel, and shulker box found is drawn as a stroke cuboid
+ * (colors are per container type, including modded shulker variants).
+ */
 public final class ContainerESP extends Module {
     public static final ContainerESP INSTANCE = new ContainerESP();
 
@@ -33,6 +39,11 @@ public final class ContainerESP extends Module {
         addSetting(searchRadius);
     }
 
+    /**
+     * Scans the blocks within the search radius and outlines any containers found.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (!isEnabled()) {

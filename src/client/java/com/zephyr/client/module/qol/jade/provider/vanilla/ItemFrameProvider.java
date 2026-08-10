@@ -17,6 +17,10 @@ import net.minecraft.world.item.ItemStack;
 public class ItemFrameProvider implements IComponentProvider {
     public static final ItemFrameProvider INSTANCE = new ItemFrameProvider();
 
+    /**
+     * Appends the name of the item held by a targeted item frame when the
+     * corresponding module setting is enabled.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!Jade.INSTANCE.showItemFrame() || !(accessor instanceof EntityAccessor entity)) {

@@ -6,6 +6,11 @@ import com.zephyr.client.configplusgui.setting.NumberSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Movement module that continuously accelerates the player while elytra-flying,
+ * pushing them along their look direction each tick. The impulse strength is
+ * controlled by the {@code Acceleration} setting.
+ */
 public final class ElytraBoost extends Module {
     public static final ElytraBoost INSTANCE = new ElytraBoost();
 
@@ -16,6 +21,11 @@ public final class ElytraBoost extends Module {
         addSetting(acceleration);
     }
 
+    /**
+     * Applies the gliding boost each tick while the player is fall-flying.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (client.player == null || !client.player.isFallFlying()) {

@@ -10,6 +10,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Resolves {@code %placeholder%} tokens inside HUD and watermark template strings. Supports
+ * version, active profile, current server, player name, FPS, enabled/total module counts,
+ * theme, and live date/time. Used by {@link HudRenderer} and the secret-settings watermark
+ * preview; unknown tokens are left untouched.
+ */
 public final class PlaceholderEngine {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -17,6 +23,7 @@ public final class PlaceholderEngine {
     private PlaceholderEngine() {
     }
 
+    /** Replaces every known placeholder in {@code template}; null/empty input is returned as-is. */
     public static String replace(String template) {
         if (template == null || template.isEmpty()) return template;
 
@@ -34,6 +41,7 @@ public final class PlaceholderEngine {
         return result;
     }
 
+    /** The Zephyr mod version string, falling back to "1.0.0". */
     private static String version() {
         try {
             return FabricLoader.getInstance().getModContainer("zephyr")
@@ -44,6 +52,7 @@ public final class PlaceholderEngine {
         }
     }
 
+    /** The current server IP, "Singleplayer", or empty if in neither state. */
     private static String server() {
         Minecraft client = Minecraft.getInstance();
         if (client.getCurrentServer() != null) {
@@ -52,11 +61,13 @@ public final class PlaceholderEngine {
         return client.getSingleplayerServer() != null ? "Singleplayer" : "";
     }
 
+    /** The local player's name, or empty when not in a world. */
     private static String player() {
         Minecraft client = Minecraft.getInstance();
         return client.player != null ? client.player.getName().getString() : "";
     }
 
+    /** "Custom" when the custom color is used, otherwise the theme preset's display name. */
     private static String theme() {
         return GlobalConfig.useCustomColor() ? "Custom" : GlobalConfig.themeColor().displayName();
     }

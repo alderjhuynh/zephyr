@@ -23,6 +23,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Central registry of client-wide preferences that are not owned by any single module:
+ * theming (theme preset vs. custom HSV color), HUD overlay mode, toast placement and
+ * lifetime, menu animation speed, autosave cadence, keybind conflict warnings, Discord
+ * presence and Stealth Mode. Each value is exposed as a {@link Setting} so
+ * {@link com.zephyr.client.configplusgui.screen.ConfigGuiScreen} can render generic rows,
+ * while persistence (and any side effects like reconnecting Discord) is centralized in
+ * the getter/setter pairs of this class. Data is stored in
+ * {@code .minecraft/config/zephyr/client.json}.
+ */
 public final class GlobalConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH = FabricLoader.getInstance()
@@ -55,6 +65,7 @@ public final class GlobalConfig {
     private GlobalConfig() {
     }
 
+    /** Loads persisted client settings from disk; called once during client initialization. */
     public static void init() {
         load();
     }
@@ -63,35 +74,42 @@ public final class GlobalConfig {
         return hotkeyPopups.get();
     }
 
+    /** Whether toasts are shown when a keybind toggles a module. */
     public static void setHotkeyPopupsEnabled(boolean enabled) {
         if (hotkeyPopups.get() == enabled) return;
         hotkeyPopups.set(enabled);
         save();
     }
 
+    /** Flips the hotkey popup preference. */
     public static void toggleHotkeyPopups() {
         setHotkeyPopupsEnabled(!hotkeyPopups.get());
     }
 
+    /** The active theme preset; used for the accent when {@link #useCustomColor} is off. */
     public static ThemeColor themeColor() {
         return themeColor;
     }
 
+    /** Sets the active theme preset and persists the change. */
     public static void setThemeColor(ThemeColor color) {
         if (themeColor == color) return;
         themeColor = color;
         save();
     }
 
+    /** Advances to the next {@link ThemeColor} preset, wrapping around. */
     public static void cycleThemeColor() {
         ThemeColor[] values = ThemeColor.values();
         setThemeColor(values[(themeColor.ordinal() + 1) % values.length]);
     }
 
+    /** Whether the accent is taken from the custom HSV sliders instead of the theme preset. */
     public static boolean useCustomColor() {
         return useCustomColor.get();
     }
 
+    /** Enables/disables the custom color override and persists the change. */
     public static void setUseCustomColor(boolean enabled) {
         if (useCustomColor.get() == enabled) return;
         useCustomColor.set(enabled);
@@ -103,22 +121,26 @@ public final class GlobalConfig {
         return menuAnimationSpeed.get();
     }
 
+    /** Sets the menu/notification animation speed multiplier and persists the change. */
     public static void setAnimationSpeed(double speed) {
         if (menuAnimationSpeed.get() == speed) return;
         menuAnimationSpeed.set(speed);
         save();
     }
 
+    /** The screen corner in which toasts are rendered. */
     public static Corner notificationCorner() {
         return notificationCorner.get();
     }
 
+    /** Sets the toast corner and persists the change. */
     public static void setNotificationCorner(Corner corner) {
         if (notificationCorner.get() == corner) return;
         notificationCorner.set(corner);
         save();
     }
 
+    /** Advances to the next {@link Corner}, wrapping around. */
     public static void cycleNotificationCorner() {
         setNotificationCorner(Corner.values()[(notificationCorner.get().ordinal() + 1) % Corner.values().length]);
     }
@@ -128,22 +150,26 @@ public final class GlobalConfig {
         return notificationLifetime.get();
     }
 
+    /** Sets the toast hold duration in seconds and persists the change. */
     public static void setNotificationHoldSeconds(double seconds) {
         if (notificationLifetime.get() == seconds) return;
         notificationLifetime.set(seconds);
         save();
     }
 
+    /** The currently selected HUD overlay mode ({@link HudMode#OFF}, LEGACY or MODERN). */
     public static HudMode hudMode() {
         return hudMode.get();
     }
 
+    /** Sets the HUD overlay mode and persists the change. */
     public static void setHudMode(HudMode mode) {
         if (hudMode.get() == mode) return;
         hudMode.set(mode);
         save();
     }
 
+    /** Advances to the next {@link HudMode}, wrapping around. */
     public static void cycleHudMode() {
         setHudMode(HudMode.values()[(hudMode.get().ordinal() + 1) % HudMode.values().length]);
     }
@@ -153,6 +179,7 @@ public final class GlobalConfig {
         return autosaveInterval.get();
     }
 
+    /** Sets the autosave interval in seconds (0 disables periodic autosaving) and persists it. */
     public static void setAutosaveInterval(double seconds) {
         if (autosaveInterval.get() == seconds) return;
         autosaveInterval.set(seconds);
@@ -164,12 +191,14 @@ public final class GlobalConfig {
         return keybindConflictWarnings.get();
     }
 
+    /** Enables/disables keybind conflict warnings and persists the change. */
     public static void setKeybindConflictWarningsEnabled(boolean enabled) {
         if (keybindConflictWarnings.get() == enabled) return;
         keybindConflictWarnings.set(enabled);
         save();
     }
 
+    /** Flips the keybind conflict warning preference. */
     public static void toggleKeybindConflictWarnings() {
         setKeybindConflictWarningsEnabled(!keybindConflictWarnings.get());
     }
@@ -195,6 +224,7 @@ public final class GlobalConfig {
         }
     }
 
+    /** Flips Discord Rich Presence on/off. */
     public static void toggleDiscordPresence() {
         setDiscordPresence(!discordPresence.get());
     }
@@ -213,6 +243,7 @@ public final class GlobalConfig {
         StealthManager.setActive(active);
     }
 
+    /** Flips Stealth Mode on/off via {@link StealthManager}. */
     public static void toggleStealthMode() {
         StealthManager.setActive(!stealthMode.get());
     }
@@ -244,6 +275,7 @@ public final class GlobalConfig {
                 (float) (customValue.get() / 100.0));
     }
 
+    /** Converts a normalized HSV triplet (h in [0,1), s and v in [0,1]) to an RGB int. */
     private static int hsvToRgb(float h, float s, float v) {
         float c = v * s;
         float x = c * (1 - Math.abs((h * 6) % 2 - 1));
@@ -263,6 +295,7 @@ public final class GlobalConfig {
         return (red << 16) | (green << 8) | blue;
     }
 
+    /** Reads {@code client.json} into the static settings, tolerating stale or missing keys. */
     private static void load() {
         if (!Files.exists(CONFIG_PATH)) {
             return;
@@ -315,6 +348,7 @@ public final class GlobalConfig {
         }
     }
 
+    /** Restores a numeric setting from {@code key}, keeping the default on non-numeric values. */
     private static void readNumber(JsonObject json, String key, NumberSetting setting) {
         if (!json.has(key)) return;
         try {
@@ -325,6 +359,7 @@ public final class GlobalConfig {
         }
     }
 
+    /** Restores an enum setting from {@code key}, keeping the default on unknown constants. */
     private static <T extends Enum<T>> void readEnum(JsonObject json, String key, EnumSetting<T> setting) {
         if (!json.has(key)) return;
         try {
@@ -335,6 +370,7 @@ public final class GlobalConfig {
         }
     }
 
+    /** Writes every global setting to {@code client.json}. */
     public static void save() {
         JsonObject root = new JsonObject();
         root.addProperty("hotkeyPopupsEnabled", hotkeyPopups.get());

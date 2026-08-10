@@ -33,16 +33,31 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+/**
+ * Drives the seed recovery search across its distinct phases.
+ *
+ * <p>Given the constraints stored in {@link DataStorage}, the machine walks the candidate-seed
+ * space phase by phase: pillar seeds, structure seeds (with optional lifting of the lower bits),
+ * seed reduction and finally world seeds via decorators, hashed seed and biome matching. When the
+ * search narrows down to a single world seed, it is pushed to every registered
+ * {@link com.zephyr.client.module.qol.seedcracker.api.SeedCrackerAPI} entrypoint.
+ */
 public class TimeMachine {
     private static final Logger logger = LoggerFactory.getLogger("timeMachine");
 
+    /** Shared executor used for all parallel phases of the search. */
     public static ExecutorService SERVICE = Executors.newFixedThreadPool(5);
 
     private final LCG inverseLCG = LCG.JAVA.combine(-2);
+    /** Whether the machine is currently processing data. */
     public boolean isRunning = false;
+    /** Set when the search should be aborted (e.g. world reset). */
     public boolean shouldTerminate = false;
+    /** Candidate 16-bit pillar seeds. */
     public List<Integer> pillarSeeds = null;
+    /** Candidate structure seeds. */
     public Set<Long> structureSeeds = new HashSet<>();
+    /** Candidate world seeds. */
     public Set<Long> worldSeeds = new HashSet<>();
     protected DataStorage dataStorage;
 
@@ -50,6 +65,13 @@ public class TimeMachine {
         this.dataStorage = dataStorage;
     }
 
+    /**
+     * Kicks off (or continues) the search starting from the given phase, progressing through the
+     * phase chain until no further progress can be made. If a single world seed is left, it is
+     * pushed to all registered seedcracker API entrypoints.
+     *
+     * @param phase the phase to start from, or null to skip
+     */
     public void poke(Phase phase) {
         if (this.worldSeeds.size() == 1) return;
         this.isRunning = true;
@@ -80,6 +102,11 @@ public class TimeMachine {
         }
     }
 
+    /**
+     * Searches the full 16-bit pillar seed space for seeds matching the observed pillar heights.
+     *
+     * @return true once the pillar seed search has been performed
+     */
     protected boolean pokePillars() {
         if (this.pillarSeeds != null || this.dataStorage.pillarData == null) return false;
         this.pillarSeeds = new ArrayList<>();
@@ -103,6 +130,12 @@ public class TimeMachine {
         return true;
     }
 
+    /**
+     * Lifts the low 19 bits of the structure seed directly from the observed old-style structures
+     * and shipwrecks, then filters the resulting seed space against all cached base features.
+     *
+     * @return true if candidate structure seeds were produced
+     */
     protected boolean pokeLifting() {
         if (!this.structureSeeds.isEmpty() || this.dataStorage.getLiftingBits() < 40F) return false;
         List<UniformStructure.Data<?>> dataList = new ArrayList<>();
@@ -166,6 +199,12 @@ public class TimeMachine {
     }
 
 
+    /**
+     * Brute-forces structure seeds by combining every pillar seed with the upper world-seed bits,
+     * then filtering against the cached base features.
+     *
+     * @return true once the structure seed search has been performed
+     */
     protected boolean pokeStructures() {
         if (this.pillarSeeds == null || !this.structureSeeds.isEmpty() ||
                 this.dataStorage.getBaseBits() < this.dataStorage.getWantedBits()) return false;
@@ -247,6 +286,13 @@ public class TimeMachine {
         return true;
     }
 
+    /**
+     * Reduces the structure seed candidates down to world seeds, trying (in order): decorator
+     * matching for 1.18+, the hashed world seed, a biome-based fuzzy search, a deep biome search
+     * and finally a random-seed fallback.
+     *
+     * @return true if the world seed search produced results
+     */
     protected boolean pokeBiomes() {
         if (this.structureSeeds.isEmpty() || this.worldSeeds.size() == 1) return false;
         if (this.structureSeeds.size() > 1000) return false;
@@ -406,6 +452,12 @@ public class TimeMachine {
         return true;
     }
 
+    /**
+     * Attempts to shrink the current structure seed set by re-testing each candidate against the
+     * cached base features (and the pillar seeds when known).
+     *
+     * @return true if the candidate set was successfully reduced
+     */
     protected boolean pokeStructureReduce() {
         if (shouldTerminate) return false;
         if (!this.worldSeeds.isEmpty() || this.structureSeeds.size() < 2) return false;
@@ -477,6 +529,14 @@ public class TimeMachine {
         }
     }
 
+    /**
+     * Reconstructs a structure seed from a partial (upper bits) world seed and a pillar seed by
+     * inverting the world-seed transformation.
+     *
+     * @param partialWorldSeed the upper 30 bits of the world seed
+     * @param pillarSeed the 16-bit pillar seed
+     * @return the corresponding structure seed
+     */
     public long timeMachine(long partialWorldSeed, int pillarSeed) {
         long currentSeed = 0L;
         currentSeed |= (partialWorldSeed & 0xFFFF0000L) << 16;
@@ -488,6 +548,9 @@ public class TimeMachine {
         return currentSeed;
     }
 
+    /**
+     * The distinct phases of the seed search, chained in the order they are visited.
+     */
     public enum Phase {
         BIOMES(null), STRUCURE_REDUCE(BIOMES), STRUCTURES(BIOMES), LIFTING(STRUCURE_REDUCE), PILLARS(STRUCTURES);
 
@@ -497,6 +560,9 @@ public class TimeMachine {
             this.nextPhase = nextPhase;
         }
 
+        /**
+         * @return the phase to visit after this one, or null if this is the terminal phase
+         */
         public Phase nextPhase() {
             return this.nextPhase;
         }

@@ -28,6 +28,14 @@ public interface GuiGraphicsExtensions {
 
     void setDeferredTooltip(@Nullable Runnable deferredTooltip);
 
+    /**
+     * Runs {@code renderer} with the deferred tooltip temporarily cleared, then
+     * replays the new deferred tooltip (if any) so the preview renders on top of
+     * the item tooltip it belongs to.
+     *
+     * @param graphics the graphics instance to extend
+     * @param renderer the tooltip rendering work to run
+     */
     static void renderTooltipImmediate(GuiGraphicsExtractor graphics, Runnable renderer) {
         var extendedGraphics = (GuiGraphicsExtensions) graphics;
 

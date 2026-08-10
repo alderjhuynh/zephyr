@@ -13,16 +13,26 @@ public class IconElement extends Element {
 
     private final ItemStack stack;
 
+    /**
+     * Creates an icon element for the given item stack.
+     *
+     * @param stack the stack to render, or an empty stack to render nothing
+     */
     public IconElement(ItemStack stack) {
         this.stack = stack;
         this.width = SIZE;
         this.height = SIZE;
     }
 
+    /** @return the item stack this element renders */
     public ItemStack getStack() {
         return stack;
     }
 
+    /**
+     * Renders the item icon at the element's current position unless the stack
+     * is empty.
+     */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         if (!stack.isEmpty()) {

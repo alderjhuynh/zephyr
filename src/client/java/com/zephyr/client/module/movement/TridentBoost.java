@@ -26,6 +26,16 @@ public final class TridentBoost extends Module {
         super("Trident Boost", "Enables dry riptide boosts", Category.MOVEMENT);
     }
 
+    /**
+     * Checks whether the given player may trigger a dry Riptide boost: the
+     * module must be enabled, the item must be a Riptide-enchanted trident, the
+     * player must not be in water or rain, and the trident must not be about to
+     * break on the next use.
+     *
+     * @param player the player wielding the trident
+     * @param stack  the held trident stack
+     * @return {@code true} if a dry Riptide boost is permitted
+     */
     public static boolean canUseOutsideWater(Player player, ItemStack stack) {
         return INSTANCE.isEnabled()
                 && stack.is(Items.TRIDENT)

@@ -31,34 +31,44 @@ public final class Tooltip {
         }
     }
 
+    /** Sets the icon rendered to the left of the tooltip content. */
     public void setIcon(Element icon) {
         this.icon = icon;
     }
 
+    /** @return the tooltip icon, or {@code null} if none was set */
     public Element getIcon() {
         return icon;
     }
 
+    /** @return whether no content rows have been added yet */
     public boolean isEmpty() {
         return lines.isEmpty();
     }
 
+    /** @return an unmodifiable view of the tooltip's rows in order */
     public List<Line> lines() {
         return Collections.unmodifiableList(lines);
     }
 
+    /**
+     * A single horizontal row of elements laid out left-to-right within the box.
+     */
     public static final class Line {
         private final List<Element> elements = new ArrayList<>();
         private int marginBottom = 2;
 
+        /** @return the elements that make up this row, in order */
         public List<Element> elements() {
             return elements;
         }
 
+        /** @return the vertical gap (in GUI pixels) left below this row */
         public int marginBottom() {
             return marginBottom;
         }
 
+        /** Sets the vertical gap left below this row. */
         public void setMarginBottom(int marginBottom) {
             this.marginBottom = marginBottom;
         }

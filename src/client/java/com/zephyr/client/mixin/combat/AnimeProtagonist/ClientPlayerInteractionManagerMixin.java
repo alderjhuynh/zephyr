@@ -8,8 +8,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin for {@link MultiPlayerGameMode}. Injects into {@code MultiPlayerGameMode#attack}
+ * right before the attack packet is sent via {@code ClientPacketListener#send} to invoke
+ * {@link AnimeProtagonist#onAttack()}, spoofing the teleport-behind movement packets just
+ * before the swing is transmitted to the server.
+ */
 @Mixin(MultiPlayerGameMode.class)
 public class ClientPlayerInteractionManagerMixin {
+    /** Triggers the AnimeProtagonist movement packet spoof immediately before the attack packet is sent. */
     @Inject(
             method = "attack",
             at = @At(

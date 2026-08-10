@@ -7,6 +7,14 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * The {@link BetterMovement} mid-air dash helper. Triggered by pressing Sneak while
+ * airborne: on the transition from sneaking to airborne-sneaking it launches the player
+ * hard along the look direction (reversed while holding Down), plays a dash sound, spawns
+ * cloud particles and starts a cooldown. The result feeds {@link WaveDash}, which checks
+ * {@link #getTicksSinceLastDash()} shortly after landing to decide whether a wave dash is
+ * available.
+ */
 public final class Dash {
     private static final double STRENGTH = 0.6D;
     private static final boolean ALLOW_ELYTRA = false;
@@ -23,18 +31,22 @@ public final class Dash {
     private Dash() {
     }
 
+    /** Ticks since the last dash; near {@code Integer.MAX_VALUE} until the first dash. */
     public static int getTicksSinceLastDash() {
         return ticksSinceLastDash;
     }
 
+    /** Remaining cooldown ticks before the next dash is allowed. */
     public static int getCooldownTimer() {
         return cooldownTimer;
     }
 
+    /** The fixed dash cooldown length in ticks. */
     public static int getCooldownTicks() {
         return COOLDOWN_TICKS;
     }
 
+    /** Enables the helper and resets all dash state. */
     public static void onEnable() {
         enabled = true;
         cooldownTimer = 0;
@@ -43,6 +55,7 @@ public final class Dash {
         wasSneaking = false;
     }
 
+    /** Disables the helper and resets all dash state. */
     public static void onDisable() {
         enabled = false;
         cooldownTimer = 0;
@@ -51,6 +64,7 @@ public final class Dash {
         wasSneaking = false;
     }
 
+    /** Ticks timers and fires the dash on the sneaking-while-airborne edge press. */
     public static void tick(Minecraft client) {
         LocalPlayer player = client.player;
 
@@ -137,6 +151,7 @@ public final class Dash {
         ticksSinceLastDash = 0;
     }
 
+    /** The normalized look direction used as the dash vector, or {@link Vec3#ZERO} when looking straight up/down. */
     public static Vec3 getBoostDirection(LocalPlayer player) {
         Vec3 lookDirection = player.getLookAngle();
         if (lookDirection.lengthSqr() < 1.0E-6D) {

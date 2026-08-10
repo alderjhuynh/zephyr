@@ -13,20 +13,41 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Static registry and dispatcher for Zephyr chat commands. Commands are stored
+ * in an insertion-ordered map keyed by their lowercased name. The manager also
+ * provides chat-prefix resolution, Brigadier-based tab-completion suggestions,
+ * and message dispatch that routes chat input starting with the configured
+ * prefix to the matching {@link Command}.
+ */
 public final class CommandManager {
     private static final Map<String, Command> COMMANDS = new LinkedHashMap<>();
 
     private CommandManager() {
     }
 
+    /**
+     * Registers a command, making it resolvable and suggestable by its name.
+     *
+     * @param command the command to register
+     */
     public static void register(Command command) {
         COMMANDS.put(command.getName().toLowerCase(), command);
     }
 
+    /** Returns an unmodifiable list of all registered commands. */
     public static List<Command> getCommands() {
         return Collections.unmodifiableList(new ArrayList<>(COMMANDS.values()));
     }
 
+    /**
+     * Resolves chat text to a registered command, or {@code null} when the text
+     * does not start with the prefix or names an unknown command.
+     *
+     * @param text   the raw chat message to resolve
+     * @param prefix the command prefix expected at the start of the text
+     * @return the matching command, or {@code null} if none matches
+     */
     public static Command resolve(String text, String prefix) {
         if (prefix == null || prefix.isEmpty() || !text.startsWith(prefix)) {
             return null;
@@ -38,6 +59,18 @@ public final class CommandManager {
         return COMMANDS.get(tokenize(body).get(0).toLowerCase(Locale.ROOT));
     }
 
+    /**
+     * Computes Brigadier suggestions for the chat text at the given cursor
+     * position. If the text typed so far only contains the prefix, every command
+     * name is offered; otherwise the resolved command's {@link Command#suggest}
+     * is consulted for argument completions. Candidates containing whitespace are
+     * wrapped in quotes. Returns {@code null} when the text is not a command.
+     *
+     * @param text   the full chat message
+     * @param prefix the command prefix
+     * @param cursor the cursor index within the text
+     * @return the suggestions to show, or {@code null} if not a command context
+     */
     public static Suggestions suggest(String text, String prefix, int cursor) {
         if (prefix == null || prefix.isEmpty() || !text.startsWith(prefix)) {
             return null;
@@ -121,6 +154,16 @@ public final class CommandManager {
         return tokens;
     }
 
+    /**
+     * Dispatches a chat message to the appropriate command. When the message
+     * starts with the current command prefix, the remaining text is tokenized and
+     * the named command is executed with its arguments; unknown names produce a
+     * client-side error message. Never sends anything to the server.
+     *
+     * @param client  the Minecraft client instance
+     * @param message the raw chat message to dispatch
+     * @return {@code true} if the message was treated as a command, {@code false} otherwise
+     */
     public static boolean dispatch(Minecraft client, String message) {
         String prefix = CommandPrefixHandler.currentPrefix();
         if (prefix == null || prefix.isEmpty() || !message.startsWith(prefix)) {

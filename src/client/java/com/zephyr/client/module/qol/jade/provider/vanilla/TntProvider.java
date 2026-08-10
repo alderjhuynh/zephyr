@@ -19,6 +19,10 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 public class TntProvider implements IComponentProvider {
     public static final TntProvider INSTANCE = new TntProvider();
 
+    /**
+     * Appends an "Unstable" warning row for touch-primed TNT when the
+     * corresponding module setting is enabled.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!Jade.INSTANCE.showTntStability() || !(accessor instanceof BlockAccessor block)) {

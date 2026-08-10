@@ -20,6 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Recovers the end pillar height ordering.
+ *
+ * <p>Each of the ten pillars contains a bedrock marker block at a fixed (x, z) offset from the
+ * origin. A {@link BedrockMarkerFinder} locates each marker; once all ten are found, the collected
+ * heights are submitted as {@link PillarData}.
+ */
 public class EndPillarsFinder extends Finder {
 
     private final boolean alreadyFound;
@@ -42,12 +49,21 @@ public class EndPillarsFinder extends Finder {
         }
     }
 
+    /**
+     * @return a single {@link EndPillarsFinder} for the given chunk
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new EndPillarsFinder(world, chunkPos));
         return finders;
     }
 
+    /**
+     * Locates all ten bedrock markers; once every one is found, submits the pillar heights as
+     * {@link PillarData}.
+     *
+     * @return the marker positions found in this chunk
+     */
     @Override
     public List<BlockPos> findInChunk() {
         List<BlockPos> result = new ArrayList<>();
@@ -69,11 +85,18 @@ public class EndPillarsFinder extends Finder {
         return result;
     }
 
+    /**
+     * @return true for the End dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isEnd(dimension);
     }
 
+    /**
+     * Locates a single bedrock marker block at a fixed (x, z) position by scanning the vertical
+     * range where pillar markers can appear.
+     */
     public static class BedrockMarkerFinder extends BlockFinder {
 
         protected static List<BlockPos> SEARCH_POSITIONS;
@@ -83,6 +106,9 @@ public class EndPillarsFinder extends Finder {
             this.searchPositions = SEARCH_POSITIONS;
         }
 
+        /**
+         * Restricts the search to the vertical band where pillar markers can be found (y 76..106).
+         */
         public static void reloadSearchPositions() {
             SEARCH_POSITIONS = buildSearchPositions(CHUNK_POSITIONS, pos -> {
                 if (pos.getY() < 76) return true;
@@ -95,6 +121,9 @@ public class EndPillarsFinder extends Finder {
             return super.findInChunk();
         }
 
+        /**
+         * @return always true (markers are searched in their own dimension)
+         */
         @Override
         public boolean isValidDimension(DimensionType dimension) {
             return true;

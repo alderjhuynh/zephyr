@@ -25,6 +25,15 @@ public class BlockEntityPreviewProvider implements PreviewProvider {
     private final int defaultMaxRowSize;
     private final int defaultCompactMaxRowSize;
 
+    /**
+     * Creates a provider for items backed by block entity container data.
+     *
+     * @param defaultMaxInvSize         the fixed inventory slot count
+     * @param defaultCanUseLootTables   whether previews are suppressed when a loot
+     *                                  table component is present
+     * @param defaultMaxRowSize         the number of slots per preview row
+     * @param defaultCompactMaxRowSize  the number of slots per compact row
+     */
     public BlockEntityPreviewProvider(int defaultMaxInvSize, boolean defaultCanUseLootTables, int defaultMaxRowSize,
                                       int defaultCompactMaxRowSize) {
         this.defaultMaxInvSize = defaultMaxInvSize;
@@ -33,6 +42,7 @@ public class BlockEntityPreviewProvider implements PreviewProvider {
         this.defaultCompactMaxRowSize = defaultCompactMaxRowSize;
     }
 
+    /** @return whether the item carries block entity contents worth previewing */
     @Override
     public boolean shouldDisplay(PreviewContext context) {
         if (this.canUseLootTables() && context.stack().has(DataComponents.CONTAINER_LOOT))
@@ -40,11 +50,13 @@ public class BlockEntityPreviewProvider implements PreviewProvider {
         return getItemCount(this.getInventory(context)) > 0;
     }
 
+    /** @return whether the underlying container component is present on the item */
     @Override
     public boolean showTooltipHints(PreviewContext context) {
         return context.stack().has(DataComponents.CONTAINER);
     }
 
+    /** @return the item's block entity contents as a fixed-size slot list */
     @Override
     public List<ItemStack> getInventory(PreviewContext context) {
         var registries = context.registryLookup();
@@ -58,11 +70,13 @@ public class BlockEntityPreviewProvider implements PreviewProvider {
         return inv;
     }
 
+    /** @return the fixed inventory slot count configured for this provider */
     @Override
     public int getInventoryMaxSize(PreviewContext context) {
         return this.defaultMaxInvSize;
     }
 
+    /** @return the "contains N items" line, or nothing when a full preview is shown */
     @Override
     public List<Component> addTooltip(PreviewContext context) {
         if (ShulkerBoxTooltipApi.getCurrentPreviewType(this.isFullPreviewAvailable(context)) == PreviewType.FULL)
@@ -87,19 +101,19 @@ public class BlockEntityPreviewProvider implements PreviewProvider {
         return tooltip;
     }
 
+    /** @return the number of slots shown per preview row */
     @Override
     public int getMaxRowSize(PreviewContext context) {
         return this.defaultMaxRowSize;
     }
 
+    /** @return the number of slots shown per compact preview row */
     @Override
     public int getCompactMaxRowSize(PreviewContext context) {
         return this.defaultCompactMaxRowSize;
     }
 
-    /**
-     * If true, previews will not be shown when a loot table component is present.
-     */
+    /** If true, previews will not be shown when a loot table component is present. */
     public boolean canUseLootTables() {
         return this.defaultCanUseLootTables;
     }

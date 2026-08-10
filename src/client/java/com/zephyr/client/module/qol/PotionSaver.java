@@ -8,6 +8,11 @@ import net.minecraft.world.effect.MobEffects;
 
 import java.util.List;
 
+/**
+ * Prevents beneficial potion effects from expiring while the module is enabled.
+ * When a player is idling, the associated tick mixin freezes the duration of any
+ * matching positive effect; {@link #shouldFreeze} decides which effects qualify.
+ */
 public final class PotionSaver extends Module {
     public static final PotionSaver INSTANCE = new PotionSaver();
     private PotionSaver() {
@@ -30,6 +35,13 @@ public final class PotionSaver extends Module {
             MobEffects.HERO_OF_THE_VILLAGE.value()
     );
 
+    /**
+     * Whether the given effect's duration should be frozen.
+     *
+     * @param effect the effect to test
+     * @return true when the module is enabled, the player exists, and the
+     *         effect is in the frozen set
+     */
     public boolean shouldFreeze(MobEffect effect) {
         Minecraft client = Minecraft.getInstance();
 

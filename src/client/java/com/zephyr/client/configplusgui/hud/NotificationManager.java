@@ -9,6 +9,14 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * Renders transient "toast" notifications, used to report hotkey toggles (e.g. "Sprint —
+ * ON") and warnings such as keybind conflicts. Toasts queue newest-first, slide in with an
+ * ease-out cubic, hold still, then slide out, with both the animation speed and hold
+ * duration coming from {@link GlobalConfig}. They anchor to the corner configured by
+ * {@link GlobalConfig#notificationCorner()} and expire automatically. Toasts are not shown
+ * while hotkey popups are disabled or Stealth Mode is active.
+ */
 public final class NotificationManager {
     private static final long BASE_SLIDE_DURATION_NANOS = 180_000_000L; // matches ZephyrScreen's panel slide
     /** Floor so a very fast animation speed never reads as a teleport. */
@@ -36,6 +44,7 @@ public final class NotificationManager {
         return (long) (GlobalConfig.notificationHoldSeconds() * 1_000_000_000L);
     }
 
+    /** Total lifetime: slide-in + hold + slide-out. */
     private static long lifetimeNanos() {
         return slideDurationNanos() * 2 + holdDurationNanos();
     }
@@ -76,6 +85,7 @@ public final class NotificationManager {
         }
     }
 
+    /** Draws one toast: background, accent strip (confetti-aware) and ON/OFF status text. */
     private static void renderToast(GuiGraphicsExtractor graphics, Font font, Toast toast, int x, int y) {
         graphics.fill(x, y, x + TOAST_WIDTH, y + TOAST_HEIGHT, ZephyrScreen.PANEL_BG);
 
@@ -93,6 +103,7 @@ public final class NotificationManager {
         graphics.text(font, status, x + TOAST_WIDTH - 8 - statusWidth, y + 9, statusColor, false);
     }
 
+    /** Horizontal offset for a toast at {@code elapsed} nanos: slides in, pauses, slides out. */
     private static int slideOffsetPx(long elapsed) {
         long slide = slideDurationNanos();
         if (elapsed < slide) {
@@ -111,6 +122,7 @@ public final class NotificationManager {
         return (int) Math.round(eased * (TOAST_WIDTH + MARGIN));
     }
 
+    /** A single queued notification: the module/event name, its new state, and its birth time. */
     private record Toast(String moduleName, boolean enabledNow, long createdAtNanos) {
     }
 }

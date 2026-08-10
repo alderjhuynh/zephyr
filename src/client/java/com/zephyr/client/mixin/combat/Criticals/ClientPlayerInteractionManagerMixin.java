@@ -9,8 +9,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin for {@link MultiPlayerGameMode}. Injects into {@code MultiPlayerGameMode#attack}
+ * right before the attack packet is sent via {@code ClientPacketListener#send} to invoke
+ * {@link Criticals#onAttack()}, spoofing the fall packets that produce critical hits. If the
+ * {@code NoFall} module is enabled it is temporarily disabled first so its packets do not
+ * cancel the spoofed fall.
+ */
 @Mixin(MultiPlayerGameMode.class)
 public class ClientPlayerInteractionManagerMixin {
+    /** Sends the critical fall packets (pausing {@code NoFall} if active) immediately before the attack packet. */
     @Inject(
             method = "attack",
             at = @At(

@@ -19,13 +19,28 @@ public final class JadeColors {
     public static final int ARMOR = 0xFF9AA5B1;
     public static final int BAR_BACKGROUND = 0xFF2B2733;
 
+    /** Utility class; not instantiable. */
     private JadeColors() {
     }
 
+    /**
+     * Wraps {@code text} in a colored, unstyled component.
+     *
+     * @param text  the literal text to colorize
+     * @param color the ARGB color to apply
+     * @return a mutable component with the given color
+     */
     public static MutableComponent colored(String text, int color) {
         return Component.literal(text).setStyle(Style.EMPTY.withColor(color));
     }
 
+    /**
+     * Wraps an existing component's text in a colored, unstyled component.
+     *
+     * @param text  the component whose text to colorize
+     * @param color the ARGB color to apply
+     * @return a mutable component with the given color
+     */
     public static MutableComponent colored(Component text, int color) {
         return Component.literal(text.getString()).setStyle(Style.EMPTY.withColor(color));
     }

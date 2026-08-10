@@ -46,10 +46,12 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private EditBox blockInputBox;
     private EditBox colorInputBox;
 
+    /** Opens the click-gui without a slide animation (fresh open via the menu keybind). */
     public ClickGuiScreen() {
         this(0, false);
     }
 
+    /** Creates the screen with the given entry slide; package-visible for {@link ZephyrScreen.Nav}. */
     ClickGuiScreen(int enterDirection, boolean slideVertically) {
         super(Component.literal("Zephyr"), enterDirection, slideVertically);
     }
@@ -64,6 +66,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return TITLE_HEIGHT + TAB_HEIGHT + SEARCH_HEIGHT;
     }
 
+    /** Creates the module search box and keeps it in sync with the panel during slides. */
     @Override
     protected void initWidgets() {
         int searchY = panelY + TITLE_HEIGHT + TAB_HEIGHT + 2;
@@ -79,6 +82,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         this.addRenderableWidget(searchBox);
     }
 
+    /** Renders the whole screen: chrome, tab bar, scrolled/filtered module list and scroll bar. */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         withPanelSlide(() -> {
@@ -121,6 +125,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         });
     }
 
+    /** Draws the category tabs ("All" plus each {@link Category}), highlighting the selected/hovered one. */
     private void renderTabBar(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int tabY = panelY + TITLE_HEIGHT;
         for (TabLayout tab : computeTabLayout()) {
@@ -138,6 +143,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Draws one module row (name, category tag, hover/disabled background) and its expanded settings. */
     private void renderRow(GuiGraphicsExtractor graphics, RowLayout row, int mouseX, int mouseY, int scroll) {
         int top = row.top - scroll;
         boolean hovered = mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING
@@ -162,6 +168,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Draws a single setting row: checkbox for booleans, slider for numbers, value for enums, list UI otherwise. */
     private void renderSetting(GuiGraphicsExtractor graphics, SettingRowLayout settingRow, int top) {
         int left = panelX + PADDING + 8;
         int right = panelX + panelWidth - PADDING - 8;
@@ -192,6 +199,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Draws a {@link ListSetting}: header with an "add" icon, one row per entry (swatch, name, remove icon). */
     private void renderListSetting(GuiGraphicsExtractor graphics, ListSetting setting, int top, int left, int right) {
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + SETTING_ROW_HEIGHT, ROW_BG_HOVER);
         graphics.text(this.font, setting.getName(), left, top + 6, TEXT_DIM, false);
@@ -224,6 +232,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Draws the inline block-id/color inputs and commit icon shown while adding a list entry. */
     private void renderListInputRow(GuiGraphicsExtractor graphics, ListSetting setting, int top, int left, int right) {
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + SETTING_ROW_HEIGHT, ROW_BG_HOVER);
 
@@ -244,6 +253,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         drawPlus(graphics, commitX, commitY, TEXT_ON_ACCENT);
     }
 
+    /** Draws a small plus icon centered in a {@link #LIST_ICON_SIZE} square. */
     private static void drawPlus(GuiGraphicsExtractor graphics, int x, int y, int color) {
         int cx = x + LIST_ICON_SIZE / 2;
         int cy = y + LIST_ICON_SIZE / 2;
@@ -251,10 +261,12 @@ public final class ClickGuiScreen extends ZephyrScreen {
         graphics.fill(cx - 1, cy - 3, cx + 1, cy + 3, color);
     }
 
+    /** Formats a slider value, trimming trailing zeros, e.g. 1.500 -> "1.5". */
     private static String trimDouble(double value) {
         return String.format("%.3f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
     }
 
+    /** Routes clicks: tabs switch the category, rows toggle (left) or expand (right), settings handle themselves. */
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
@@ -311,6 +323,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return false;
     }
 
+    /** Dispatches a click on a setting row to the appropriate interaction (toggle/cycle/drag/list). */
     private void handleSettingClick(SettingRowLayout settingRow, double mouseX, double mouseY, int settingTop) {
         if (settingRow.setting instanceof BooleanSetting boolSetting) {
             boolSetting.toggle();
@@ -324,6 +337,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Handles clicks within a list setting: add icon, per-entry remove icons, or the commit icon. */
     private void handleListSettingClick(ListSetting setting, double mouseX, double mouseY, int top) {
         int left = panelX + PADDING + 8;
         int right = panelX + panelWidth - PADDING - 8;
@@ -362,6 +376,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Opens the inline inputs for appending an entry to the given list setting. */
     private void startAddingEntry(ListSetting setting) {
         cancelListEditing();
         listEditing = setting;
@@ -379,6 +394,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         setFocused(blockInputBox);
     }
 
+    /** Reads the inline inputs and appends the entry (skipped when the block id is blank). */
     private void commitNewEntry() {
         if (listEditing != null) {
             String blockName = blockInputBox != null ? blockInputBox.getValue().trim() : "";
@@ -390,6 +406,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         cancelListEditing();
     }
 
+    /** Tears down the list-editing inputs and clears focus. */
     private void cancelListEditing() {
         if (blockInputBox != null) {
             if (getFocused() == blockInputBox || getFocused() == colorInputBox) {
@@ -403,12 +420,14 @@ public final class ClickGuiScreen extends ZephyrScreen {
         listEditing = null;
     }
 
+    /** Cancels list editing if a list is currently being edited. */
     private void clearListEditing() {
         if (listEditing != null) {
             cancelListEditing();
         }
     }
 
+    /** Enter/confirm commits the in-progress list entry instead of toggling focus. */
     @Override
     public boolean keyPressed(KeyEvent event) {
         if (event.isConfirmation() && listEditing != null) {
@@ -418,6 +437,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return super.keyPressed(event);
     }
 
+    /** While dragging with the left button held, moves the active number slider with the mouse. */
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
         double mouseX = event.x();
@@ -429,6 +449,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return super.mouseDragged(event, dragX, dragY);
     }
 
+    /** Ends a slider drag when the left button is released. */
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
         int button = event.button();
@@ -439,6 +460,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return super.mouseReleased(event);
     }
 
+    /** Maps the mouse X within the slider track to the setting's 0-1 progress. */
     private void updateSliderFromMouse(NumberSetting setting, double mouseX) {
         int left = panelX + PADDING + 8;
         int right = panelX + panelWidth - PADDING - 8;
@@ -446,12 +468,14 @@ public final class ClickGuiScreen extends ZephyrScreen {
         setting.setFromProgress(progress);
     }
 
+    /** Scrolls the module list by the wheel delta. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         scrollOffset -= scrollY * ROW_HEIGHT;
         return true;
     }
 
+    /** Computes the tab bar's horizontal spans, evenly dividing the panel width. */
     private List<TabLayout> computeTabLayout() {
         List<TabLayout> tabs = new ArrayList<>();
         Category[] categories = Category.values();
@@ -470,6 +494,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return tabs;
     }
 
+    /** Builds the visible row layout, filtering by category and search query and expanding settings. */
     private List<RowLayout> computeLayout(int listTop) {
         List<RowLayout> layout = new ArrayList<>();
         String query = searchQuery.toLowerCase();
@@ -500,6 +525,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return layout;
     }
 
+    /** The rendered height of a setting row; list settings grow with their entries. */
     private int settingHeight(Setting<?> setting) {
         if (setting instanceof ListSetting listSetting) {
             return SETTING_ROW_HEIGHT * (1 + listSetting.get().size() + (listEditing == listSetting ? 1 : 0));

@@ -19,6 +19,10 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 public class BeehiveProvider implements IComponentProvider {
     public static final BeehiveProvider INSTANCE = new BeehiveProvider();
 
+    /**
+     * Appends a "Honey: n/5" row for targeted bee nests/hives when the
+     * corresponding module setting is enabled.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!Jade.INSTANCE.showBeehive() || !(accessor instanceof BlockAccessor block)) {

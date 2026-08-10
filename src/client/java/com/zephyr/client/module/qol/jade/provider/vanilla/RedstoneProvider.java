@@ -24,6 +24,11 @@ import net.minecraft.world.level.block.state.properties.ComparatorMode;
 public class RedstoneProvider implements IComponentProvider {
     public static final RedstoneProvider INSTANCE = new RedstoneProvider();
 
+    /**
+     * Appends redstone detail rows (lever state, repeater delay, comparator mode,
+     * strong signal power) for targeted blocks when the corresponding module
+     * setting is enabled.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!Jade.INSTANCE.showRedstone() || !(accessor instanceof BlockAccessor block)) {

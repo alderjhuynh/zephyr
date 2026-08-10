@@ -25,6 +25,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
+/**
+ * Finds huge warped fungi and reconstructs their full structure.
+ *
+ * <p>Scans for warped stem blocks, validates the fungus layout (trunk height, layer rings, vine
+ * data), and packages the most informative fungus as {@link FullFungusData} for seed cracking.
+ */
 public class WarpedFungusFinder extends BlockFinder {
     private static final Logger logger = LoggerFactory.getLogger("warpedFungusFinder");
 
@@ -35,6 +41,9 @@ public class WarpedFungusFinder extends BlockFinder {
         this.searchPositions = CHUNK_POSITIONS;
     }
 
+    /**
+     * @return warped fungus finders for the chunk and all eight neighbouring chunks
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new WarpedFungusFinder(world, chunkPos));
@@ -53,6 +62,12 @@ public class WarpedFungusFinder extends BlockFinder {
         return finders;
     }
 
+    /**
+     * Validates observed fungi, records their structure and submits the best one as a
+     * {@code WarpedFungus.Data} constraint.
+     *
+     * @return the accepted stem positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 64, (this.chunkPos.z() << 2) + 2).value();
@@ -250,6 +265,14 @@ public class WarpedFungusFinder extends BlockFinder {
         return newResult;
     }
 
+    /**
+     * Counts the decorator blocks (shroomlight/wart) on a ring of the given size around a position.
+     *
+     * @param pos the ring center
+     * @param ringSize the ring radius
+     * @return 0 for a full valid layer, 1 when nothing was found, 2 when not enough was found, 3 on
+     * an unexpected block
+     */
     private int countRing(BlockPos pos, int ringSize) {
         int counter = 0;
         int deco = 0;
@@ -276,12 +299,19 @@ public class WarpedFungusFinder extends BlockFinder {
         return 2;
     }
 
+    /**
+     * @param block the block to test
+     * @return true if the block is one of the nether plant/fungus blocks
+     */
     private boolean isNetherPlant(Block block) {
         return block == Blocks.TWISTING_VINES || block == Blocks.TWISTING_VINES_PLANT || block == Blocks.NETHER_SPROUTS ||
                 block == Blocks.WARPED_ROOTS || block == Blocks.WARPED_FUNGUS || block == Blocks.CRIMSON_FUNGUS ||
                 block == Blocks.CRIMSON_ROOTS;
     }
 
+    /**
+     * @return true for the Nether dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isNether(dimension);

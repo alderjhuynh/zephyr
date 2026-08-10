@@ -5,8 +5,18 @@ import net.minecraft.core.BlockPos;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Builds sets of block positions spanning a rectangular volume.
+ */
 public class PosIterator {
 
+    /**
+     * Enumerates every block position within the axis-aligned box between two corners.
+     *
+     * @param start the first (min) corner
+     * @param end the second (max) corner
+     * @return the set of positions in the box
+     */
     public static Set<BlockPos> create(BlockPos start, BlockPos end) {
         Set<BlockPos> result = new HashSet<>();
 

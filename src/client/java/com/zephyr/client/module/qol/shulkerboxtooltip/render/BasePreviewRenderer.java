@@ -34,6 +34,14 @@ public abstract class BasePreviewRenderer implements PreviewRenderer {
     protected final int slotXOffset;
     protected final int slotYOffset;
 
+    /**
+     * Creates a base renderer with the given slot metrics.
+     *
+     * @param slotWidth   the pixel width of a single slot
+     * @param slotHeight  the pixel height of a single slot
+     * @param slotXOffset the horizontal padding before the first slot column
+     * @param slotYOffset the vertical padding before the first slot row
+     */
     protected BasePreviewRenderer(int slotWidth, int slotHeight, int slotXOffset, int slotYOffset) {
         this.fullItems = List.of();
         this.compactItems = List.of();
@@ -49,15 +57,24 @@ public abstract class BasePreviewRenderer implements PreviewRenderer {
         this.slotYOffset = slotYOffset;
     }
 
+    /** @return the number of slots per row for the current preview type */
     protected int getMaxRowSize() {
         return this.previewType == PreviewType.COMPACT ? this.compactMaxRowSize : this.maxRowSize;
     }
 
+    /** Sets the preview type (FULL, COMPACT, or NO_PREVIEW). */
     @Override
     public void setPreviewType(PreviewType type) {
         this.previewType = type;
     }
 
+    /**
+     * Stores the context and provider data (row sizes, inventory, merged compact
+     * stacks) used by the subsequent {@link #draw(RenderContext)} call.
+     *
+     * @param context  the preview context
+     * @param provider the provider supplying the preview content
+     */
     @Override
     public void setPreview(PreviewContext context, PreviewProvider provider) {
         int rowSize = provider.getMaxRowSize(context);
@@ -120,6 +137,10 @@ public abstract class BasePreviewRenderer implements PreviewRenderer {
         return ItemStack.EMPTY;
     }
 
+    /**
+     * Draws every slot up to {@code maxSlot} for the current preview type,
+     * highlighting the slot currently under the mouse.
+     */
     protected void drawSlots(int x, int y, GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY,
                              int maxSlot) {
         int mouseHoveredSlot = this.getSlotAt(mouseX - x, mouseY - y);
@@ -144,6 +165,10 @@ public abstract class BasePreviewRenderer implements PreviewRenderer {
     protected abstract void drawSlot(ItemStack stack, int x, int y, GuiGraphicsExtractor graphics, Font font, int slot,
                                      boolean isHighlighted, boolean shortItemCount);
 
+    /**
+     * Draws the item icon plus an explicit stack count label, abbreviating the
+     * count when {@code shortItemCount} is set.
+     */
     protected void drawItem(ItemStack stack, int x, int y, GuiGraphicsExtractor graphics, Font font,
                             boolean shortItemCount) {
         String countLabel = "";

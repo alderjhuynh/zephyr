@@ -11,6 +11,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Intercepts {@link ClientPacketListener#sendChat} so Zephyr chat commands never reach
+ * the server. The outgoing message is checked against {@link CommandManager#dispatch};
+ * if it starts with the Command Prefix (see {@link CommandPrefixHandler}) it is handled
+ * client-side and the vanilla send is cancelled. When the hidden "UwU Chat" easter egg
+ * is active (see {@link PartyManager}), ordinary (non-command) messages are rewritten
+ * in place before they are forwarded.
+ */
 @Mixin(ClientPacketListener.class)
 public class ChatInterceptMixin {
     // Runs before the dispatch inject below: when UwU Chat is on, the outgoing message

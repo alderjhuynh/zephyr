@@ -27,8 +27,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+/**
+ * Central store for all seed constraints collected by the finders.
+ *
+ * <p>Holds base feature data (structures and decorators), biome data, pillar data and hashed seed
+ * data. New constraints are scheduled and processed on the {@link TimeMachine} service; the
+ * {@link #SEED_DATA_COMPARATOR} orders base data by how many random bits each feature constrains.
+ */
 public class DataStorage {
 
+    /** Orders base seed data so structures come first and higher-information features first. */
     public static final Comparator<Entry<Feature.Data<?>>> SEED_DATA_COMPARATOR = (s1, s2) -> {
         boolean isStructure1 = s1.data.feature instanceof Structure;
         boolean isStructure2 = s2.data.feature instanceof Structure;
@@ -54,6 +62,14 @@ public class DataStorage {
     protected PillarData pillarData = null;
     protected ScheduledSet<Entry<BiomeData>> biomeSeedData = new ScheduledSet<>(null);
 
+    /**
+     * Estimates how many random bits a feature's placement constrains, used to gauge search
+     * progress and whether enough data has been collected.
+     *
+     * @param feature the feature to estimate
+     * @param decorators18 whether to count 1.18+ decorators (whose bits are currently unmodelled)
+     * @return the estimated bit count
+     */
     public static double getBits(Feature<?, ?> feature, boolean decorators18) {
         if (feature instanceof UniformStructure<?> s) {
             return Math.log(s.getOffset() * s.getOffset()) / Math.log(2);
@@ -73,6 +89,10 @@ public class DataStorage {
         throw new UnsupportedOperationException("go do implement bits count for " + feature.getName() + " you fool");
     }
 
+    /**
+     * Flushes pending data into the time machine's service. When the machine is idle, scheduled
+     * consumer callbacks are run off the main thread and the machine is marked as running.
+     */
     public void tick() {
         if (!this.timeMachine.isRunning) {
             this.baseSeedData.dump();
@@ -96,6 +116,13 @@ public class DataStorage {
         }
     }
 
+    /**
+     * Adds a pillar height constraint. Only the first pillar data set is accepted.
+     *
+     * @param data the pillar data to store
+     * @param event the event to fire once stored
+     * @return true if this is the first pillar data set and it was stored
+     */
     public synchronized boolean addPillarData(PillarData data, DataAddedEvent event) {
         boolean isAdded = this.pillarData == null;
 
@@ -107,6 +134,13 @@ public class DataStorage {
         return isAdded;
     }
 
+    /**
+     * Adds a base (structure/decorator) feature placement constraint if it is not already stored.
+     *
+     * @param data the feature data to store
+     * @param event the event to fire once stored
+     * @return true if the data was newly added
+     */
     public synchronized boolean addBaseData(Feature.Data<?> data, DataAddedEvent event) {
         Entry<Feature.Data<?>> e = new Entry<>(data, event);
 
@@ -119,6 +153,13 @@ public class DataStorage {
         return true;
     }
 
+    /**
+     * Adds a biome constraint if it is not already stored.
+     *
+     * @param data the biome data to store
+     * @param event the event to fire once stored
+     * @return true if the data was newly added
+     */
     public synchronized boolean addBiomeData(BiomeData data, DataAddedEvent event) {
         Entry<BiomeData> e = new Entry<>(data, event);
 
@@ -131,6 +172,13 @@ public class DataStorage {
         return true;
     }
 
+    /**
+     * Adds a hashed seed constraint, replacing any previously stored one with a different hash.
+     *
+     * @param data the hashed seed data to store
+     * @param event the event to fire once stored
+     * @return true if the hashed seed was newly stored
+     */
     public synchronized boolean addHashedSeedData(HashedSeedData data, DataAddedEvent event) {
         if (this.hashedSeedData == null || this.hashedSeedData.getHashedSeed() != data.getHashedSeed()) {
             this.hashedSeedData = data;
@@ -141,14 +189,25 @@ public class DataStorage {
         return false;
     }
 
+    /**
+     * Queues a consumer to run on the time machine service during the next {@link #tick()}.
+     *
+     * @param consumer the callback to run
+     */
     public void schedule(Consumer<DataStorage> consumer) {
         this.scheduledData.add(consumer);
     }
 
+    /**
+     * @return the {@link TimeMachine} driving the seed search
+     */
     public TimeMachine getTimeMachine() {
         return this.timeMachine;
     }
 
+    /**
+     * @return total bits constrained by all stored base features (excluding pillager outposts)
+     */
     public double getBaseBits() {
         double bits = 0.0D;
 
@@ -160,6 +219,9 @@ public class DataStorage {
         return bits;
     }
 
+    /**
+     * @return bits constrained by old-style structures and shipwrecks, used for the lifting phase
+     */
     public double getLiftingBits() {
         double bits = 0.0D;
 
@@ -173,6 +235,9 @@ public class DataStorage {
         return bits;
     }
 
+    /**
+     * @return bits constrained by all stored decorator features (counting 1.18+ decorators)
+     */
     public double getDecoratorBits() {
         double bits = 0.0D;
 
@@ -184,14 +249,24 @@ public class DataStorage {
         return bits;
     }
 
+    /**
+     * @return the target amount of bits required before the structure seed search is attempted
+     */
     public double getWantedBits() {
         return 32.0D;
     }
 
+    /**
+     * @return true if fewer than seven biome constraints have been collected
+     */
     public boolean notEnoughBiomeData() {
         return this.biomeSeedData.size() < 7;
     }
 
+    /**
+     * Resets all stored data and state for a fresh seed search, terminating the current time
+     * machine and replacing it with a new one.
+     */
     public void clear() {
         this.scheduledData = ConcurrentHashMap.newKeySet();
         this.pillarData = null;
@@ -203,8 +278,15 @@ public class DataStorage {
         this.blockUpdateQueue = new BlockUpdateQueue();
     }
 
+    /**
+     * A single stored constraint paired with the event to fire when it is processed.
+     *
+     * @param <T> the type of stored data
+     */
     public static class Entry<T> {
+        /** The stored data. */
         public final T data;
+        /** The event fired when this entry's data is processed. */
         public final DataAddedEvent event;
 
         public Entry(T data, DataAddedEvent event) {

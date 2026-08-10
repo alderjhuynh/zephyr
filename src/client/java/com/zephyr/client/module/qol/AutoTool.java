@@ -7,6 +7,11 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
+/**
+ * Automatically swaps to the fastest tool in the player's hotbar for the block
+ * currently being broken. On every block-break start the hotbar is scanned and
+ * the selected slot is switched to the item with the highest destroy speed.
+ */
 public final class AutoTool extends Module {
     public static final AutoTool INSTANCE = new AutoTool();
     private AutoTool() {
@@ -15,6 +20,12 @@ public final class AutoTool extends Module {
 
     private static final Minecraft client = Minecraft.getInstance();
 
+    /**
+     * Called when the player starts breaking a block; selects the fastest
+     * available hotbar tool for that block.
+     *
+     * @param state the block state being broken
+     */
     public static void onStartBreakingBlock(BlockState state) {
         if (client.player == null) return;
 

@@ -10,9 +10,28 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+/**
+ * Mixin targeting {@link LivingEntity} that backs the
+ * {@code disableFirstPersonEffectParticles} module.
+ */
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityRendererMixin {
 
+    /**
+     * Redirects the {@code Level.addParticle} call inside {@code LivingEntity#tickEffects}
+     * so that ambient status-effect particles are not spawned for the local player while
+     * playing in first person and the module is enabled. All other cases are forwarded
+     * to the original method.
+     *
+     * @param world      the level the particle would be spawned in
+     * @param parameters the particle options describing the effect particle
+     * @param x          the particle's x position
+     * @param y          the particle's y position
+     * @param z          the particle's z position
+     * @param velocityX  the particle's x velocity
+     * @param velocityY  the particle's y velocity
+     * @param velocityZ  the particle's z velocity
+     */
     @Redirect(
             method = "tickEffects",
             at = @At(

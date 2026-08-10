@@ -3,10 +3,24 @@ package com.zephyr.client.module.qol.freecam;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Computes the freecam velocity for the default flight mode. It resolves the
+ * camera's forward and side vectors from its yaw, combines the movement keys
+ * (optionally sprinting faster), normalizes diagonal movement, and applies the
+ * vertical speed through the jump and sneak keys.
+ */
 public class Motion {
 
+    /** Factor applied to horizontal velocity when moving diagonally, equal to {@code sin(45°)}. */
     public static final double DIAGONAL_MULTIPLIER = Mth.sin((float) Math.toRadians(45));
 
+    /**
+     * Sets the freecam camera's velocity for this tick based on its input.
+     *
+     * @param freeCamera the camera entity to move
+     * @param hSpeed     the configured horizontal speed
+     * @param vSpeed     the configured vertical speed
+     */
     public static void doMotion(FreeCamera freeCamera, double hSpeed, double vSpeed) {
         float yaw = freeCamera.getYRot();
         double velocityX = 0.0;

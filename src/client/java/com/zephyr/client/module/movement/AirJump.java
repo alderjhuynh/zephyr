@@ -5,6 +5,12 @@ import com.zephyr.client.configplusgui.module.Category;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 
+/**
+ * Movement module that lets the player jump while airborne. Pressing the jump
+ * key mid-air triggers a jump from ground, once per key press (edge-triggered),
+ * so repeated jumps act as an air jump or double-jump. The edge state is reset
+ * whenever the player returns to a surface.
+ */
 public final class AirJump extends Module {
     public static final AirJump INSTANCE = new AirJump();
     private AirJump() {
@@ -13,6 +19,13 @@ public final class AirJump extends Module {
 
     private static boolean wasJumpPressed = false;
 
+    /**
+     * Performs the air jump each tick: while airborne, a fresh jump-key press
+     * calls {@link LocalPlayer#jumpFromGround()}. Grounded, climbing, swimming
+     * and creative-flying states clear the pending edge.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         LocalPlayer player = client.player;
@@ -32,6 +45,7 @@ public final class AirJump extends Module {
         wasJumpPressed = isJumpPressed;
     }
 
+    /** Resets the jump edge state, used when the module is (re)enabled. */
     public static void onEnable(Minecraft client) {
         wasJumpPressed = false;
     }

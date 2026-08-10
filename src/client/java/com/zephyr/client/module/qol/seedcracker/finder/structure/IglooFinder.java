@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Finds igloos by matching their snow-block ring structure.
+ */
 public class IglooFinder extends Finder {
 
     protected static Map<Direction, List<BlockPos>> SEARCH_POSITIONS;
@@ -40,11 +43,19 @@ public class IglooFinder extends Finder {
         });
     }
 
+    /**
+     * Recomputes the per-facing search positions for igloo scanning.
+     */
     public static void reloadSearchPositions() {
         SEARCH_POSITIONS = JigsawFinder.getSearchPositions(3, 5,0,0, size);
     }
 
 
+    /**
+     * Runs all piece finders and records an {@code Igloo.Data} constraint for each match.
+     *
+     * @return the combined matched positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Map<JigsawFinder, List<BlockPos>> result = this.findInChunkPieces();
@@ -67,6 +78,9 @@ public class IglooFinder extends Finder {
         return combinedResult;
     }
 
+    /**
+     * @return a map of every piece finder to its matched positions
+     */
     public Map<JigsawFinder, List<BlockPos>> findInChunkPieces() {
         Map<JigsawFinder, List<BlockPos>> result = new HashMap<>();
 
@@ -77,6 +91,11 @@ public class IglooFinder extends Finder {
         return result;
     }
 
+    /**
+     * Defines the igloo layout: snow-block ring walls and a crafting table inside.
+     *
+     * @param finder the piece finder to build the structure on
+     */
     public void buildStructure(JigsawFinder finder) {
         BlockState snow = Blocks.SNOW_BLOCK.defaultBlockState();
         BlockState ice = Blocks.ICE.defaultBlockState();
@@ -108,11 +127,17 @@ public class IglooFinder extends Finder {
         }
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);
     }
 
+    /**
+     * @return igloo finders for the chunk and its east neighbour
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new IglooFinder(world, chunkPos));

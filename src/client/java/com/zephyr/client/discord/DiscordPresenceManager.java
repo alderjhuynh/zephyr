@@ -20,6 +20,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
+/**
+ * Manages Discord Rich Presence for Zephyr over the Discord IPC (the
+ * discord-ipc library, shaded into the mod). Connects to Discord on a
+ * background daemon thread, publishes details describing the current Minecraft
+ * version and the player's location (main menu, singleplayer world, server, or
+ * Realm), and automatically reconnects (with a delay) when the IPC connection
+ * is lost while the feature is still enabled.
+ */
 public final class DiscordPresenceManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger("discord-rpc-test");
 
@@ -41,6 +49,10 @@ public final class DiscordPresenceManager {
 	private DiscordPresenceManager() {
 	}
 
+	/**
+	 * Initializes Rich Presence: resets the session start time and enables the
+	 * IPC connection if the Discord presence option is turned on.
+	 */
 	public static void initialize() {
 		sessionStart = System.currentTimeMillis();
 		if (GlobalConfig.discordPresence()) {
@@ -48,6 +60,7 @@ public final class DiscordPresenceManager {
 		}
 	}
 
+	/** Enables Rich Presence by scheduling an async IPC connection attempt. */
 	public static void enable() {
 		if (shuttingDown) {
 			return;
@@ -55,19 +68,26 @@ public final class DiscordPresenceManager {
 		EXECUTOR.execute(DiscordPresenceManager::connect);
 	}
 
+	/** Disables Rich Presence by scheduling an async disconnect of the IPC client. */
 	public static void disable() {
 		EXECUTOR.execute(DiscordPresenceManager::disconnect);
 	}
 
+	/** Restarts the session timer and pushes an updated presence when transitioning worlds. */
 	public static void onWorldTransition() {
 		sessionStart = System.currentTimeMillis();
 		pushPresence();
 	}
 
+	/** Re-pushes the current presence, refreshing Discord's display. */
 	public static void refresh() {
 		pushPresence();
 	}
 
+	/**
+	 * Shuts down Rich Presence permanently: marks the manager as shutting down,
+	 * disconnects the IPC client, and stops the background executor.
+	 */
 	public static void shutdown() {
 		shuttingDown = true;
 		EXECUTOR.execute(DiscordPresenceManager::disconnect);

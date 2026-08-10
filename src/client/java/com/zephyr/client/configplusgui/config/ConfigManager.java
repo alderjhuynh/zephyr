@@ -40,6 +40,13 @@ public final class ConfigManager {
     private ConfigManager() {
     }
 
+    /**
+     * Loads {@code modules.json} and applies it to the given live modules without
+     * firing {@code onEnable()}/{@code onDisable()} side effects. Missing files and
+     * malformed data silently fall back to defaults.
+     *
+     * @param modules the registered modules to restore state onto
+     */
     public static void load(List<Module> modules) {
         if (!Files.exists(CONFIG_PATH)) {
             return;
@@ -54,6 +61,11 @@ public final class ConfigManager {
         }
     }
 
+    /**
+     * Snapshots the given modules' state and writes it to {@code modules.json}.
+     *
+     * @param modules the registered modules to persist
+     */
     public static void save(List<Module> modules) {
         JsonObject root = writeModuleStates(modules);
 
@@ -122,6 +134,10 @@ public final class ConfigManager {
         return root;
     }
 
+    /**
+     * Dispatches a raw JSON value to the correct typed setter based on the setting's
+     * concrete {@link Setting} subtype.
+     */
     private static void applySettingValue(Setting<?> setting, JsonElement element) {
         if (setting instanceof BooleanSetting booleanSetting) {
             booleanSetting.set(element.getAsBoolean());
@@ -136,6 +152,7 @@ public final class ConfigManager {
         }
     }
 
+    /** Rebuilds a {@link ListSetting} from its serialized {@code [{block, color}]} array. */
     private static void applyListValue(ListSetting setting, JsonArray array) {
         setting.clear();
         for (JsonElement element : array) {
@@ -146,6 +163,7 @@ public final class ConfigManager {
         }
     }
 
+    /** Restores an enum setting by constant name, keeping the default on unknown values. */
     private static <T extends Enum<T>> void applyEnumValue(EnumSetting<T> enumSetting, String name) {
         try {
             enumSetting.set(Enum.valueOf(enumSetting.getEnumType(), name));
@@ -156,6 +174,10 @@ public final class ConfigManager {
         }
     }
 
+    /**
+     * Serializes a single setting into {@code settingsJson} using its subtype-appropriate
+     * JSON representation (primitives for scalars, arrays for {@link ListSetting}).
+     */
     private static void writeSettingValue(JsonObject settingsJson, Setting<?> setting) {
         if (setting instanceof BooleanSetting booleanSetting) {
             settingsJson.addProperty(setting.getName(), booleanSetting.get());

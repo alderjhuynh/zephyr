@@ -28,8 +28,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+/**
+ * Mixin into {@link ItemStack} wiring the Zephyr ShulkerBoxTooltip module into
+ * the item tooltip pipeline.
+ *
+ * <p>Injects a preview tooltip component when a supported container item is
+ * hovered, appends additional tooltip lines via the
+ * {@link ShulkerBoxTooltipApi} entrypoints, and hides the lore line of shulker
+ * box items when the "Hide Shulker Box Lore" setting is enabled.
+ */
 @Mixin(ItemStack.class)
 public class ItemStackMixin {
+    /**
+     * Replaces the stack's tooltip image with a {@link PreviewTooltipComponent}
+     * when a preview provider is available for the hovered container item.
+     *
+     * @param cir mixin callback used to substitute the tooltip image
+     */
     @Inject(at = @At("HEAD"), method = "getTooltipImage()Ljava/util/Optional;", cancellable = true)
     private void zephyr$onGetTooltipImage(CallbackInfoReturnable<Optional<TooltipComponent>> cir) {
         Player owner = Minecraft.getInstance().player;
@@ -40,6 +55,16 @@ public class ItemStackMixin {
             cir.setReturnValue(Optional.of(new PreviewTooltipComponent(provider, context)));
     }
 
+    /**
+     * Appends module tooltip lines (registered via
+     * {@link ShulkerBoxTooltipApi#modifyStackTooltip}) to the stack's computed
+     * tooltip.
+     *
+     * @param context the item tooltip context
+     * @param player  the player viewing the tooltip
+     * @param type    the tooltip flag
+     * @param cir     mixin callback providing the computed tooltip lines
+     */
     @Inject(at = @At("RETURN"), method =
             "getTooltipLines(Lnet/minecraft/world/item/Item$TooltipContext;Lnet/minecraft/world/entity/player/Player;"
             + "Lnet/minecraft/world/item/TooltipFlag;)Ljava/util/List;")
@@ -49,6 +74,17 @@ public class ItemStackMixin {
         ShulkerBoxTooltipApi.modifyStackTooltip((ItemStack) (Object) this, tooltip::addAll);
     }
 
+    /**
+     * Hides the lore tooltip line on shulker box items while the module's
+     * "Hide Shulker Box Lore" setting is enabled.
+     *
+     * @param componentType    the data component being added to the tooltip
+     * @param tooltipContext   the tooltip context
+     * @param tooltipDisplay   the tooltip display settings
+     * @param consumer         the component consumer for the tooltip lines
+     * @param tooltipFlag      the tooltip flag
+     * @param ci               mixin callback used to cancel the lore line
+     */
     @Inject(at = @At("HEAD"), method = "addToTooltip("
             + "Lnet/minecraft/core/component/DataComponentType;Lnet/minecraft/world/item/Item$TooltipContext;"
             + "Lnet/minecraft/world/item/component/TooltipDisplay;Ljava/util/function/Consumer;Lnet/minecraft/world/item/TooltipFlag;)V",

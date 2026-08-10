@@ -16,6 +16,10 @@ import net.minecraft.network.chat.Component;
 public class NameProvider implements IComponentProvider {
     public static final NameProvider INSTANCE = new NameProvider();
 
+    /**
+     * Appends the display name of the targeted block or entity as the first
+     * (title) row.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         Component name = accessor instanceof BlockAccessor block

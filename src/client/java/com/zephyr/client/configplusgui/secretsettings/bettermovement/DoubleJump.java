@@ -9,6 +9,14 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * The {@link BetterMovement} double-jump helper. Grants a mid-air re-jump after leaving
+ * the ground, gated by a shared "tick budget" ({@code MAX_TICKS_AVAILABLE} total, each
+ * jump costs {@code JUMP_TICK_COST}). A second jump can be triggered either by releasing
+ * and re-pressing Space while airborne, or by falling at least {@code fallBlocksThreshold}
+ * blocks. Re-jumping fires a custom sound and cloud particles; while gliding it also gives
+ * a forward boost and extends the {@link WaveDash} boost.
+ */
 public final class DoubleJump {
     public static boolean enabled = true;
     private static boolean wasJumpPressed = false;
@@ -28,6 +36,7 @@ public final class DoubleJump {
     private DoubleJump() {
     }
 
+    /** Whether the block at {@code pos} offers no collision, i.e. counts as open air. */
     private static boolean isAir(BlockPos pos, LocalPlayer player) {
         var state = player.level().getBlockState(pos);
         if (state.isAir()) return true;
@@ -35,6 +44,7 @@ public final class DoubleJump {
         return shape.isEmpty();
     }
 
+    /** Probes several points just below the player's bounding box for solid ground. */
     private static boolean isNearGround(LocalPlayer player) {
         AABB bb = player.getBoundingBox();
         double probeY = bb.minY - 0.05;
@@ -53,18 +63,22 @@ public final class DoubleJump {
         return false;
     }
 
+    /** Ticks of the jump budget that have been consumed. */
     public static int getCooldownTimer() {
         return MAX_TICKS_AVAILABLE - ticksAvailable;
     }
 
+    /** The total jump budget in ticks. */
     public static int getCooldownTicks() {
         return MAX_TICKS_AVAILABLE;
     }
 
+    /** Remaining jump-budget ticks (used by {@link Glide#canStartGlide}). */
     public static int getTicksAvailable() {
         return ticksAvailable;
     }
 
+    /** Enables the helper and resets double-jump state. */
     public static void onEnable() {
         enabled = true;
         wasJumpPressed = false;
@@ -73,6 +87,7 @@ public final class DoubleJump {
         fallThresholdMet = false;
     }
 
+    /** Disables the helper and resets double-jump state. */
     public static void onDisable() {
         enabled = false;
         wasJumpPressed = false;
@@ -82,6 +97,7 @@ public final class DoubleJump {
         fallThresholdMet = false;
     }
 
+    /** Tracks airtime/fall state and fires the re-jump on the qualifying Space press edge. */
     public static void tick(Minecraft client) {
         if (!enabled) return;
 

@@ -30,18 +30,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Finds jungle pyramids by matching their cobblestone/redstone structure.
+ */
 public class JunglePyramidFinder extends AbstractTempleFinder {
 
     public JunglePyramidFinder(Level world, ChunkPos chunkPos) {
         super(world, chunkPos, new Vec3i(12, 10, 15));
     }
 
+    /**
+     * @return a single {@link JunglePyramidFinder} for the given chunk
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new JunglePyramidFinder(world, chunkPos));
         return finders;
     }
 
+    /**
+     * Runs all piece finders and records a {@code JunglePyramid.Data} constraint for each match.
+     *
+     * @return the combined matched positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Map<PieceFinder, List<BlockPos>> result = super.findInChunkPieces();
@@ -62,10 +73,19 @@ public class JunglePyramidFinder extends AbstractTempleFinder {
         return combinedResult;
     }
 
+    /**
+     * @param biome the biome to validate
+     * @return true if a jungle pyramid may generate in the given biome
+     */
     protected boolean isValidBiome(Biome biome) {
         return Features.JUNGLE_PYRAMID.isValidBiome(BiomeFixer.swap(biome));
     }
 
+    /**
+     * Defines the jungle pyramid layout: stairs, redstone/tripwire trap and mossy cobblestone rooms.
+     *
+     * @param finder the piece finder to build the structure on
+     */
     @Override
     public void buildStructure(PieceFinder finder) {
         BlockState eastStairs = Blocks.COBBLESTONE_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);

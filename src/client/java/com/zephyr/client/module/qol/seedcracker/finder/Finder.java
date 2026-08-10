@@ -24,9 +24,19 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * Base class for all seedcracker finders.
+ *
+ * <p>A finder scans a single chunk for the fingerprint of one feature type. Concrete subclasses
+ * implement {@link #findInChunk()} and collect the results as {@link Cuboid} render boxes plus
+ * {@code DataStorage} constraints. {@link Type} enumerates every available finder and binds it to
+ * its builder, category and config toggle.
+ */
 public abstract class Finder {
 
+    /** All in-chunk positions within the current height range, precomputed once per world. */
     protected static final List<BlockPos> CHUNK_POSITIONS = new ArrayList<>();
+    /** All 16x16x16 sub-chunk positions, used for scanning full 16-block sub-chunks. */
     protected static final List<BlockPos> SUB_CHUNK_POSITIONS = new ArrayList<>();
     protected static HeightContext heightContext;
 
@@ -41,6 +51,7 @@ public abstract class Finder {
     }
 
     protected Minecraft mc = Minecraft.getInstance();
+    /** Render boxes for every discovery made by this finder. */
     protected final List<Cuboid> cuboids = new ArrayList<>();
     protected Level world;
     protected ChunkPos chunkPos;
@@ -50,6 +61,13 @@ public abstract class Finder {
         this.chunkPos = chunkPos;
     }
 
+    /**
+     * Filters a base position list through a removal predicate.
+     *
+     * @param base the base list of positions
+     * @param removeIf positions matching this predicate are dropped
+     * @return a new list of kept positions
+     */
     public static List<BlockPos> buildSearchPositions(List<BlockPos> base, Predicate<BlockPos> removeIf) {
         List<BlockPos> newList = new ArrayList<>();
 
@@ -62,16 +80,30 @@ public abstract class Finder {
         return newList;
     }
 
+    /**
+     * @return the level this finder scans
+     */
     public Level getWorld() {
         return this.world;
     }
 
+    /**
+     * @return the chunk position this finder scans
+     */
     public ChunkPos getChunkPos() {
         return this.chunkPos;
     }
 
+    /**
+     * Scans this finder's chunk for its feature fingerprint.
+     *
+     * @return the discovered block positions, in absolute world coordinates
+     */
     public abstract List<BlockPos> findInChunk();
 
+    /**
+     * @return true if any of this finder's cuboids is within the player's render distance
+     */
     public boolean shouldRender() {
         DimensionType finderDim = this.world.dimensionType();
         DimensionType playerDim = mc.player.level().dimensionType();
@@ -90,24 +122,47 @@ public abstract class Finder {
         return false;
     }
 
+    /**
+     * @return true if this finder found nothing and can be discarded
+     */
     public boolean isUseless() {
         return this.cuboids.isEmpty();
     }
 
+    /**
+     * @param dimension the dimension to check
+     * @return true if this finder is valid in the given dimension
+     */
     public abstract boolean isValidDimension(DimensionType dimension);
 
+    /**
+     * @param dimension the dimension to check
+     * @return true if the dimension is the overworld
+     */
     public boolean isOverworld(DimensionType dimension) {
         return dimension.skybox() == DimensionType.Skybox.OVERWORLD;
     }
 
+    /**
+     * @param dimension the dimension to check
+     * @return true if the dimension is the nether
+     */
     public boolean isNether(DimensionType dimension) {
         return dimension.skybox() == DimensionType.Skybox.NONE;
     }
 
+    /**
+     * @param dimension the dimension to check
+     * @return true if the dimension is the end
+     */
     public boolean isEnd(DimensionType dimension) {
         return dimension.skybox() == DimensionType.Skybox.END;
     }
 
+    /**
+     * @param dimension the dimension to check
+     * @return the seedfinding dimension id ("overworld", "the_nether" or "the_end")
+     */
     public static String inferDimension(DimensionType dimension) {
         return switch (dimension.skybox()) {
             case OVERWORLD -> "overworld";
@@ -116,12 +171,21 @@ public abstract class Finder {
         };
     }
 
+    /**
+     * Broad category of findable feature types.
+     */
     public enum Category {
         STRUCTURES,
         DECORATORS,
         BIOMES,
     }
 
+    /**
+     * Enumeration of every finder type available in the module.
+     *
+     * <p>Each entry binds a {@link FinderBuilder} factory, a {@link Category}, the config toggle
+     * controlling whether it is active, and a translation key for the GUI.
+     */
     public enum Type {
         BURIED_TREASURE(BuriedTreasureFinder::create, Category.STRUCTURES, Config.get().buriedTreasure, "finder.buriedTreasures"),
         DESERT_TEMPLE(DesertPyramidFinder::create, Category.STRUCTURES, Config.get().desertTemple, "finder.desertTemples"),
@@ -155,6 +219,10 @@ public abstract class Finder {
             this.nameKey = nameKey;
         }
 
+        /**
+         * @param category the category to filter by
+         * @return all finder types belonging to the given category
+         */
         public static List<Type> getForCategory(Category category) {
             return Arrays.stream(values()).filter(type -> type.category == category).collect(Collectors.toList());
         }

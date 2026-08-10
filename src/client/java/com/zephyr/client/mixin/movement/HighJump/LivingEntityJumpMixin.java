@@ -6,9 +6,17 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+/**
+ * Mixin targeting {@link net.minecraft.world.entity.LivingEntity}. Modifies the
+ * stored local variable holding the vertical jump velocity inside
+ * {@code jumpFromGround()} via {@code @ModifyVariable}, routing it through
+ * {@link HighJump#modifyJumpVelocity} so the configured multiplier scales the
+ * jump height. Backs the High Jump module.
+ */
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityJumpMixin {
 
+    /** Scales the stored jump velocity with the High Jump multiplier. */
     @ModifyVariable(
             method = "jumpFromGround",
             at = @At(value = "STORE"),

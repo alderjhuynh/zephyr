@@ -11,6 +11,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
+/**
+ * Replays the player's attack action several times per tick to speed up
+ * combat and block breaking. Each tick, the configured number of simulated
+ * attacks is performed against whatever the crosshair is currently targeting.
+ */
 public final class FastAttack extends Module {
     private static final int MIN_TIMES_PER_TICK = 1;
     private static final int MAX_TIMES_PER_TICK = 20;
@@ -23,6 +28,11 @@ public final class FastAttack extends Module {
     private final NumberSetting TimesPerTick =
             new NumberSetting("Actions Per Tick", 10, MIN_TIMES_PER_TICK, MAX_TIMES_PER_TICK, 1);
 
+    /**
+     * Performs the configured number of simulated attacks for the current tick.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         for (int i = 0; i < TimesPerTick.get(); i++) {

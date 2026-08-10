@@ -9,6 +9,13 @@ import net.minecraft.network.chat.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The hidden "???" easter-egg screen (reachable only via the vertical Cycle Screen cycle,
+ * see {@link ZephyrScreen#advance}). Shows the party-mode toggles backed by
+ * {@link PartyManager} (rainbow, uwu chat, confetti, wobble, module roulette), the hidden
+ * {@link BetterMovement} toggle, and session statistics (uwu'd messages, roulette spins).
+ * The bottom-right indicator renders as "???" instead of the normal nav name.
+ */
 public final class SecretGuiScreen extends ZephyrScreen {
     private static final int SECTION_HEIGHT = 20;
     private static final int ROW_HEIGHT = 24;
@@ -16,6 +23,7 @@ public final class SecretGuiScreen extends ZephyrScreen {
 
     private double scrollOffset = 0;
 
+    /** Creates the secret screen with a vertical slide; package-visible for {@link ZephyrScreen.Nav}. */
     SecretGuiScreen(int enterDirection) {
         super(Component.literal("Zephyr"), enterDirection, true);
     }
@@ -30,6 +38,7 @@ public final class SecretGuiScreen extends ZephyrScreen {
         return "???";
     }
 
+    /** Renders the chrome, section headers, toggle rows and stat rows in a scrolled list. */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         withPanelSlide(() -> {
@@ -53,6 +62,7 @@ public final class SecretGuiScreen extends ZephyrScreen {
         });
     }
 
+    /** Draws a row according to its type: header, toggle or stat. */
     private void renderRow(GuiGraphicsExtractor graphics, Row row, int scroll, int mouseX, int mouseY) {
         int top = row.top() - scroll;
         if (row instanceof SectionHeader header) {
@@ -65,6 +75,7 @@ public final class SecretGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Draws a checkbox toggle row with accent fill when enabled. */
     private void renderToggle(GuiGraphicsExtractor graphics, ToggleRow toggle, int top, int mouseX, int mouseY) {
         boolean enabled = toggle.get();
         boolean hovered = mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING
@@ -81,6 +92,7 @@ public final class SecretGuiScreen extends ZephyrScreen {
         graphics.fill(boxX, boxY, boxX + BOX_SIZE, boxY + BOX_SIZE, enabled ? accent() : 0x40FFFFFF);
     }
 
+    /** Draws a read-only session-stat row with its numeric value in accent. */
     private void renderStat(GuiGraphicsExtractor graphics, StatRow stat, int top) {
         graphics.fill(panelX + PADDING, top, panelX + panelWidth - PADDING, top + ROW_HEIGHT, ROW_BG);
         graphics.text(this.font, stat.label, panelX + PADDING + 8, top + 9, TEXT_DIM, false);
@@ -90,6 +102,7 @@ public final class SecretGuiScreen extends ZephyrScreen {
         graphics.text(this.font, value, panelX + panelWidth - PADDING - 8 - valueWidth, top + 9, accent(), false);
     }
 
+    /** Toggles the clicked toggle row; headers and stats are not interactive. */
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
@@ -115,12 +128,14 @@ public final class SecretGuiScreen extends ZephyrScreen {
         return false;
     }
 
+    /** Scrolls the secret list by the wheel delta. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         scrollOffset -= scrollY * ROW_HEIGHT;
         return true;
     }
 
+    /** Builds the row list: party toggles, secret features, then session stats. */
     private List<Row> computeRows() {
         List<Row> rows = new ArrayList<>();
         int cursor = panelY + headerHeight();

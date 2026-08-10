@@ -33,6 +33,15 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
+/**
+ * Central registry and per-tick evaluator for all keybinds. Holds one {@link Keybind} per
+ * module (keyed by module name) and one per {@link SystemAction}, persists them to
+ * {@code .minecraft/config/zephyr/keybinds.json}, and detects conflicting combos by
+ * comparing normalized key sets. On each {@link #tick} it polls held keys via GLFW and,
+ * on a fresh press edge, toggles the bound module or fires the bound system action; input is
+ * suppressed while typing in a text field or capturing a new bind in the
+ * {@link KeybindGuiScreen}.
+ */
 public final class KeybindManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH = FabricLoader.getInstance()
@@ -40,6 +49,11 @@ public final class KeybindManager {
             .resolve("zephyr")
             .resolve("keybinds.json");
 
+    /**
+     * Non-module actions that can be bound to a key: opening/closing the click-gui menu,
+     * cycling between Zephyr screens, toggling Stealth Mode and typing the command prefix.
+     * Each carries a human-readable label and a default bind.
+     */
     public enum SystemAction {
         OPEN_MENU("Open Menu", new Keybind(GLFW.GLFW_KEY_L, GLFW.GLFW_KEY_ENTER, Keybind.UNSET)),
         CYCLE_SCREEN("Cycle Screen", new Keybind(GLFW.GLFW_KEY_TAB, Keybind.UNSET, Keybind.UNSET)),
@@ -64,14 +78,20 @@ public final class KeybindManager {
     private KeybindManager() {
     }
 
+    /** Loads persisted keybinds from disk; called once during client initialization. */
     public static void init() {
         load();
     }
 
+    /** Returns the module's bind, or {@link Keybind#NONE} if none is set. */
     public static Keybind get(Module module) {
         return MODULE_BINDS.getOrDefault(module.getName(), Keybind.NONE);
     }
 
+    /**
+     * Assigns a bind to a module, recomputing conflicts and notifying via toast if the
+     * new combo collides with an existing one (when warnings are enabled).
+     */
     public static void set(Module module, Keybind bind) {
         boolean hadConflict = isModuleConflicted(module);
         MODULE_BINDS.put(module.getName(), bind);
@@ -82,16 +102,22 @@ public final class KeybindManager {
         save();
     }
 
+    /** Removes a module's bind. */
     public static void clear(Module module) {
         MODULE_BINDS.remove(module.getName());
         recomputeConflicts();
         save();
     }
 
+    /** Returns a system action's bind, falling back to its default bind. */
     public static Keybind get(SystemAction action) {
         return SYSTEM_BINDS.getOrDefault(action, action.defaultBind);
     }
 
+    /**
+     * Assigns a bind to a system action, recomputing conflicts and notifying via toast on
+     * a new collision (when warnings are enabled).
+     */
     public static void set(SystemAction action, Keybind bind) {
         boolean hadConflict = isSystemConflicted(action);
         SYSTEM_BINDS.put(action, bind);
@@ -102,12 +128,19 @@ public final class KeybindManager {
         save();
     }
 
+    /** Clears a system action's override, restoring its default bind. */
     public static void resetToDefault(SystemAction action) {
         SYSTEM_BINDS.remove(action);
         recomputeConflicts();
         save();
     }
 
+    /**
+     * Evaluates every bind for the current frame. Uses edge detection (a bind fires once on
+     * the press transition, not continuously) and skips module/system evaluation while the
+     * player is typing or capturing a new bind. Screen-cycling still works while any
+     * {@link ZephyrScreen} is open.
+     */
     public static void tick(Minecraft client) {
         Screen screen = client.gui.screen();
         boolean typing = screen != null && screen.getFocused() instanceof EditBox;
@@ -130,6 +163,7 @@ public final class KeybindManager {
         }
     }
 
+    /** On the press edge, opens the {@link ClickGuiScreen} or closes the current Zephyr screen. */
     private static void tickOpenMenu(Minecraft client, Screen screen) {
         boolean down = isDown(client, get(SystemAction.OPEN_MENU));
         boolean wasDown = SYSTEM_WAS_DOWN.getOrDefault(SystemAction.OPEN_MENU, false);
@@ -144,6 +178,7 @@ public final class KeybindManager {
         SYSTEM_WAS_DOWN.put(SystemAction.OPEN_MENU, down);
     }
 
+    /** On the press edge, toggles Stealth Mode via {@link GlobalConfig#toggleStealthMode()}. */
     private static void tickStealthMode(Minecraft client) {
         boolean down = isDown(client, get(SystemAction.STEALTH_MODE));
         boolean wasDown = SYSTEM_WAS_DOWN.getOrDefault(SystemAction.STEALTH_MODE, false);
@@ -154,6 +189,7 @@ public final class KeybindManager {
         SYSTEM_WAS_DOWN.put(SystemAction.STEALTH_MODE, down);
     }
 
+    /** On the press edge, advances the current Zephyr screen; held arrows pick the target and direction. */
     private static void tickCycleScreen(Minecraft client, ZephyrScreen current) {
         boolean down = isDown(client, get(SystemAction.CYCLE_SCREEN));
         boolean wasDown = SYSTEM_WAS_DOWN.getOrDefault(SystemAction.CYCLE_SCREEN, false);
@@ -173,6 +209,7 @@ public final class KeybindManager {
         SYSTEM_WAS_DOWN.put(SystemAction.CYCLE_SCREEN, down);
     }
 
+    /** On each module bind's press edge, toggles the module and shows a notification toast. */
     private static void tickModuleBinds(Minecraft client) {
         for (Module module : ModuleManager.getModules()) {
             Keybind bind = get(module);
@@ -189,6 +226,7 @@ public final class KeybindManager {
         }
     }
 
+    /** Whether every bound key in the combo is currently held down. */
     private static boolean isDown(Minecraft client, Keybind bind) {
         if (!bind.isSet()) return false;
 
@@ -220,11 +258,13 @@ public final class KeybindManager {
         }
     }
 
+    /** Whether the module's current bind is flagged as conflicted. */
     private static boolean isModuleConflicted(Module module) {
         Keybind bind = MODULE_BINDS.get(module.getName());
         return bind != null && bind.conflicted();
     }
 
+    /** Whether a system action's current bind is flagged as conflicted. */
     private static boolean isSystemConflicted(SystemAction action) {
         return get(action).conflicted();
     }
@@ -237,6 +277,7 @@ public final class KeybindManager {
         return java.util.Arrays.equals(ka, kb);
     }
 
+    /** Returns the bind's keys sorted, with unset slots removed, for order-insensitive comparison. */
     private static int[] normalizedKeys(Keybind bind) {
         int[] keys = bind.keys().clone();
         int count = 0;
@@ -249,6 +290,7 @@ public final class KeybindManager {
         return java.util.Arrays.copyOf(keys, count);
     }
 
+    /** Reads {@code keybinds.json}, restoring system action and module binds. */
     private static void load() {
         MODULE_BINDS.clear();
         SYSTEM_BINDS.clear();
@@ -280,6 +322,7 @@ public final class KeybindManager {
         }
     }
 
+    /** Writes all system action and module binds to {@code keybinds.json}. */
     private static void save() {
         JsonObject root = new JsonObject();
 
@@ -305,6 +348,7 @@ public final class KeybindManager {
         }
     }
 
+    /** Deserializes a bind from a JSON array of key codes, padding with {@link Keybind#UNSET}. */
     private static Keybind readKeybind(JsonArray array) {
         int[] keys = new int[Keybind.MAX_KEYS];
         java.util.Arrays.fill(keys, Keybind.UNSET);
@@ -314,6 +358,7 @@ public final class KeybindManager {
         return new Keybind(keys);
     }
 
+    /** Serializes a bind into a JSON array of its key codes in slot order. */
     private static JsonArray writeKeybind(Keybind bind) {
         JsonArray array = new JsonArray();
         for (int key : bind.keys()) {

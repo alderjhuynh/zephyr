@@ -21,12 +21,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Finds desert pyramids by matching their sandstone structure.
+ *
+ * <p>Pyramids can span chunk borders, so finders are built for the chunk and its three
+ * neighbouring chunks to the west/south.
+ */
 public class DesertPyramidFinder extends AbstractTempleFinder {
 
     public DesertPyramidFinder(Level world, ChunkPos chunkPos) {
         super(world, chunkPos, new Vec3i(21, 15, 21));
     }
 
+    /**
+     * @return desert pyramid finders for the chunk and its west/south neighbours
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new DesertPyramidFinder(world, chunkPos));
@@ -36,6 +45,11 @@ public class DesertPyramidFinder extends AbstractTempleFinder {
         return finders;
     }
 
+    /**
+     * Runs all piece finders and records a {@code DesertPyramid.Data} constraint for each match.
+     *
+     * @return the combined matched positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Map<PieceFinder, List<BlockPos>> result = super.findInChunkPieces();
@@ -56,11 +70,20 @@ public class DesertPyramidFinder extends AbstractTempleFinder {
         return combinedResult;
     }
 
+    /**
+     * @param biome the biome to validate
+     * @return true if a desert pyramid may generate in the given biome
+     */
     @Override
     protected boolean isValidBiome(Biome biome) {
         return Features.DESERT_PYRAMID.isValidBiome(BiomeFixer.swap(biome));
     }
 
+    /**
+     * Defines the desert pyramid layout (sandstone exterior, stairs, terracotta and treasure room).
+     *
+     * @param finder the piece finder to build the structure on
+     */
     @Override
     public void buildStructure(PieceFinder finder) {
         BlockState blockState_1 = Blocks.SANDSTONE_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.NORTH);

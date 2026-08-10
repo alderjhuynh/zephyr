@@ -14,6 +14,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * The {@code .z seedcracker <...>} command: a control surface for the Seedcracker
+ * module, ported from SeedcrackerX. Subcommands drive the world-seed cracker
+ * ({@code cracker}), the stored bit data ({@code data}), the structure finders
+ * ({@code finder}), structure outline rendering ({@code render}), the target
+ * Minecraft version ({@code version}), and open the seed database spreadsheet
+ * ({@code database}). Registered as a singleton via {@link CommandManager}.
+ */
 public final class SeedcrackerCommand extends Command {
 
     public static final SeedcrackerCommand INSTANCE = new SeedcrackerCommand();
@@ -24,6 +32,14 @@ public final class SeedcrackerCommand extends Command {
         super("seedcracker", "Controls the Seedcracker module: .z seedcracker <cracker|data|finder|render|version|database|gui>");
     }
 
+    /**
+     * Provides tab-completion candidates for the seedcracker subcommands,
+     * drilling down into sub-arguments (render modes, finder types/categories,
+     * flags, and Minecraft versions) as more tokens are typed.
+     *
+     * @param args the arguments parsed up to the cursor
+     * @return the candidate completions for the current argument position
+     */
     @Override
     public List<String> suggest(String[] args) {
         if (args.length == 1) {
@@ -57,6 +73,12 @@ public final class SeedcrackerCommand extends Command {
         return List.of();
     }
 
+    /**
+     * Routes the arguments to the matching seedcracker subcommand handler.
+     * Unknown or malformed input prints a usage or error message to chat.
+     *
+     * @param args the positional arguments after {@code .z seedcracker}
+     */
     @Override
     public void execute(String[] args) {
         if (args.length == 0) {

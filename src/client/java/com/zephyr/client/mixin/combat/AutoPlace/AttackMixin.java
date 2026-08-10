@@ -21,6 +21,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin for {@link MultiPlayerGameMode}. Injects at the TAIL of {@code MultiPlayerGameMode#attack}
+ * to back the {@code AutoPlace} module: after each attack, the mixin swaps to the configured
+ * block item (a lava bucket in LAVA mode or a cobweb in WEB mode) and places it on the
+ * attacked entity. LAVA mode also schedules a delayed bucket pickup one tick later so the
+ * lava has a tick to damage the target.
+ */
 @Mixin(MultiPlayerGameMode.class)
 public class AttackMixin {
     private static int previousSlot = -1;
@@ -28,6 +35,7 @@ public class AttackMixin {
     private static Entity cleanupTarget;
     private static int cleanupPreviousSlot;
 
+    /** Registers a client tick handler that performs the scheduled lava cleanup pickup. */
     static {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (lavaCleanupTimer < 0)
@@ -40,6 +48,7 @@ public class AttackMixin {
         });
     }
 
+    /** Searches the hotbar for the first stack of the given item, returning its slot or -1. */
     private static int findItemSlot(Minecraft client, Item targetItem) {
         for (int i = 0; i <= 8; i++) {
             ItemStack stack = client.player.getInventory().getItem(i);
@@ -50,6 +59,7 @@ public class AttackMixin {
         return -1;
     }
 
+    /** After each attack, places the configured block (lava bucket or cobweb) on the attacked entity. */
     @Inject(method = "attack", at = @At("TAIL"))
     private void onAttackEnd(Player player, Entity entity, CallbackInfo ci) {
         Minecraft client = Minecraft.getInstance();
@@ -71,6 +81,7 @@ public class AttackMixin {
         }
     }
 
+    /** Returns the block position to target for placement on the given entity. */
     private BlockPos getTargetBlockPos(Entity entity) {
         return entity.blockPosition();
     }

@@ -6,14 +6,22 @@ import com.zephyr.client.configplusgui.setting.NumberSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 
+/**
+ * Sends spoofed vertical movement packets before an attack so the server registers the
+ * player as falling, producing critical hits and mace slam damage. Used by the Criticals
+ * mixin, which also temporarily disables {@code NoFall} while the packets are sent.
+ */
 public final class Criticals extends Module {
     public static final Criticals INSTANCE = new Criticals();
+
+    /** Extra fall height (in blocks) spoofed to the server before each attack. */
     NumberSetting FallDist = new NumberSetting("Fall Distance", 2D, 0.00D, 4.0D, 0.1D);
     private Criticals() {
         super("Criticals", "Creates falling packets to enable crits and mace slams", Category.COMBAT);
         addSetting(FallDist);
     }
 
+    /** Sends the crit fall packets before an attack, skipping when the player cannot receive a critical hit. */
     public static void onAttack() {
         Minecraft client = Minecraft.getInstance();
         if (!Criticals.INSTANCE.isEnabled() || client.player == null) return;
@@ -25,6 +33,7 @@ public final class Criticals extends Module {
         spoofCritPackets(client);
     }
 
+    /** Sends the crit fall packets unconditionally, without the on-ground/state checks. */
     public static void forceCrit() {
         Minecraft client = Minecraft.getInstance();
         if (!Criticals.INSTANCE.isEnabled() || client.player == null) return;

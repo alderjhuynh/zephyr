@@ -18,6 +18,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Outlines selected ores through walls using always-on-top gizmo cuboids.
+ * The selection can be a preset ore type (colored per ore) or an arbitrary
+ * list of user-defined blocks with custom colors, searched within a
+ * configurable radius around the player.
+ */
 public final class Xray extends Module {
     public static final Xray INSTANCE = new Xray();
 
@@ -44,6 +50,7 @@ public final class Xray extends Module {
     );
 
     private final EnumSetting<Xray.BlockType> block = new EnumSetting<>("Mode", Xray.BlockType.COAL);
+    /** Which blocks to outline: a preset ore, or a user-defined block list. */
     public enum BlockType {
         COAL,
         IRON,
@@ -70,6 +77,12 @@ public final class Xray extends Module {
         addSetting(customBlocks);
     }
 
+    /**
+     * Scans the blocks within the search radius and outlines those matching the
+     * selected preset or custom list.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (!isEnabled()) {

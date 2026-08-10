@@ -30,6 +30,7 @@ public final class InventoryRenderer extends Module {
 
     private static final int[] GRID_ORDER = buildGridOrder();
 
+    /** Where the inventory panel is anchored on the HUD. */
     public enum Placement {
         BOTTOM_LEFT,
         BOTTOM_RIGHT,
@@ -71,6 +72,13 @@ public final class InventoryRenderer extends Module {
         return order;
     }
 
+    /**
+     * Draws the inventory grid (and optionally the armor and offhand slots) at
+     * the configured HUD placement for the given player.
+     *
+     * @param graphics the HUD graphics context
+     * @param player   the player whose inventory is drawn
+     */
     public void render(GuiGraphicsExtractor graphics, Player player) {
         if (!isEnabled() || player == null) return;
 

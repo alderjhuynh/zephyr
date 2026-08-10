@@ -16,9 +16,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+/**
+ * Mixin for {@link Minecraft}. Injects into {@code Minecraft#startAttack} right after the
+ * attack strength ticker reset, and cancels the original return to back the {@code HitAssist}
+ * module: when a normal attack missed but the player was looking within the configured angle
+ * of an eligible entity, the mixin performs the attack against that entity instead.
+ */
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
 
+    /** Redirects a missed attack to the closest entity within the HitAssist angle when enabled. */
     @Inject(
             method = "startAttack",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;resetAttackStrengthTicker()V"),
@@ -38,6 +45,7 @@ public class MinecraftMixin {
         cir.setReturnValue(true);
     }
 
+    /** Finds the closest living entity within the player's effective reach whose angle from the look direction is at most the HitAssist angle. */
     private static Entity findAssistTarget(Minecraft client) {
         LocalPlayer player = client.player;
         double reach = player.getAttributes().getValue(Attributes.ENTITY_INTERACTION_RANGE);

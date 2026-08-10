@@ -16,12 +16,18 @@ public class MergedItemStack implements Comparable<MergedItemStack> {
     private final NonNullList<ItemStack> subItems;
     private int firstSlot;
 
+    /**
+     * Creates an empty merged group sized to the inventory slot count.
+     *
+     * @param slotCount the number of inventory slots to track sub-stacks for
+     */
     public MergedItemStack(int slotCount) {
         this.merged = ItemStack.EMPTY;
         this.subItems = NonNullList.withSize(slotCount, ItemStack.EMPTY);
         this.firstSlot = Integer.MAX_VALUE;
     }
 
+    /** @return the merged stack aggregating the grouped stacks' counts */
     public ItemStack get() {
         return this.merged;
     }
@@ -31,6 +37,7 @@ public class MergedItemStack implements Comparable<MergedItemStack> {
      *
      * @param stack The stack to add
      * @param slot  The slot this stack is located in.
+     * @param ignoreComponents Whether component differences are ignored when merging
      */
     public void add(ItemStack stack, int slot, boolean ignoreComponents) {
         if (slot < 0 || slot >= this.subItems.size())
@@ -59,16 +66,24 @@ public class MergedItemStack implements Comparable<MergedItemStack> {
         }
     }
 
+    /** @return the stack in the given slot, or {@link ItemStack#EMPTY} if out of bounds */
     public ItemStack getSubStack(int slot) {
         if (slot < 0 || slot >= this.subItems.size())
             return ItemStack.EMPTY;
         return this.subItems.get(slot);
     }
 
+    /** @return the first inventory slot this group appeared in */
     public int getFirstSlot() {
         return this.firstSlot;
     }
 
+    /**
+     * Orders groups by merged count descending, then by first-slot ascending.
+     *
+     * @param other the group to compare against
+     * @return a negative, zero, or positive value per the ordering
+     */
     @Override
     public int compareTo(MergedItemStack other) {
         int ret = this.merged.getCount() - other.merged.getCount();

@@ -20,6 +20,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Manages named module-state profiles persisted to {@code .minecraft/config/zephyr/profiles.json}.
+ * A profile is a full snapshot of every module's enabled flag and setting values, produced and
+ * re-applied via {@link ConfigManager#writeModuleStates} / {@link ConfigManager#applyModuleStates}
+ * so profile switching reuses the exact same (de)serialization as the module config. Exactly one
+ * profile ("Default" until changed) is active at any time; the manager keeps that active profile's
+ * snapshot fresh as modules change.
+ */
 public final class ProfileManager {
     private static final String DEFAULT_PROFILE = "Default";
 
@@ -35,6 +43,7 @@ public final class ProfileManager {
     private ProfileManager() {
     }
 
+    /** Loads persisted profiles; creates the "Default" profile if none exist. */
     public static void init() {
         load();
         if (PROFILES.isEmpty()) {
@@ -44,6 +53,7 @@ public final class ProfileManager {
         }
     }
 
+    /** Builds a snapshot of the current module state with every module disabled. */
     private static JsonObject allOffSnapshot() {
         JsonObject snapshot = ConfigManager.writeModuleStates(ModuleManager.getModules());
         for (String moduleName : snapshot.keySet()) {
@@ -52,14 +62,22 @@ public final class ProfileManager {
         return snapshot;
     }
 
+    /** Returns the names of all stored profiles, in creation order. */
     public static List<String> getProfileNames() {
         return new ArrayList<>(PROFILES.keySet());
     }
 
+    /** Returns the name of the currently active profile. */
     public static String getActiveProfile() {
         return activeProfile;
     }
 
+    /**
+     * Creates a new profile snapshotting the current module state and makes it active.
+     *
+     * @param name the profile name; must be non-blank and not already in use
+     * @return true if the profile was created, false if the name was invalid or taken
+     */
     public static boolean createProfile(String name) {
         String trimmed = name == null ? "" : name.trim();
         if (trimmed.isEmpty() || PROFILES.containsKey(trimmed)) {
@@ -72,6 +90,13 @@ public final class ProfileManager {
         return true;
     }
 
+    /**
+     * Saves the current module state into the active profile, then applies the named
+     * profile's snapshot to the live modules (firing onEnable/onDisable side effects)
+     * and switches the active profile.
+     *
+     * @return true if the profile existed and was applied
+     */
     public static boolean applyProfile(String name) {
         if (!PROFILES.containsKey(name)) return false;
 
@@ -84,6 +109,12 @@ public final class ProfileManager {
         return true;
     }
 
+    /**
+     * Renames an existing profile, preserving its snapshot and adjusting the active
+     * profile reference if it was the renamed one.
+     *
+     * @return true if the rename succeeded, false if the target name is invalid/taken
+     */
     public static boolean renameProfile(String oldName, String newName) {
         String trimmed = newName == null ? "" : newName.trim();
         if (!PROFILES.containsKey(oldName) || trimmed.isEmpty() || PROFILES.containsKey(trimmed)) {
@@ -108,6 +139,12 @@ public final class ProfileManager {
         return true;
     }
 
+    /**
+     * Deletes a profile; the last remaining profile cannot be removed. If the active
+     * profile was deleted, another profile becomes active.
+     *
+     * @return true if the profile was deleted
+     */
     public static boolean deleteProfile(String name) {
         if (!PROFILES.containsKey(name) || PROFILES.size() <= 1) {
             return false;
@@ -121,12 +158,14 @@ public final class ProfileManager {
         return true;
     }
 
+    /** Re-snapshots the active profile from the current live module state. */
     public static void captureActiveProfile() {
         if (!PROFILES.containsKey(activeProfile)) return;
         PROFILES.put(activeProfile, ConfigManager.writeModuleStates(ModuleManager.getModules()));
         save();
     }
 
+    /** Reads {@code profiles.json}, restoring all profiles and the active profile name. */
     private static void load() {
         PROFILES.clear();
         if (!Files.exists(CONFIG_PATH)) return;
@@ -152,6 +191,7 @@ public final class ProfileManager {
         }
     }
 
+    /** Writes all profiles and the active profile name to {@code profiles.json}. */
     private static void save() {
         JsonObject root = new JsonObject();
         root.addProperty("active", activeProfile);

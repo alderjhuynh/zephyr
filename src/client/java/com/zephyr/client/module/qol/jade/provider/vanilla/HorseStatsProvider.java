@@ -28,6 +28,10 @@ public class HorseStatsProvider implements IComponentProvider {
     private static final double MAX_JUMP_HEIGHT = getJumpHeight(MAX_JUMP_STRENGTH);
     private static final double MAX_SPEED = getSpeed(MAX_MOVEMENT_SPEED);
 
+    /**
+     * Appends jump height, movement speed, and/or llama strength rows for the
+     * targeted equine when the corresponding module setting is enabled.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!Jade.INSTANCE.showHorseStats() || !(accessor instanceof EntityAccessor entity)) {

@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 public record PreviewContext(ItemStack stack, @Nullable Player owner, PreviewConfiguration config,
                              @Nullable HolderLookup.Provider registryLookup) {
 
+    /** @return a new builder starting from the given item stack */
     @NotNull
     public static Builder builder(ItemStack stack) {
         return new Builder(stack);
@@ -32,16 +33,24 @@ public record PreviewContext(ItemStack stack, @Nullable Player owner, PreviewCon
             this.stack = stack;
         }
 
+        /** Sets the player who owns the stack, if any. */
         public Builder withOwner(@Nullable Player owner) {
             this.owner = owner;
             return this;
         }
 
+        /** Sets an explicit registry lookup, overriding the owner's registry access. */
         public Builder withRegistryLookup(@Nullable HolderLookup.Provider registryLookup) {
             this.registryLookup = registryLookup;
             return this;
         }
 
+        /**
+         * Builds the context, deriving the registry lookup from the owner when not
+         * supplied explicitly and filling in the current module configuration.
+         *
+         * @return the assembled {@link PreviewContext}
+         */
         @NotNull
         public PreviewContext build() {
             if (this.registryLookup == null && this.owner != null) {

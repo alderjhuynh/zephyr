@@ -10,6 +10,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
+/**
+ * Repeats a use (right-click) action every N ticks while enabled, either on
+ * the block under the crosshair or with the held item directly. The interval
+ * is configurable.
+ */
 public final class PeriodicUse extends Module {
     public static final PeriodicUse INSTANCE = new PeriodicUse();
 
@@ -26,6 +31,12 @@ public final class PeriodicUse extends Module {
         addSetting(delayTicks);
     }
 
+    /**
+     * Counts ticks and performs a use action once the configured delay has
+     * elapsed.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (client.player == null || client.level == null || client.gameMode == null) return;
@@ -40,6 +51,7 @@ public final class PeriodicUse extends Module {
         }
     }
 
+    /** Resets the tick counter when the module is disabled. */
     @Override
     protected void onDisable() {
         tickCounter = 0;

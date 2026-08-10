@@ -26,12 +26,25 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 
+/**
+ * Zephyr's client-side entry point (Fabric {@link ClientModInitializer}).
+ * Wires up the whole client: initializes configuration, modules, profiles and
+ * keybinds, registers the {@code .z} command, hooks Discord Rich Presence to
+ * client lifecycle and play connection events, registers tooltip providers, and
+ * attaches per-tick handling plus HUD renderers (notifications and the HUD
+ * overlay). Modules are periodically autosaved when the configured interval
+ * elapses, and always saved on client stop.
+ */
 public class
 ZephyrClient implements ClientModInitializer {
 	private final GuiKeybindHandler guiKeybindHandler = new GuiKeybindHandler();
 
 	private long tickCount = 0;
 
+	/**
+	 * Initializes every client-side subsystem and registers Fabric event
+	 * handlers for lifecycle, tick, play connection, tooltip and HUD events.
+	 */
 	@Override
 	public void onInitializeClient() {
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> DiscordPresenceManager.initialize());

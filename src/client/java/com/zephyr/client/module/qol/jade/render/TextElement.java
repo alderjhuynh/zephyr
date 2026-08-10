@@ -15,6 +15,13 @@ public class TextElement extends Element {
     private final int color;
     private final boolean shadow;
 
+    /**
+     * Creates a text element measuring the component with the shared font.
+     *
+     * @param text   the text to render
+     * @param color  the ARGB text color
+     * @param shadow whether to draw a drop shadow behind the text
+     */
     public TextElement(Component text, int color, boolean shadow) {
         this.text = text;
         this.color = color;
@@ -23,10 +30,12 @@ public class TextElement extends Element {
         this.height = font().lineHeight;
     }
 
+    /** @return the text rendered by this element */
     public Component getText() {
         return text;
     }
 
+    /** Draws the text at the element's current position with a scaled alpha. */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         graphics.text(font(), text, x, y, ARGB.multiplyAlpha(color, alpha), shadow);

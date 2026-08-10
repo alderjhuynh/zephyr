@@ -16,12 +16,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Registry of every module singleton. {@link #init()} instantiates the movement, disable,
+ * qol and combat modules from the {@code com.zephyr.client.module} sub-packages and then
+ * restores their persisted state via {@link ConfigManager#load}. The registry drives the
+ * click-gui listing, per-tick dispatch of enabled modules, and the enable-count shown in
+ * the HUD; the "Default" profile's initial snapshot is built from it via
+ * {@link ProfileManager}.
+ */
 public final class ModuleManager {
     private static final List<Module> MODULES = new ArrayList<>();
 
     private ModuleManager() {
     }
 
+    /** Registers every module singleton and loads their persisted state from disk. */
     public static void init() {
         // movement
         register(Aerodynamics.INSTANCE);
@@ -106,14 +115,21 @@ public final class ModuleManager {
         ConfigManager.load(MODULES);
     }
 
+    /** Adds a module to the registry; called from {@link #init()} in display order. */
     private static void register(Module module) {
         MODULES.add(module);
     }
 
+    /** Returns all registered modules in registration order, read-only. */
     public static List<Module> getModules() {
         return Collections.unmodifiableList(MODULES);
     }
 
+    /**
+     * Looks up a module by name, case-insensitively.
+     *
+     * @return the matching module, or {@code null} if none is registered
+     */
     public static Module get(String name) {
         for (Module module : MODULES) {
             if (module.getName().equalsIgnoreCase(name)) {
@@ -123,6 +139,7 @@ public final class ModuleManager {
         return null;
     }
 
+    /** The number of currently enabled modules. */
     public static int enabledCount() {
         int count = 0;
         for (Module module : MODULES) {
@@ -131,6 +148,7 @@ public final class ModuleManager {
         return count;
     }
 
+    /** Forwards the client tick to every enabled module. */
     public static void tick(Minecraft client) {
         for (Module module : MODULES) {
             if (module.isEnabled()) {
@@ -139,6 +157,7 @@ public final class ModuleManager {
         }
     }
 
+    /** Persists all module state to {@code modules.json} and refreshes the active profile snapshot. */
     public static void saveAll() {
         ConfigManager.save(MODULES);
         ProfileManager.captureActiveProfile();

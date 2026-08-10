@@ -21,6 +21,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Places and charges a respawn anchor next to a nearby target, then detonates it while
+ * shielding the local player behind a glowstone block. Supports the "Player Only" setting
+ * and combines with the {@code Reach} module to extend placement range.
+ */
 public final class AnchorAura extends Module {
     public static final AnchorAura INSTANCE = new AnchorAura();
 
@@ -39,6 +44,7 @@ public final class AnchorAura extends Module {
     private BlockPos pendingShield = null;
     private int shieldTicks = 0;
 
+    /** Runs the anchor aura routine each tick while enabled: locate a target, place/charge the anchor, shield, then detonate. */
     @Override
     public void tick(Minecraft client) {
         if (client == null || client.player == null || client.gameMode == null || client.level == null) return;
@@ -139,6 +145,7 @@ public final class AnchorAura extends Module {
         shieldTicks = 0;
     }
 
+    /** Resets the pending shield placement when the module is turned off. */
     @Override
     protected void onDisable() {
         resetShield();

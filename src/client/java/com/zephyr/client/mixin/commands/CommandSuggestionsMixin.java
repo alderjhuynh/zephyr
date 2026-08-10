@@ -16,6 +16,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Hooks into {@link CommandSuggestions#updateCommandInfo} so the vanilla command
+ * suggestion UI also serves Zephyr's chat commands. When the user is typing behind the
+ * Command Prefix (see {@link CommandPrefixHandler}), vanilla suggestion parsing is
+ * cancelled and replaced with {@link CommandManager#suggest}, showing a usage line for
+ * the resolved {@link Command} in the chat box.
+ */
 @Mixin(CommandSuggestions.class)
 public abstract class CommandSuggestionsMixin {
 

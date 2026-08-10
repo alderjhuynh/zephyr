@@ -12,6 +12,11 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Exposes the private fields and methods of {@link CommandSuggestions} that
+ * {@link CommandSuggestionsMixin} needs in order to present Zephyr's own commands and
+ * arguments in the chat box's tab-completion UI.
+ */
 @Mixin(CommandSuggestions.class)
 public interface CommandSuggestionsAccessor {
 

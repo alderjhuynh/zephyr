@@ -10,8 +10,24 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin into {@link KeyboardInput} that neutralizes the local player's input
+ * while the Zephyr FreeCam module is active.
+ *
+ * <p>Injects at the head of {@code KeyboardInput.tick}. Every input instance
+ * other than the {@link FreeCamera}'s own input is zeroed out (empty key
+ * presses and a zero movement vector) and the tick is cancelled, keeping the
+ * player still while the camera flies.
+ */
 @Mixin(KeyboardInput.class)
 public abstract class KeyboardInputMixin {
+    /**
+     * Freezes the local player's keyboard input while FreeCam is active,
+     * except for the FreeCamera's own input instance which must keep reading
+     * movement keys.
+     *
+     * @param ci mixin callback used to cancel the input tick
+     */
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void zephyr$freezePlayerInput(CallbackInfo ci) {
         if (!FreeCam.INSTANCE.isEnabled()) return;

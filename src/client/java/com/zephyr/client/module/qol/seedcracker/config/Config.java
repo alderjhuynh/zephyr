@@ -4,6 +4,13 @@ import com.seedfinding.mccore.version.MCVersion;
 import com.zephyr.client.module.qol.seedcracker.Features;
 import com.zephyr.client.module.qol.seedcracker.util.FeatureToggle;
 
+/**
+ * Central configuration/settings holder for the seedcracker module.
+ *
+ * <p>Exposes the enabled/disabled state of every findable feature, the rendering mode, debug and
+ * anti-x-ray options, and the {@link MCVersion} the cracker is currently operating against.
+ * Accessed via the {@link #get()} singleton.
+ */
 public class Config {
     private static final Config INSTANCE = new Config();
 
@@ -32,20 +39,34 @@ public class Config {
 
     private MCVersion version = MCVersion.latest();
 
+    /**
+     * Returns the shared seedcracker configuration singleton.
+     *
+     * @return the global {@link Config} instance
+     */
     public static Config get() {
         return INSTANCE;
     }
 
+    /**
+     * @return the Minecraft version features are currently built for
+     */
     public MCVersion getVersion() {
         return version;
     }
 
+    /**
+     * Updates the active Minecraft version, reinitialising all {@link Features} when it changes.
+     *
+     * @param version the new Minecraft version
+     */
     public void setVersion(MCVersion version) {
         if (this.version == version) return;
         this.version = version;
         Features.init(version);
     }
 
+    /** Rendering mode for found structure/decorator outlines. */
     public enum RenderType {
         OFF, ON, XRAY
     }

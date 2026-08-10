@@ -16,6 +16,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Keybind configuration screen. Lists every {@link KeybindManager.SystemAction} and every
+ * module with its current bind; clicking a row enters capture mode where held keys (up to
+ * {@link Keybind#MAX_KEYS}) are recorded and committed as a combo when the last key is
+ * released. Escape cancels capture. Rows show a clear ("x") box, and conflicting binds are
+ * rendered red. While capturing, {@link KeybindManager} suppresses normal bind evaluation
+ * so recorded keys are never misinterpreted as hotkey presses.
+ */
 public final class KeybindGuiScreen extends ZephyrScreen {
     private static final int ROW_HEIGHT = 24;
     private static final int SECTION_GAP = 6;
@@ -28,10 +36,12 @@ public final class KeybindGuiScreen extends ZephyrScreen {
 
     private double scrollOffset = 0;
 
+    /** Opens the keybind screen without a slide animation. */
     public KeybindGuiScreen() {
         this(0);
     }
 
+    /** Creates the keybind screen with the given horizontal entry slide; package-visible for {@link ZephyrScreen.Nav}. */
     KeybindGuiScreen(int enterDirection) {
         super(Component.literal("Zephyr"), enterDirection);
     }
@@ -41,10 +51,12 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         return Nav.KEYBIND;
     }
 
+    /** Whether a bind is currently being captured (used by {@link KeybindManager} to suppress input). */
     public boolean isCapturing() {
         return capturingTarget != null;
     }
 
+    /** Renders the chrome, the scrolled bind list, and any clear-boxes for set binds. */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         withPanelSlide(() -> {
@@ -68,6 +80,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         });
     }
 
+    /** Draws one bind row: label, bind text (or capture prompt), and a clear box when bound. */
     private void renderRow(GuiGraphicsExtractor graphics, Row row, int scroll, int mouseX, int mouseY) {
         int top = row.top - scroll;
         boolean capturing = row.target.equals(capturingTarget);
@@ -105,6 +118,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** The combo text shown while capturing: "Press keys..." or the keys held so far. */
     private String captureLabel() {
         if (captureBuffer.isEmpty()) return "Press keys...";
         StringBuilder builder = new StringBuilder();
@@ -115,6 +129,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         return builder.toString();
     }
 
+    /** Starts capture on a clicked row, or clears the bind if its clear box was clicked. */
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
@@ -151,18 +166,21 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         return false;
     }
 
+    /** Enters capture mode for the given module or system action. */
     private void startCapture(Object target) {
         capturingTarget = target;
         captureBuffer.clear();
         currentlyHeld.clear();
     }
 
+    /** Exits capture mode without saving, discarding the buffer. */
     private void cancelCapture() {
         capturingTarget = null;
         captureBuffer.clear();
         currentlyHeld.clear();
     }
 
+    /** Assigns the captured combo to its target via {@link KeybindManager} and exits capture. */
     private void commitCapture() {
         Keybind bind = Keybind.of(new ArrayList<>(captureBuffer));
         if (capturingTarget instanceof Module module) {
@@ -173,6 +191,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         cancelCapture();
     }
 
+    /** Removes the bind for a module, or resets a system action to none. */
     private void clearBind(Object target) {
         if (target instanceof Module module) {
             KeybindManager.clear(module);
@@ -181,6 +200,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** While capturing, records pressed keys (Escape cancels); otherwise normal handling. */
     @Override
     public boolean keyPressed(KeyEvent event) {
         if (capturingTarget != null) {
@@ -198,6 +218,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         return super.keyPressed(event);
     }
 
+    /** While capturing, commits the combo once every captured key has been released. */
     @Override
     public boolean keyReleased(KeyEvent event) {
         if (capturingTarget != null) {
@@ -210,12 +231,14 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         return super.keyReleased(event);
     }
 
+    /** Scrolls the bind list by the wheel delta. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         scrollOffset -= scrollY * ROW_HEIGHT;
         return true;
     }
 
+    /** Builds the row list: system actions first (plus a gap), then every module. */
     private List<Row> computeRows() {
         List<Row> rows = new ArrayList<>();
         int cursor = panelY + headerHeight();

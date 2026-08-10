@@ -12,11 +12,18 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+/**
+ * Mixin for {@link Minecraft}. Injects into the HEAD of {@code Minecraft#startAttack} to back
+ * the {@code LungeSwap} module: when the player attacks with no valid hit result (a MISS), the
+ * mixin swaps to the highest-Lunge spear in the hotbar and re-triggers the attack via
+ * {@link ForceAttackMixin} so the empty swing becomes a lunging spear attack.
+ */
 @Mixin(Minecraft.class)
 public class AttackMixin {
     private static int previousSlot = -1;
     private static boolean isProcessingAttack = false;
 
+    /** Returns true if the given stack is any vanilla spear variant. */
     private static boolean isSpear(ItemStack stack) {
         return stack.is(Items.WOODEN_SPEAR)
                 || stack.is(Items.STONE_SPEAR)
@@ -28,6 +35,7 @@ public class AttackMixin {
     }
 
 
+    /** Returns the hotbar slot of the spear with the highest Lunge enchantment level, or -1 if none exists. */
     private static int findBestSlot(Minecraft client) {
         int bestSlot = -1;
         int bestLevel = -1;
@@ -53,6 +61,7 @@ public class AttackMixin {
         return bestSlot;
     }
 
+    /** Performs the Lunge swap and re-attack at the HEAD of a MISSING startAttack when enabled. */
     @Inject(method = "startAttack", at = @At("HEAD"))
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
         Minecraft client = (Minecraft)(Object) this;

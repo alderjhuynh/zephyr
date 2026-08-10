@@ -25,9 +25,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Automatically places a rail and TNT minecart to catch the local player's own flaming bow
+ * arrows. Predicts each in-flight arrow's trajectory, then places a rail and minecart at the
+ * predicted landing block so the arrow ignites the cart for a free explosion.
+ */
 public final class InstaCart extends Module {
     public static final InstaCart INSTANCE = new InstaCart();
 
+    /** Number of ticks of trajectory simulation used to predict where an arrow will land. */
     private static final int LOOKAHEAD_TICKS = 8;
 
     private static final double ARROW_GRAVITY = 0.05;
@@ -40,6 +46,7 @@ public final class InstaCart extends Module {
         super("InstaCart", "Automatically places a rail and TNT minecart to catch your own flaming arrows", Category.COMBAT);
     }
 
+    /** Tracks the predicted landing position for each in-flight arrow and places the rail + minecart. */
     @Override
     public void tick(Minecraft client) {
         if (client.player == null

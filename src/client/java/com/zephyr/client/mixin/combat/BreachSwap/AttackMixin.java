@@ -14,12 +14,20 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin for {@link MultiPlayerGameMode}. Injects into the HEAD of {@code MultiPlayerGameMode#attack}
+ * to back the {@code BreachSwap} module: when the local player's fall distance is at or below
+ * the configured maximum, the mixin swaps to the highest-Breach mace in the hotbar and
+ * re-triggers the attack via {@link ForceAttackMixin}, so the swing lands with the Breach
+ * enchantment active.
+ */
 @Mixin(MultiPlayerGameMode.class)
 public class AttackMixin {
     private static int previousSlot = -1;
     private static boolean isProcessingAttack = false;
 
 
+    /** Returns the hotbar slot of the mace with the highest Breach enchantment level, or -1 if none exists. */
     private static int findBestSlot(Minecraft client) {
         int bestSlot = -1;
         int bestLevel = -1;
@@ -45,6 +53,7 @@ public class AttackMixin {
         return bestSlot;
     }
 
+    /** Performs the Breach swap and re-attack at the HEAD of each attack when conditions are met. */
     @Inject(method = "attack", at = @At("HEAD"))
     private void onStartAttack(Player player, Entity entity, CallbackInfo ci) {
         Minecraft client = Minecraft.getInstance();

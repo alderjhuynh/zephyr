@@ -27,9 +27,17 @@ public final class JadeRenderer {
     private static boolean shown;
     private static float alpha;
 
+    /** Static utility; not instantiable. */
     private JadeRenderer() {
     }
 
+    /**
+     * Recomputes the overlay content for the current frame: ray-casts for the
+     * target, gathers provider lines into a {@link Tooltip}, and (re)measures the
+     * cached {@link BoxElement}. Clears the "shown" flag when nothing is targeted.
+     *
+     * @param client the running Minecraft client
+     */
     static void tick(Minecraft client) {
         Accessor accessor = RayTracer.raycast(client, Jade.INSTANCE.extendedReach());
         if (accessor == null) {
@@ -52,6 +60,14 @@ public final class JadeRenderer {
         shown = true;
     }
 
+    /**
+     * Renders the cached overlay at the configured position, easing its alpha
+     * toward the target so the tooltip lingers and fades when the crosshair
+     * leaves the target.
+     *
+     * @param graphics the graphics context to draw into
+     * @param delta    the partial tick time for smooth alpha interpolation
+     */
     public static void render(GuiGraphicsExtractor graphics, float delta) {
         if (root == null && linger == null) {
             return;

@@ -16,6 +16,17 @@ import net.minecraft.client.Minecraft;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Cracks the world seed by scanning naturally generated structures (such as
+ * buried treasure, monuments, and temples) and comparing their coordinates
+ * against the known generation algorithm. A per-feature boolean setting toggles
+ * which structures are tracked, and the module exposes an {@link SeedCrackerAPI}
+ * entrypoint list so add-ons can hook into the cracking pipeline.
+ *
+ * <p>While enabled the module syncs its GUI settings into the shared
+ * {@link Config} singleton and renders the positions collected by the finders
+ * as gizmo cuboids each tick.
+ */
 public final class Seedcracker extends Module {
     public static final Seedcracker INSTANCE = new Seedcracker();
     public static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Seedcracker");
@@ -75,10 +86,12 @@ public final class Seedcracker extends Module {
         Features.init(Config.get().getVersion());
     }
 
+    /** Returns the singleton instance of this module. */
     public static Seedcracker get() {
         return INSTANCE;
     }
 
+    /** Returns the storage that holds the seed-cracking data collected so far. */
     public DataStorage getDataStorage() {
         return this.dataStorage;
     }
@@ -119,21 +132,25 @@ public final class Seedcracker extends Module {
         setToggle(cfg.biome, biome.get());
     }
 
+    /** Sets the master "Active" toggle and syncs it into the shared config. */
     public void setActive(boolean value) {
         active.set(value);
         syncConfig();
     }
 
+    /** Sets the debug flag and syncs it into the shared config. */
     public void setDebug(boolean value) {
         debug.set(value);
         syncConfig();
     }
 
+    /** Sets the gizmo render mode and syncs it into the shared config. */
     public void setRender(Config.RenderType value) {
         render.set(value);
         syncConfig();
     }
 
+    /** Enables or disables the finder for the given structure type. */
     public void setFinderEnabled(Finder.Type type, boolean value) {
         settingFor(type).set(value);
         syncConfig();
@@ -161,16 +178,24 @@ public final class Seedcracker extends Module {
         };
     }
 
+    /** Pushes the current settings into the shared config on enable. */
     @Override
     protected void onEnable() {
         syncConfig();
     }
 
+    /** Pushes the current settings into the shared config on disable. */
     @Override
     protected void onDisable() {
         syncConfig();
     }
 
+    /**
+     * Syncs settings and renders the collected finder positions as gizmo
+     * cuboids, provided the module and master toggle are active.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (!isEnabled()) {

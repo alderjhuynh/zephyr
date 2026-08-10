@@ -7,6 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Implements the hidden "party mode" easter eggs toggled from the secret settings screen.
+ * Holds four simple flags - rainbow accent cycling, uwu-ified chat text, confetti accent
+ * coloring on HUD/toast accents, and a "roulette" that periodically disables a random
+ * enabled module - plus the wobble flag. Also tracks the cumulative uwu counter and
+ * roulette spin count, which can be surfaced through {@link PlaceholderEngine}.
+ */
 public final class PartyManager {
     private static final Random RANDOM = new Random();
     private static final long ROULETTE_INTERVAL_NANOS = 5_000_000_000L;
@@ -26,6 +33,7 @@ public final class PartyManager {
     private PartyManager() {
     }
 
+    /** Drives the roulette: disables a random module every interval while enabled. */
     public static void tick() {
         if (!roulette) return;
         long now = System.nanoTime();
@@ -35,12 +43,14 @@ public final class PartyManager {
         nextRouletteAtNanos = now + ROULETTE_INTERVAL_NANOS;
     }
 
+    /** Turns the module-disabling roulette on or off, scheduling its first spin. */
     public static void setRoulette(boolean on) {
         if (roulette == on) return;
         roulette = on;
         nextRouletteAtNanos = on ? System.nanoTime() + ROULETTE_INTERVAL_NANOS : Long.MAX_VALUE;
     }
 
+    /** Picks a random enabled module, disables it and notifies via toast. */
     private static void disableRandomModule() {
         List<Module> enabled = new ArrayList<>();
         for (Module module : ModuleManager.getModules()) {
@@ -54,19 +64,23 @@ public final class PartyManager {
         NotificationManager.notify(victim.getName(), false);
     }
 
+    /** Returns a time-cycling rainbow accent when the rainbow flag is set, else {@code fallback}. */
     public static int rainbowAccent(int fallback) {
         return rainbow ? hueAccent(fallback) : fallback;
     }
 
+    /** Always returns a rainbow accent (used for confetti mode toast accents). */
     public static int confettiAccent(int fallback) {
         return hueAccent(fallback);
     }
 
+    /** Computes a hue-cycling accent from the current time, keeping the fallback's alpha. */
     private static int hueAccent(int fallback) {
         float hue = (System.currentTimeMillis() % RAINBOW_CYCLE_MILLIS) / (float) RAINBOW_CYCLE_MILLIS;
         return (fallback & 0xFF000000) | hsvToRgb(hue, 0.6f, 0.92f);
     }
 
+    /** Converts a normalized HSV triplet (h in [0,1), s and v in [0,1]) to an RGB int. */
     private static int hsvToRgb(float h, float s, float v) {
         float c = v * s;
         float x = c * (1 - Math.abs((h * 6) % 2 - 1));
@@ -86,6 +100,11 @@ public final class PartyManager {
         return (red << 16) | (green << 8) | blue;
     }
 
+    /**
+     * Translates chat text into "uwu" speak (word substitutions, l/r to w, exclamation
+     * suffixes, trailing "uwu"). Increments the uwu counter and returns the input unchanged
+     * when null or empty.
+     */
     public static String uwuify(String input) {
         if (input == null || input.isEmpty()) return input;
 
@@ -107,10 +126,12 @@ public final class PartyManager {
         return text;
     }
 
+    /** How many strings have been uwu-ified this session. */
     public static int uwuCount() {
         return uwuCount;
     }
 
+    /** How many modules the roulette has disabled this session. */
     public static int rouletteSpins() {
         return rouletteSpins;
     }

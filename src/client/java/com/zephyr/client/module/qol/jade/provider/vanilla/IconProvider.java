@@ -19,6 +19,14 @@ import org.jetbrains.annotations.Nullable;
 public class IconProvider implements IComponentProvider {
     public static final IconProvider INSTANCE = new IconProvider();
 
+    /**
+     * Supplies the left-side icon for the target, keeping the first non-null
+     * icon supplied by an earlier provider.
+     *
+     * @param accessor    the current target
+     * @param currentIcon the icon set by a previous provider, or {@code null}
+     * @return the target's block item / entity pick result icon, or {@code null}
+     */
     @Override
     @Nullable
     public Element getIcon(Accessor accessor, @Nullable Element currentIcon) {
@@ -41,6 +49,7 @@ public class IconProvider implements IComponentProvider {
         return null;
     }
 
+    /** Icon-only provider; contributes no tooltip rows. */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
     }

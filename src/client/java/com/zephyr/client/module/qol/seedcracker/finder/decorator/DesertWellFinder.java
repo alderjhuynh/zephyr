@@ -22,6 +22,13 @@ import net.minecraft.world.level.dimension.DimensionType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Finds desert wells by matching their sandstone/water structure across neighbouring chunks.
+ *
+ * <p>Because a well can straddle chunk borders, finders are built for the chunk and all eight
+ * surrounding chunks. On a match, the well's {@code DesertWell.Data} is pushed as a structure
+ * constraint.
+ */
 public class DesertWellFinder extends PieceFinder {
 
     protected static Vec3i SIZE = new Vec3i(5, 6, 5);
@@ -32,6 +39,9 @@ public class DesertWellFinder extends PieceFinder {
         this.buildStructure();
     }
 
+    /**
+     * @return desert well finders for the chunk and all eight neighbouring chunks
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new DesertWellFinder(world, chunkPos));
@@ -49,6 +59,12 @@ public class DesertWellFinder extends PieceFinder {
         return finders;
     }
 
+    /**
+     * Scans for the desert well structure and records a {@code DesertWell.Data} constraint for each
+     * match found.
+     *
+     * @return the matched well positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 0, (this.chunkPos.z() << 2) + 2).value();
@@ -73,11 +89,17 @@ public class DesertWellFinder extends PieceFinder {
         return result;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);
     }
 
+    /**
+     * Defines the desert well layout: sandstone base, water reservoir and sandstone slab cap.
+     */
     protected void buildStructure() {
         BlockState sandstone = Blocks.SANDSTONE.defaultBlockState();
         BlockState sandstoneSlab = Blocks.SANDSTONE_SLAB.defaultBlockState();

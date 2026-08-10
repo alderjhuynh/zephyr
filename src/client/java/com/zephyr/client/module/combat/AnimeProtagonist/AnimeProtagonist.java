@@ -9,11 +9,21 @@ import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Teleports the local player behind an entity they just attacked by spoofing movement
+ * packets. In DIRECT mode the player is moved onto the target's position; in DISTANCE mode
+ * the player is moved to a point directly behind the target and looks at its eyes. Hooked
+ * into the attack flow by the AnimeProtagonist mixins.
+ */
 public final class AnimeProtagonist extends Module {
     public static final AnimeProtagonist INSTANCE = new AnimeProtagonist();
     private final EnumSetting<AnimeProtagonist.Mode> mode = new EnumSetting<>("Mode", Mode.DISTANCE);
+
+    /** Where the player should be relocated relative to the attacked entity. */
     public enum Mode {
+        /** Move directly onto the target's current position. */
         DISTANCE,
+        /** Move to a point behind the target and face it. */
         DIRECT
     }
     private AnimeProtagonist() {
@@ -21,6 +31,7 @@ public final class AnimeProtagonist extends Module {
         addSetting(mode);
     }
 
+    /** Entry point invoked by the AnimeProtagonist mixin right before the attack packet is sent; no-op when disabled. */
     public static void onAttack() {
         Minecraft client = Minecraft.getInstance();
         if (!AnimeProtagonist.INSTANCE.isEnabled() || client.player == null) return;

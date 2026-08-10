@@ -19,6 +19,7 @@ public enum Category {
         this.displayName = displayName;
     }
 
+    /** The human-readable label shown on the click-gui tab and module rows. */
     public String getDisplayName() {
         return displayName;
     }

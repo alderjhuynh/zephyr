@@ -17,6 +17,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
+/**
+ * Speeds up block breaking using one of two strategies, selected by mode:
+ * <ul>
+ *   <li>{@link Mode#HASTE} applies a synthetic, invisible Haste effect so the
+ *       vanilla breaking speed is multiplied.</li>
+ *   <li>{@link Mode#DAMAGE} sends a STOP_DESTROY_BLOCK packet as soon as the
+ *       predicted damage passes a threshold, resetting the breaking progress so
+ *       the block breaks almost instantly.</li>
+ * </ul>
+ * The mode is switched cleanly at runtime, cleaning up any synthetic effect or
+ * predicted-break state from the previous mode.
+ */
 public final class SpeedMine extends Module {
     public static final SpeedMine INSTANCE = new SpeedMine();
 
@@ -38,11 +50,18 @@ public final class SpeedMine extends Module {
         addSetting(mode);
     }
 
+    /** The speeding strategy to use: synthetic Haste or predicted-damage packets. */
     public enum Mode {
         HASTE,
         DAMAGE
     }
 
+    /**
+     * Applies the active speeding strategy: maintains the synthetic Haste effect
+     * or monitors breaking progress to trigger the early STOP packet.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         if (client.player == null || client.level == null || client.gameMode == null) return;
@@ -112,12 +131,19 @@ public final class SpeedMine extends Module {
         }
     }
 
+    /** Removes the synthetic Haste effect and clears any damage-packet state on disable. */
     @Override
     protected void onDisable() {
         removeSyntheticHaste();
         resetDamageState();
     }
 
+    /**
+     * Tracks outgoing {@link ServerboundPlayerActionPacket} packets to keep the
+     * predicted-break state in sync with the server's block breaking.
+     *
+     * @param packet the packet about to be sent
+     */
     public static void onSendPacket(Object packet) {
         if (!INSTANCE.isEnabled() || INSTANCE.mode.get() != Mode.DAMAGE) return;
         if (!(packet instanceof ServerboundPlayerActionPacket p)) return;

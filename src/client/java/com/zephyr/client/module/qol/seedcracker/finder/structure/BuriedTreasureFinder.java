@@ -21,6 +21,13 @@ import net.minecraft.world.level.dimension.DimensionType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Finds buried treasure chests.
+ *
+ * <p>Buried treasure chests always generate at local (9, 9) within their chunk, on top of one of a
+ * small set of "chest holder" blocks and not waterlogged. When one is found, its region structure
+ * data is recorded as a constraint.
+ */
 public class BuriedTreasureFinder extends BlockFinder {
 
     protected static final List<BlockState> CHEST_HOLDERS = new ArrayList<>();
@@ -47,6 +54,9 @@ public class BuriedTreasureFinder extends BlockFinder {
         this.searchPositions = SEARCH_POSITIONS;
     }
 
+    /**
+     * Restricts the search to the chunk's local (9, 9) column.
+     */
     public static void reloadSearchPositions() {
         SEARCH_POSITIONS = buildSearchPositions(CHUNK_POSITIONS, pos -> {
             //Buried treasure chests always generate at (9, 9) within a chunk.
@@ -57,12 +67,20 @@ public class BuriedTreasureFinder extends BlockFinder {
         });
     }
 
+    /**
+     * @return a single {@link BuriedTreasureFinder} for the given chunk
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new BuriedTreasureFinder(world, chunkPos));
         return finders;
     }
 
+    /**
+     * Scans for valid buried treasure chests and records their region structure constraints.
+     *
+     * @return the matched chest positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
 
@@ -90,6 +108,9 @@ public class BuriedTreasureFinder extends BlockFinder {
         return result;
     }
 
+    /**
+     * @return true for the overworld dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isOverworld(dimension);

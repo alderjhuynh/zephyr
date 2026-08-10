@@ -19,6 +19,10 @@ import net.minecraft.world.level.block.state.properties.Property;
 public class BlockStatesProvider implements IComponentProvider {
     public static final BlockStatesProvider INSTANCE = new BlockStatesProvider();
 
+    /**
+     * Appends a row per block state property whose value differs from the
+     * block's default state, when the corresponding module setting is enabled.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!Jade.INSTANCE.showBlockStates() || !(accessor instanceof BlockAccessor block)) {

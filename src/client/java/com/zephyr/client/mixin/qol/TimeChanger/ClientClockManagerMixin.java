@@ -10,9 +10,25 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+/**
+ * Mixin into {@link ClientClockManager} implementing the Zephyr TimeChanger
+ * module.
+ *
+ * <p>Injects at the head of {@code ClientClockManager.getTotalTicks}. While the
+ * module is enabled, queries for the overworld clock return the configured time
+ * of day instead of the server-synced value, giving a purely client-side time
+ * change.
+ */
 @Mixin(ClientClockManager.class)
 public class ClientClockManagerMixin {
 
+    /**
+     * Overrides the overworld clock time with the TimeChanger module's
+     * configured value while enabled.
+     *
+     * @param clock the clock being queried
+     * @param cir   mixin callback used to substitute the total tick count
+     */
     @Inject(method = "getTotalTicks", at = @At("HEAD"), cancellable = true)
     private void zephyr$changeTime(Holder<WorldClock> clock, CallbackInfoReturnable<Long> cir) {
         if (!TimeChanger.INSTANCE.isEnabled()) return;

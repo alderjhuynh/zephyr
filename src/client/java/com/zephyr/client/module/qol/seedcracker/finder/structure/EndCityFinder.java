@@ -25,6 +25,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Finds end cities by matching the characteristic purpur/end-stone-brick doorway structure.
+ *
+ * <p>Since 1.19 end cities shifted by one block, an offset is applied to the recorded chunk
+ * coordinates for those versions.
+ */
 public class EndCityFinder extends Finder {
 
     protected static List<BlockPos> SEARCH_POSITIONS;
@@ -44,10 +50,16 @@ public class EndCityFinder extends Finder {
         });
     }
 
+    /**
+     * Restricts the search to the y band where end cities generate (y 40..90).
+     */
     public static void reloadSearchPositions() {
         SEARCH_POSITIONS = buildSearchPositions(CHUNK_POSITIONS, pos -> pos.getY() > 90 && pos.getY() < 40);
     }
 
+    /**
+     * @return end city finders for the chunk and its west/south neighbours
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new EndCityFinder(world, chunkPos));
@@ -57,6 +69,12 @@ public class EndCityFinder extends Finder {
         return finders;
     }
 
+    /**
+     * Defines the end city tower base layout: end stone brick walls, purpur floor and purple glass
+     * windows.
+     *
+     * @param finder the piece finder to build the structure on
+     */
     private void buildStructure(PieceFinder finder) {
         BlockState air = Blocks.AIR.defaultBlockState();
         BlockState endstoneBricks = Blocks.END_STONE_BRICKS.defaultBlockState();
@@ -86,6 +104,12 @@ public class EndCityFinder extends Finder {
         finder.fillWithOutline(7, 2, 5, 7, 3, 5, purpleGlass, purpleGlass, false);
     }
 
+    /**
+     * Runs all piece finders and records an {@code EndCity.Data} constraint for each match,
+     * applying the 1.19 position offset when needed.
+     *
+     * @return the combined matched positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Biome biome = this.world.getNoiseBiome((this.chunkPos.x() << 2) + 2, 64, (this.chunkPos.z() << 2) + 2).value();
@@ -126,6 +150,9 @@ public class EndCityFinder extends Finder {
         return combinedResult;
     }
 
+    /**
+     * @return a map of every piece finder to its matched positions
+     */
     public Map<PieceFinder, List<BlockPos>> findInChunkPieces() {
         Map<PieceFinder, List<BlockPos>> result = new HashMap<>();
 
@@ -136,6 +163,9 @@ public class EndCityFinder extends Finder {
         return result;
     }
 
+    /**
+     * @return true for the End dimension
+     */
     @Override
     public boolean isValidDimension(DimensionType dimension) {
         return this.isEnd(dimension);

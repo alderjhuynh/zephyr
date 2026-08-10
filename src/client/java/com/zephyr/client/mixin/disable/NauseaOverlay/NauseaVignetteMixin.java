@@ -9,9 +9,22 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin targeting {@link Hud} that backs the {@code disableNauseaOverlay} module.
+ * It handles the confusion vignette half of the module's behaviour.
+ */
 @Mixin(Hud.class)
 public abstract class NauseaVignetteMixin {
 
+    /**
+     * Cancels the HUD's {@code extractConfusionOverlay} at its head when the module is
+     * enabled and the player's screen effect scale is zero, so the green nausea
+     * vignette is never drawn.
+     *
+     * @param graphics the GUI graphics extractor for HUD rendering
+     * @param strength the current confusion overlay strength
+     * @param ci       the cancellable injection callback
+     */
     @Inject(method = "extractConfusionOverlay", at = @At("HEAD"), cancellable = true)
     private void zephyr$disableConfusionOverlay(GuiGraphicsExtractor graphics, float strength, CallbackInfo ci) {
         if (disableNauseaOverlay.INSTANCE.isEnabled()

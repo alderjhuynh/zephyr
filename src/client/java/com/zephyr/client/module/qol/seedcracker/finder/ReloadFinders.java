@@ -8,9 +8,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 
+/**
+ * Rebuilds finder search positions for the current world height and re-scans the loaded area.
+ */
 public class ReloadFinders {
     public Minecraft client = Minecraft.getInstance();
 
+    /**
+     * Recomputes {@link Finder#CHUNK_POSITIONS} and the height context for the given vertical
+     * range, then rebuilds the derived search positions of every height-dependent finder.
+     *
+     * @param minY the minimum world Y
+     * @param maxY the maximum world Y (exclusive)
+     */
     public static void reloadHeight(int minY, int maxY) {
         Finder.CHUNK_POSITIONS.clear();
         for (int x = 0; x < 16; x++) {
@@ -33,6 +43,9 @@ public class ReloadFinders {
         TrialChambersFinder.reloadSearchPositions();
     }
 
+    /**
+     * Re-dispatches every chunk within the player's render distance through the finder queue.
+     */
     public void reload() {
         int renderdistance = client.options.renderDistance().get();
 

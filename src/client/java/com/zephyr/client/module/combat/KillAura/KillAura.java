@@ -15,6 +15,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 
+/**
+ * Automatically attacks nearby entities. In AURA mode it attacks the closest eligible
+ * entity every tick; in ASSIST mode it attacks whatever entity the player last looked at and
+ * attacked, up to a scaled distance. Respects the "Players Only" filter and the {@code Reach}
+ * module for the effective attack range.
+ */
 public final class KillAura extends Module {
     public static final KillAura INSTANCE = new KillAura();
     private KillAura() {
@@ -24,15 +30,21 @@ public final class KillAura extends Module {
         addSetting(distanceMult);
     }
 
+    /** Scales the maximum distance at which an ASSIST-mode target is still attacked. */
     private final NumberSetting distanceMult = new NumberSetting("Discard Target Distance Multiplier", 3, 1, 3, 1);
     private final EnumSetting<KillAura.Mode> mode = new EnumSetting<>("Mode", KillAura.Mode.AURA);
     private final BooleanSetting playersOnly = new BooleanSetting("Players Only", false);
+
+    /** How KillAura picks its attack target. */
     public enum Mode {
+        /** Attack the closest eligible entity automatically. */
         AURA,
+        /** Attack only the entity the player is looking at. */
         ASSIST
     }
 
 
+    /** Attacks according to the selected mode each tick while the module is enabled. */
     @Override
     public void tick(Minecraft client) {
         if (client == null || client.player == null || client.gameMode == null || client.level == null) return;
@@ -95,6 +107,10 @@ public final class KillAura extends Module {
         return best;
     }
 
+    /**
+     * Returns the effective entity interaction range, combining the player's base attribute
+     * value with the {@code Reach} module's entity reach bonus when that module is enabled.
+     */
     public Double getEntityReach(Minecraft client) {
         Double base = client.player.getAttributes().getValue(Attributes.ENTITY_INTERACTION_RANGE);
         if (Reach.INSTANCE.isEnabled()) {

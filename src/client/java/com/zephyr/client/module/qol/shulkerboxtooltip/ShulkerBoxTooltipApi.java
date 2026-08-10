@@ -17,9 +17,11 @@ import java.util.function.Consumer;
  * preview keybinds to poll: a preview is requested whenever the module is enabled.
  */
 public final class ShulkerBoxTooltipApi {
+    /** Static utility; not instantiable. */
     private ShulkerBoxTooltipApi() {
     }
 
+    /** @return the provider registered for the stack's item, or {@code null} */
     @Nullable
     public static PreviewProvider getPreviewProviderForStack(ItemStack stack) {
         return PreviewProviderRegistry.getInstance().get(stack);
@@ -27,6 +29,9 @@ public final class ShulkerBoxTooltipApi {
 
     /**
      * Returns the provider if the module is enabled and a preview is available for the context.
+     *
+     * @param context the preview context describing the stack
+     * @return the matching provider, or {@code null} when no preview should be shown
      */
     @Nullable
     public static PreviewProvider getProviderIfPreviewAvailable(PreviewContext context) {
@@ -50,6 +55,9 @@ public final class ShulkerBoxTooltipApi {
     /**
      * Returns the currently requested preview type. Since Zephyr does not poll preview keybinds,
      * this only depends on the module's preview mode setting.
+     *
+     * @param hasFullPreviewMode whether the provider supports a full preview
+     * @return the preview type to render
      */
     @NotNull
     public static PreviewType getCurrentPreviewType(boolean hasFullPreviewMode) {
@@ -64,7 +72,12 @@ public final class ShulkerBoxTooltipApi {
     }
 
     /**
-     * Adds the provider's tooltip lines (e.g. the item count) to the stack tooltip.
+     * Adds the provider's tooltip lines (e.g. the item count) to the stack tooltip
+     * when the module is enabled, the provider shows hints, and the tooltip type
+     * setting is {@code MOD}.
+     *
+     * @param stack   the item stack being hovered
+     * @param tooltip consumer receiving the additional tooltip lines
      */
     public static void modifyStackTooltip(ItemStack stack, Consumer<Collection<Component>> tooltip) {
         ShulkerBoxTooltip module = ShulkerBoxTooltip.INSTANCE;

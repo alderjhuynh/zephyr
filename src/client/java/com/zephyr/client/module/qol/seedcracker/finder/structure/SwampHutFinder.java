@@ -22,18 +22,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Finds swamp huts by matching their spruce-plank structure.
+ */
 public class SwampHutFinder extends AbstractTempleFinder {
 
     public SwampHutFinder(Level world, ChunkPos chunkPos) {
         super(world, chunkPos, new Vec3i(7, 7, 9));
     }
 
+    /**
+     * @return a single {@link SwampHutFinder} for the given chunk
+     */
     public static List<Finder> create(Level world, ChunkPos chunkPos) {
         List<Finder> finders = new ArrayList<>();
         finders.add(new SwampHutFinder(world, chunkPos));
         return finders;
     }
 
+    /**
+     * Runs all piece finders and records a {@code SwampHut.Data} constraint for each match.
+     *
+     * @return the combined matched positions
+     */
     @Override
     public List<BlockPos> findInChunk() {
         Map<PieceFinder, List<BlockPos>> result = super.findInChunkPieces();
@@ -54,11 +65,20 @@ public class SwampHutFinder extends AbstractTempleFinder {
         return combinedResult;
     }
 
+    /**
+     * @param biome the biome to validate
+     * @return true if a swamp hut may generate in the given biome
+     */
     @Override
     protected boolean isValidBiome(Biome biome) {
         return Features.SWAMP_HUT.isValidBiome(BiomeFixer.swap(biome));
     }
 
+    /**
+     * Defines the swamp hut layout: spruce plank hut, oak supports, stairs and witch paraphernalia.
+     *
+     * @param finder the piece finder to build the structure on
+     */
     @Override
     public void buildStructure(PieceFinder finder) {
         finder.fillWithOutline(1, 1, 1, 5, 1, 7, Blocks.SPRUCE_PLANKS.defaultBlockState(), Blocks.SPRUCE_PLANKS.defaultBlockState(), false);

@@ -24,9 +24,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Automatically places a rail, TNT minecart, and fire to catch the local player's own
+ * crossbow arrows: the arrow's trajectory is predicted, a rail and minecart are placed at
+ * the landing block, and fire is placed behind the landing position so the arrow ignites it
+ * and detonates the cart.
+ */
 public final class XBowCart extends Module {
     public static final XBowCart INSTANCE = new XBowCart();
 
+    /** Number of ticks of trajectory simulation used to predict where an arrow will land. */
     private static final int LOOKAHEAD_TICKS = 8;
 
     private final Map<Integer, BlockPos> predictions = new HashMap<>();
@@ -36,6 +43,7 @@ public final class XBowCart extends Module {
         super("XBowCart", "Places a rail, TNT minecart, and fire to catch your own crossbow arrows", Category.COMBAT);
     }
 
+    /** Tracks the predicted landing position for each in-flight arrow and places fire, rail, and minecart. */
     @Override
     public void tick(Minecraft client) {
         if (client.player == null

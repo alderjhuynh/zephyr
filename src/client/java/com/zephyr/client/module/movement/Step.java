@@ -7,6 +7,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
+/**
+ * Movement module that raises the player's step height so taller blocks can be
+ * climbed automatically. It stores the original {@link Attributes#STEP_HEIGHT}
+ * base value on first enable and restores it on disable. The height is
+ * configurable via the {@code Height} setting (0.6 to 3.0 blocks).
+ */
 public final class Step extends Module {
     public static final Step INSTANCE = new Step();
 
@@ -18,16 +24,19 @@ public final class Step extends Module {
         addSetting(height);
     }
 
+    /** Applies the configured step height when the module is enabled. */
     @Override
     protected void onEnable() {
         applyHeight(Minecraft.getInstance());
     }
 
+    /** Keeps the step-height attribute in sync with the setting each tick. */
     @Override
     public void tick(Minecraft client) {
         applyHeight(client);
     }
 
+    /** Restores the original step height when the module is disabled. */
     @Override
     protected void onDisable() {
         Minecraft client = Minecraft.getInstance();

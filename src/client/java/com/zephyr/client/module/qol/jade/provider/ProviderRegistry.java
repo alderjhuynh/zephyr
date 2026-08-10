@@ -33,9 +33,11 @@ public final class ProviderRegistry {
     private static final List<IComponentProvider> ENTITY_PROVIDERS = new ArrayList<>();
     private static boolean initialized;
 
+    /** Static utility; not instantiable. */
     private ProviderRegistry() {
     }
 
+    /** Registers the built-in vanilla providers once; subsequent calls are no-ops. */
     public static void init() {
         if (initialized) {
             return;

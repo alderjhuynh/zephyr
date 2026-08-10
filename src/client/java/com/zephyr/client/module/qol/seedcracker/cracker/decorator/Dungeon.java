@@ -22,6 +22,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Overworld dungeon decorator.
+ *
+ * <p>Models the dungeon placement roll (candidate position attempts per chunk) and, when a usable
+ * floor pattern is observed, reverses the decorator RNG to recover candidate structure seeds via
+ * {@link DynamicProgram}.
+ */
 public class Dungeon extends Decorator<Decorator.Config, Dungeon.Data> {
 
     public static final VersionMap<Config> CONFIGS = new VersionMap<Decorator.Config>()
@@ -39,6 +46,15 @@ public class Dungeon extends Decorator<Decorator.Config, Dungeon.Data> {
         return "dungeon";
     }
 
+    /**
+     * Rolls up to eight candidate dungeon positions in the chunk (version-dependent height bound)
+     * and returns whether one matches the observed block offset.
+     *
+     * @param data the observed dungeon placement
+     * @param structureSeed the structure/world seed
+     * @param rand the seedfinding random already seeded on the decorator seed
+     * @return true if a rolled position matches the observed one
+     */
     @Override
     public boolean canStart(Dungeon.Data data, long structureSeed, ChunkRand rand) {
         super.canStart(data, structureSeed, rand);
@@ -67,6 +83,15 @@ public class Dungeon extends Decorator<Decorator.Config, Dungeon.Data> {
         return false;
     }
 
+    /**
+     * Rolls up to ten candidate dungeon positions (vanilla 1.18 height range) and returns whether
+     * one matches the observed block offset.
+     *
+     * @param data the observed dungeon placement
+     * @param worldSeed the candidate world seed
+     * @param rand the vanilla random already seeded on the decorator seed
+     * @return true if a rolled position matches the observed one
+     */
     @Override
     public boolean canStart(Dungeon.Data data, long worldSeed, WorldgenRandom rand) {
         super.canStart(data, worldSeed, rand);
@@ -98,6 +123,10 @@ public class Dungeon extends Decorator<Decorator.Config, Dungeon.Data> {
         return Dimension.OVERWORLD;
     }
 
+    /**
+     * @param biome the biome to validate
+     * @return true only for the End (all non-End biomes are rejected)
+     */
     @Override
     public boolean isValidBiome(Biome biome) {
         return biome != Biomes.NETHER_WASTES && biome != Biomes.SOUL_SAND_VALLEY && biome != Biomes.WARPED_FOREST
@@ -106,14 +135,34 @@ public class Dungeon extends Decorator<Decorator.Config, Dungeon.Data> {
                 && biome != Biomes.THE_VOID && biome == Biomes.THE_END;
     }
 
+    /**
+     * Builds dungeon placement data from the observed dungeon blocks.
+     *
+     * @param blockX the observed block X
+     * @param blockY the observed block Y
+     * @param blockZ the observed block Z
+     * @param size the computed dungeon size (X/Z extent)
+     * @param floorCalls the observed floor block pattern, or null when unavailable
+     * @param biome the biome the dungeon was found in
+     * @param heightContext the world height context for version-aware height sampling
+     * @return the placement data
+     */
     public Dungeon.Data at(int blockX, int blockY, int blockZ, Vec3i size, int[] floorCalls, Biome biome, HeightContext heightContext) {
         return new Dungeon.Data(this, blockX, blockY, blockZ, size, floorCalls, biome, heightContext);
     }
 
+    /**
+     * Placement data for a {@link Dungeon}, including the observed floor pattern and the estimated
+     * number of random bits it constrains.
+     */
     public static class Data extends Decorator.Data<Dungeon> {
+        /** Floor call code for a cobblestone block. */
         public static final int COBBLESTONE_CALL = 0;
+        /** Floor call code for a mossy cobblestone block. */
         public static final int MOSSY_COBBLESTONE_CALL = 1;
+        /** Minimum floor bit count for which the floor is considered usable. */
         public static final float MIN_FLOOR_BITS = 26.0F;
+        /** Maximum floor bit count for which the floor is considered usable. */
         public static final float MAX_FLOOR_BITS = 48.0F;
 
         public final int offsetX;
@@ -148,10 +197,19 @@ public class Dungeon extends Decorator<Decorator.Config, Dungeon.Data> {
             }
         }
 
+        /**
+         * @return true if the observed floor pattern constrains enough bits to be worth reversing
+         */
         public boolean usesFloor() {
             return this.bitsCount >= MIN_FLOOR_BITS && this.bitsCount <= MAX_FLOOR_BITS;
         }
 
+        /**
+         * Reverses the decorator RNG from the observed floor pattern and pokes the {@link TimeMachine}
+         * with any candidate structure seeds it yields.
+         *
+         * @param dataStorage the storage to submit recovered seeds through
+         */
         public void onDataAdded(DataStorage dataStorage) {
             dataStorage.getTimeMachine().poke(TimeMachine.Phase.STRUCTURES);
             if (dataStorage.getTimeMachine().shouldTerminate) return;

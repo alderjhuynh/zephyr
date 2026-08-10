@@ -8,16 +8,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.LongStream;
 
+/**
+ * Complete structural snapshot of a single huge warped fungus, used to reverse its RNG.
+ *
+ * <p>Captures the fungus's layer sizes, per-layer block types, vine data and big-trunk data. The
+ * {@link #crackSeed()} method encodes all observed randomness into a {@link DynamicProgram} and
+ * reverses it to recover the decorator seed(s) that produce the observed fungus.
+ */
 public class FullFungusData {
 
 
+    /** Height (in blocks) of each fungus layer, bottom to top. */
     public final ArrayList<Integer> layerSizes = new ArrayList<>();
+    /** Block type of every position within each layer (see the blockType codes in {@link #crackSeed()}). */
     public final int[][][] layers;
+    /** Vine heights around the upper layers; 0 marks positions with no vine. */
     public final ArrayList<Integer> vines = new ArrayList<>();
+    /** Per-position trunk block data (1 = stem block present, 0 = not) for big fungi. */
     public final ArrayList<Integer> bigtrunkData = new ArrayList<>();
+    /** Estimated number of random calls this fungus constrains; used to pick the best candidate. */
     public final int estimatedData;
+    /** Whether this is a big (4-block trunk) fungus. */
     public boolean big;
+    /** Total height of the fungus trunk. */
     public int height;
+    /** Radius of the vine layer. */
     public int vineLayerSize;
 
     public FullFungusData(List<Integer> layerSizes, int[][][] layers, ArrayList<Integer> vines, boolean big, int height, int vineLayerSize, ArrayList<Integer> bigTrunkData, int estimatedData) {
@@ -32,6 +47,12 @@ public class FullFungusData {
     }
 
 
+    /**
+     * Picks the fungus whose structure constrains the most random bits.
+     *
+     * @param fungusList the observed fungi to choose from
+     * @return the fungus with the highest {@link #estimatedData}, or null if the list is empty
+     */
     public static FullFungusData getBestFungus(List<FullFungusData> fungusList) {
         int data = 0;
         FullFungusData out = null;
@@ -47,6 +68,14 @@ public class FullFungusData {
         return out;
     }
 
+    /**
+     * Reverses the observed fungus structure into candidate decorator seeds.
+     *
+     * <p>Builds a {@link DynamicProgram} describing every random call that shaped this fungus (vine
+     * heights, trunk growth, layer blocks) and reverses it.
+     *
+     * @return a stream of decorator seeds consistent with the observed fungus
+     */
     public LongStream crackSeed() {
         int doppelt = 0;
         if (height > 7 && height % 2 == 0) {

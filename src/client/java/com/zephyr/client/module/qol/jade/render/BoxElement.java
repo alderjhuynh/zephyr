@@ -25,20 +25,29 @@ public class BoxElement {
     private int borderColor;
     private int backgroundColor;
 
+    /**
+     * Creates a box for the given tooltip, using the default dark theme until
+     * {@link #setTheme} is called.
+     *
+     * @param tooltip the tooltip model whose lines and icon this box renders
+     */
     public BoxElement(Tooltip tooltip) {
         this.tooltip = tooltip;
         this.borderColor = 0xFF2E3440;
         this.backgroundColor = 0xE0141018;
     }
 
+    /** @return the tooltip model backing this box */
     public Tooltip getTooltip() {
         return tooltip;
     }
 
+    /** @return the measured box width in GUI pixels */
     public int getWidth() {
         return width;
     }
 
+    /** @return the measured box height in GUI pixels */
     public int getHeight() {
         return height;
     }
@@ -77,7 +86,10 @@ public class BoxElement {
         this.height = contentHeight + PADDING * 2 + BORDER * 2;
     }
 
-    /** Draws the box at (x, y) with the given fade alpha (0..1). */
+    /**
+     * Draws the box at (x, y) with the given fade alpha (0..1), delegating the
+     * positioning and drawing of each contained element.
+     */
     public void render(GuiGraphicsExtractor graphics, int x, int y, float alpha) {
         graphics.fill(x, y, x + width, y + height, ARGB.multiplyAlpha(borderColor, alpha));
         graphics.fill(x + BORDER, y + BORDER, x + width - BORDER, y + height - BORDER,

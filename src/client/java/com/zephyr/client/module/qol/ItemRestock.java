@@ -13,6 +13,13 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+/**
+ * Automatically refills the main hand, offhand, or a consumed totem with a
+ * matching item from the player's inventory. Use actions are tracked as they
+ * are performed; when an item is consumed from a hand, the module performs a
+ * container pickup swap to bring in the largest matching stack. Totem pops are
+ * detected and restocked within a short window after they occur.
+ */
 public final class ItemRestock extends Module {
     public static final ItemRestock INSTANCE = new ItemRestock();
 
@@ -33,6 +40,14 @@ public final class ItemRestock extends Module {
         super("Item Restock", "Swaps a totem or item for a matching one from your inventory", Category.QOL);
     }
 
+    /**
+     * Records that a use action with the given hand consumed an action, so the
+     * held item can be restocked later if it is depleted.
+     *
+     * @param hand   the hand the item was used from
+     * @param stack  the stack that was used
+     * @param result the interaction result of the use
+     */
     public static void trackUse(Minecraft client, InteractionHand hand, ItemStack stack, InteractionResult result) {
         if (!INSTANCE.isEnabled() || !result.consumesAction() || client.player == null || stack.isEmpty()) {
             return;
@@ -41,6 +56,7 @@ public final class ItemRestock extends Module {
         getPendingUse(hand).begin(stack);
     }
 
+    /** Captures the stack used in an interaction attempt so it can be recalled via {@link #consumeCapturedUse}. */
     public static void captureUseAttempt(InteractionHand hand, ItemStack stack) {
         if (!INSTANCE.isEnabled() || stack.isEmpty()) {
             return;
@@ -49,6 +65,7 @@ public final class ItemRestock extends Module {
         getPendingUse(hand).capture(stack);
     }
 
+    /** Starts the short totem-restock window after the player's totem pops. */
     public static void onTotemPop(Minecraft client) {
         if (!INSTANCE.isEnabled() || client.player == null) {
             return;
@@ -57,6 +74,12 @@ public final class ItemRestock extends Module {
         pendingTotemCheckTicks = MAX_TOTEM_CHECK_TICKS;
     }
 
+    /**
+     * Drives the restock logic: handles pending totem restocks, advances any
+     * in-progress use tracking, and snapshots the current hand items.
+     *
+     * @param client the Minecraft client instance
+     */
     @Override
     public void tick(Minecraft client) {
         LocalPlayer player = client.player;
@@ -78,6 +101,7 @@ public final class ItemRestock extends Module {
         previousOffHand = player.getOffhandItem().copy();
     }
 
+    /** Clears all tracking state when the module is disabled. */
     @Override
     protected void onDisable() {
         clearState();
@@ -253,6 +277,13 @@ public final class ItemRestock extends Module {
         }
     }
 
+    /**
+     * Returns and clears the item stack captured by the last use attempt on the
+     * given hand, or {@link ItemStack#EMPTY} if none was captured.
+     *
+     * @param hand the hand whose captured use should be consumed
+     * @return the captured stack, or an empty stack
+     */
     public static ItemStack consumeCapturedUse(InteractionHand hand) {
         PendingUse pendingUse = getPendingUse(hand);
         ItemStack captured = pendingUse.capturedTemplate;

@@ -15,10 +15,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+/**
+ * Singleton orchestrator that dispatches chunk data to the active finders.
+ *
+ * <p>Whenever a chunk arrives, every enabled finder type builds its finders for that chunk on the
+ * shared service and runs them off the main thread. Results are accumulated in the
+ * {@link FinderControl} and rendered via {@link #renderCuboids()}.
+ */
 public class FinderQueue {
 
     private final static FinderQueue INSTANCE = new FinderQueue();
     private static final Logger log = LoggerFactory.getLogger(FinderQueue.class);
+    /** Shared executor used for scanning chunks. */
     public static ExecutorService SERVICE = Executors.newFixedThreadPool(5);
 
     public FinderControl finderControl = new FinderControl();
@@ -27,10 +35,19 @@ public class FinderQueue {
         this.clear();
     }
 
+    /**
+     * @return the shared {@link FinderQueue} singleton
+     */
     public static FinderQueue get() {
         return INSTANCE;
     }
 
+    /**
+     * Runs every active finder type against the given chunk when the module is active.
+     *
+     * @param world the level the chunk belongs to
+     * @param chunkPos the chunk that just arrived
+     */
     public void onChunkData(Level world, ChunkPos chunkPos) {
         if (!Config.get().active) return;
 
@@ -66,12 +83,18 @@ public class FinderQueue {
         });
     }
 
+    /**
+     * @return the currently enabled finder types
+     */
     public List<Finder.Type> getActiveFinderTypes() {
         return Arrays.stream(Finder.Type.values())
                 .filter(type -> type.enabled.get())
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Resets the finder control, dropping all tracked finders.
+     */
     public void clear() {
         this.finderControl = new FinderControl();
     }

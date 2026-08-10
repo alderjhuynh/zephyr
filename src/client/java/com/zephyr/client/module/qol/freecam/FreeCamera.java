@@ -21,6 +21,16 @@ import java.util.UUID;
 
 import static com.zephyr.client.module.qol.FreeCam.MC;
 
+/**
+ * The detached camera entity used by FreeCam. It is a fake client-side player
+ * added to the level while freecam is active; the client's camera is retargeted
+ * to it so the view can fly freely while the real player stays in place.
+ *
+ * <p>It borrows the real player's hand-swing/use animations and effects so the
+ * view looks natural, and overrides water/ladder/piston/collision behavior so
+ * the camera never gets slowed or moved by the world unless collisions are
+ * explicitly checked at spawn.
+ */
 public class FreeCamera extends AbstractClientPlayer {
     public ClientInput input;
     public float yBob;
@@ -28,6 +38,12 @@ public class FreeCamera extends AbstractClientPlayer {
     public float yBobO;
     public float xBobO;
 
+    /**
+     * Creates the camera with a random profile name, forced swimming pose, and
+     * enabled flying abilities.
+     *
+     * @param id the entity id to give the camera
+     */
     public FreeCamera(int id) {
         super(MC.level, new GameProfile(UUID.randomUUID(), "FreeCamera"));
 
@@ -37,6 +53,7 @@ public class FreeCamera extends AbstractClientPlayer {
         input = new KeyboardInput(MC.options);
     }
 
+    /** Polls the camera's input and applies movement for this tick. */
     @Override
     public void tick() {
         input.tick();
@@ -44,11 +61,16 @@ public class FreeCamera extends AbstractClientPlayer {
         super.tick();
     }
 
+    /** Copies the given entity's position and rotation into the camera. */
     @Override
     public void copyPosition(Entity entity) {
         applyPosition(new FreecamPosition(entity));
     }
 
+    /**
+     * Snapshots the camera's position and rotation, resetting the view-bob state
+     * so the camera does not rotate when freecam is first entered.
+     */
     public void applyPosition(FreecamPosition position) {
         snapTo(position.x, position.y, position.z, position.yaw, position.pitch);
         xBob = getXRot();
@@ -57,8 +79,11 @@ public class FreeCamera extends AbstractClientPlayer {
         yBobO = yBob;
     }
 
-    // Mutate the position and rotation based on perspective
-    // If checkCollision is true, move as far as possible without colliding
+    /**
+     * Repositions the camera according to the given start perspective, moving
+     * forward (or backward for third-person views) from the player. When
+     * {@code checkCollision} is true the camera stops before it would collide.
+     */
     public void applyPerspective(Perspective perspective, boolean checkCollision) {
         FreecamPosition position = new FreecamPosition(this);
 
@@ -119,83 +144,85 @@ public class FreeCamera extends AbstractClientPlayer {
         return (ClientLevel) level();
     }
 
+    /** Adds the camera entity to the client level. */
     public void spawn() {
         getClientLevel().addEntity(this);
     }
 
+    /** Removes the camera entity from the client level. */
     public void despawn() {
         if (level() != null) {
             getClientLevel().removeEntity(getId(), RemovalReason.DISCARDED);
         }
     }
 
-    // Prevents fall damage sound when FreeCamera touches ground with noClip disabled.
+    /** Prevents fall damage sound when FreeCamera touches ground with noClip disabled. */
     @Override
     protected void checkFallDamage(double heightDifference, boolean onGround, BlockState landedState, BlockPos landedPosition) {
     }
 
-    // Needed for hand swings to be shown in freecam since the player is replaced by FreeCamera in HeldItemRenderer.renderItem()
+    /** Forwards the real player's attack animation so hand swings show in freecam. */
     @Override
     public float getAttackAnim(float tickDelta) {
         return MC.player.getAttackAnim(tickDelta);
     }
 
-    // Needed for item use animations to be shown in freecam since the player is replaced by FreeCamera in HeldItemRenderer.renderItem()
+    /** Forwards the real player's use-item timer so use animations show in freecam. */
     @Override
     public int getUseItemRemainingTicks() {
         return MC.player.getUseItemRemainingTicks();
     }
 
-    // Also needed for item use animations to be shown in freecam.
+    /** Forwards the real player's using-item state for use animations in freecam. */
     @Override
     public boolean isUsingItem() {
         return MC.player.isUsingItem();
     }
 
-    // Prevents slow down from ladders/vines.
+    /** Prevents slow down from ladders/vines. */
     @Override
     public boolean onClimbable() {
         return false;
     }
 
-    // Prevents slow down from water.
+    /** Prevents slow down from water. */
     @Override
     public boolean isInWater() {
         return false;
     }
 
-    // Makes night vision apply to FreeCamera when Iris is enabled.
+    /** Forwards the real player's effects so night vision applies to the camera (e.g. with Iris). */
     @Override
     public MobEffectInstance getEffect(Holder<MobEffect> effect) {
         return MC.player.getEffect(effect);
     }
 
-    // Prevents pistons from moving FreeCamera when collision.ignoreAll is enabled.
+    /** Prevents pistons from moving FreeCamera when collision.ignoreAll is enabled. */
     @Override
     public PushReaction getPistonPushReaction() {
         return FreeCam.ignoreCollision() ? PushReaction.IGNORE : PushReaction.NORMAL;
     }
 
-    // Prevents collision with solid entities (shulkers, boats)
+    /** Prevents collision with solid entities (shulkers, boats). */
     @Override
     public boolean canCollideWith(Entity other) {
         return false;
     }
 
-    // Ensures that the FreeCamera is always in the swimming pose.
+    /** Ensures that the FreeCamera is always in the swimming pose. */
     @Override
     public void setPose(Pose pose) {
         super.setPose(Pose.SWIMMING);
     }
 
-    // Prevents water submersion sounds from playing.
+    /** Tracks submersion in water without playing the submersion sound. */
     @Override
     protected boolean updateIsUnderwater() {
         this.wasUnderwater = this.isEyeInFluid(FluidTags.WATER);
         return this.wasUnderwater;
     }
 
-    // Prevents water submersion sounds from playing.
+    /** Prevents water submersion sounds from playing. */
     @Override
     protected void doWaterSplashEffect() {}
 
@@ -218,28 +245,31 @@ public class FreeCamera extends AbstractClientPlayer {
         setOnGround(false);
     }
 
+    /** Returns the camera's own pitch for view rendering. */
     @Override
     public float getViewXRot(float partialTick) {
         return this.getXRot();
     }
 
+    /** Returns the camera's own yaw for view rendering. */
     @Override
     public float getViewYRot(float partialTick) {
         return this.getYRot();
     }
 
-    // In newer versions, this also enables movement ticking (like below)
+    /** Enables AI-style ticking so the camera receives movement updates. */
     @Override
     public boolean isEffectiveAi() {
         return true;
     }
 
-    //In LivingEntity's aiStep(), this method decides whether to call travel(), enabling movement ticking
+    /** Lets the camera's movement simulation (travel) run each tick. */
     @Override
     public boolean canSimulateMovement() {
         return true;
     }
 
+    /** Applies the camera's input vector, damping diagonal movement and updating the view-bob state. */
     @Override
     protected void applyInput() {
         Vec2 vec2 = this.input.getMoveVector();

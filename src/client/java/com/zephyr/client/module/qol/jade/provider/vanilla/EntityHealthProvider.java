@@ -23,6 +23,10 @@ import java.util.Locale;
 public class EntityHealthProvider implements IComponentProvider {
     public static final EntityHealthProvider INSTANCE = new EntityHealthProvider();
 
+    /**
+     * Appends health and/or armor progress bars for the targeted living entity
+     * (skipping armor stands), gated by the module's health/armor settings.
+     */
     @Override
     public void appendTooltip(Tooltip tooltip, Accessor accessor) {
         if (!(accessor instanceof EntityAccessor entity) || !(entity.getEntity() instanceof LivingEntity living)) {

@@ -11,9 +11,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin for {@link ClientPacketListener}. Injects into the HEAD of
+ * {@code ClientPacketListener#handleSetEntityMotion} and cancels it for the local player to
+ * back the {@code Knockback} module: incoming knockback velocity is scaled by the configured
+ * amount instead of being applied directly.
+ */
 @Mixin(ClientPacketListener.class)
 public class ClientPacketListenerMixin {
 
+    /** Scales the local player's set-motion velocity by the Knockback amount and cancels the vanilla application. */
     @Inject(method = "handleSetEntityMotion", at = @At("HEAD"), cancellable = true)
     private void zephyr$reduceKnockback(ClientboundSetEntityMotionPacket packet, CallbackInfo ci) {
         if (!Knockback.INSTANCE.isEnabled()) return;

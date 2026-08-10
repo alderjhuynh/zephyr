@@ -20,6 +20,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Warped fungus decorator (Nether).
+ *
+ * <p>When a sufficiently informative fungus is observed, {@code Data.onDataAdded} cracks its
+ * structure back into candidate structure seeds by reversing the population seed, then pokes the
+ * {@link TimeMachine}.
+ */
 public class WarpedFungus extends Decorator<Decorator.Config, WarpedFungus.Data> {
     public static final VersionMap<Config> CONFIGS = new VersionMap<Config>()
             .add(MCVersion.v1_16, new Decorator.Config(8, 3));
@@ -28,6 +35,16 @@ public class WarpedFungus extends Decorator<Decorator.Config, WarpedFungus.Data>
         super(CONFIGS.getAsOf(version), version);
     }
 
+    /**
+     * Builds warped fungus placement data from observed block positions.
+     *
+     * @param blockX the chunk block X
+     * @param blockZ the chunk block Z
+     * @param biome the biome the fungus was found in
+     * @param posList the observed stem positions within the chunk
+     * @param fungusData the structural snapshot of the best fungus
+     * @return the placement data
+     */
     public WarpedFungus.Data at(int blockX, int blockZ, Biome biome, List<BlockPos> posList, FullFungusData fungusData) {
         return new WarpedFungus.Data(this, blockX, blockZ, biome, posList, fungusData);
     }
@@ -57,14 +74,24 @@ public class WarpedFungus extends Decorator<Decorator.Config, WarpedFungus.Data>
         return Dimension.NETHER;
     }
 
+    /**
+     * @param biome the biome to validate
+     * @return true only for the warped forest
+     */
     @Override
     public boolean isValidBiome(Biome biome) {
         return biome == Biomes.WARPED_FOREST;
     }
 
+    /**
+     * Placement data for a {@link WarpedFungus}, holding the full fungus structure snapshot plus the
+     * observed stem positions.
+     */
     public static class Data extends Decorator.Data<WarpedFungus> {
 
+        /** Structural snapshot of the observed fungus. */
         public final FullFungusData fullFungi;
+        /** Observed stem positions, normalised to the current chunk. */
         public final List<BlockPos> posList = new ArrayList<>();
         private final int BlockX;
         private final int BlockZ;
@@ -79,6 +106,12 @@ public class WarpedFungus extends Decorator<Decorator.Config, WarpedFungus.Data>
             }
         }
 
+        /**
+         * Cracks the observed fungus back to candidate structure seeds and pokes the
+         * {@link TimeMachine}. Stems are matched by walking backwards through the population random.
+         *
+         * @param dataStorage the storage to submit recovered seeds through
+         */
         public void onDataAdded(DataStorage dataStorage) {
             if (dataStorage.getTimeMachine().worldSeeds.size() == 1) return;
             if (dataStorage.getTimeMachine().structureSeeds.size() == 1) return;

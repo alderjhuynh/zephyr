@@ -7,6 +7,12 @@ import com.seedfinding.mccore.version.VersionMap;
 import com.seedfinding.mcfeature.structure.RegionStructure;
 import com.seedfinding.mcfeature.structure.UniformStructure;
 
+/**
+ * Seedfinding model for the trial chambers structure (1.21+).
+ *
+ * <p>Extends {@link UniformStructure} so trial chambers participate in the standard uniform
+ * region-based seed reduction.
+ */
 public class TrialChambers extends UniformStructure<TrialChambers> {
 
     public static final VersionMap<Config> CONFIGS = new VersionMap<Config>()
@@ -20,15 +26,25 @@ public class TrialChambers extends UniformStructure<TrialChambers> {
         super(config, version);
     }
 
+    /**
+     * @return the structure id, "trial_chambers"
+     */
     public static String name() {
         return "trial_chambers";
     }
 
+    /**
+     * @return the dimension this structure generates in
+     */
     @Override
     public Dimension getValidDimension() {
         return Dimension.OVERWORLD;
     }
 
+    /**
+     * @param biome the biome to validate
+     * @return always true until the deep dark biome is modelled
+     */
     @Override
     public boolean isValidBiome(Biome biome) {
         // FIXME: Deep Dark doesn't exist

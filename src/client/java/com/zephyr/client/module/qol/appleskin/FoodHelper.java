@@ -27,10 +27,12 @@ public final class FoodHelper {
     private FoodHelper() {
     }
 
+    /** Whether the given item stack is food (has the FOOD data component). */
     public static boolean isFood(ItemStack itemStack) {
         return itemStack.getComponents().has(DataComponents.FOOD);
     }
 
+    /** Whether the player can currently eat the given food component. */
     public static boolean canConsume(Player player, FoodProperties foodComponent) {
         return player.canEat(foodComponent.canAlwaysEat());
     }
@@ -44,6 +46,11 @@ public final class FoodHelper {
         return itemStack.getOrDefault(DataComponents.FOOD, EMPTY_FOOD_COMPONENT);
     }
 
+    /**
+     * Holds the food properties of an item as stored on the item versus as
+     * actually used (after any item-specific modification), together with the
+     * stack itself.
+     */
     public static class QueriedFoodResult {
         public FoodProperties defaultFoodComponent;
         public FoodProperties modifiedFoodComponent;
@@ -56,6 +63,14 @@ public final class FoodHelper {
         }
     }
 
+    /**
+     * Queries the food values of the given stack for the player, or returns
+     * {@code null} if the stack is not food.
+     *
+     * @param itemStack the stack to query
+     * @param player    the player who would eat it
+     * @return the food values, or {@code null}
+     */
     public static QueriedFoodResult query(ItemStack itemStack, Player player) {
         if (!isFood(itemStack)) return null;
 
@@ -81,6 +96,7 @@ public final class FoodHelper {
         return effects;
     }
 
+    /** Whether eating the item applies any harmful status effect. */
     public static boolean isRotten(ItemStack itemStack) {
         for (MobEffectInstance effect : getStatusEffects(itemStack)) {
             if (effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL) {
@@ -90,6 +106,15 @@ public final class FoodHelper {
         return false;
     }
 
+    /**
+     * Estimates how much health eating the item would eventually restore, from
+     * both natural regeneration and any regeneration effect the food applies.
+     *
+     * @param player         the player who would eat the item
+     * @param itemStack      the food item
+     * @param foodComponent  the food properties to use
+     * @return the estimated health restored
+     */
     public static float getEstimatedHealthIncrement(Player player, ItemStack itemStack, FoodProperties foodComponent) {
         if (!canFoodHeal(player)) {
             return 0;
@@ -128,6 +153,15 @@ public final class FoodHelper {
     public static float REGEN_EXHAUSTION_INCREMENT = 6.0F;
     public static float MAX_EXHAUSTION = 4.0F;
 
+    /**
+     * Simulates the vanilla health-regeneration loop for the given food and
+     * exhaustion values to compute how much health would be restored.
+     *
+     * @param foodLevel        the food level after eating
+     * @param saturationLevel  the saturation level after eating
+     * @param exhaustionLevel  the current exhaustion level
+     * @return the estimated health restored
+     */
     public static float getEstimatedHealthIncrement(int foodLevel, float saturationLevel, float exhaustionLevel) {
         float health = 0;
 
