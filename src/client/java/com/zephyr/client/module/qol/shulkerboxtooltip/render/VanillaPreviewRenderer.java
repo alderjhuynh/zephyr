@@ -1,0 +1,110 @@
+package com.zephyr.client.module.qol.shulkerboxtooltip.render;
+
+import com.zephyr.client.module.qol.shulkerboxtooltip.PreviewContext;
+import com.zephyr.client.module.qol.shulkerboxtooltip.PreviewProvider;
+import com.zephyr.client.module.qol.shulkerboxtooltip.PreviewType;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+
+/**
+ * A vanilla-style preview renderer that draws the shulker box contents in a grid of
+ * bundle-styled slots, centered in the tooltip.
+ */
+public class VanillaPreviewRenderer extends BasePreviewRenderer {
+    public static final VanillaPreviewRenderer INSTANCE = new VanillaPreviewRenderer();
+
+    private static final ResourceLocation SLOT_HIGHLIGHT_BACK_SPRITE = ResourceLocation.withDefaultNamespace(
+            "container/bundle/slot_highlight_back");
+    private static final ResourceLocation SLOT_HIGHLIGHT_FRONT_SPRITE = ResourceLocation.withDefaultNamespace(
+            "container/bundle/slot_highlight_front");
+    private static final ResourceLocation SLOT_BACKGROUND_SPRITE = ResourceLocation.withDefaultNamespace(
+            "container/bundle/slot_background");
+
+    private int lastNonEmptySlot;
+
+    VanillaPreviewRenderer() {
+        super(24, 24, 0, 0);
+    }
+
+    @Override
+    protected int getMaxRowSize() {
+        return Math.min(super.getMaxRowSize(), this.getInvSize());
+    }
+
+    @Override
+    public int getWidth() {
+        return this.getMaxRowSize() * 24;
+    }
+
+    @Override
+    public int getHeight() {
+        return this.getRowCount() * 24;
+    }
+
+    private int getRowCount() {
+        return (int) Math.ceil(this.getInvSize() / (double) this.getMaxRowSize());
+    }
+
+    protected int getInvSize() {
+        if (this.previewType == PreviewType.COMPACT)
+            return Math.max(1, this.compactItems.size());
+        else
+            return this.lastNonEmptySlot + 1;
+    }
+
+    @Override
+    public void setPreview(PreviewContext context, PreviewProvider provider) {
+        super.setPreview(context, provider);
+        this.lastNonEmptySlot = this.fullItems.size() - 1;
+        for (; this.lastNonEmptySlot >= 0; --this.lastNonEmptySlot) {
+            if (!this.fullItems.get(this.lastNonEmptySlot).isEmpty())
+                break;
+        }
+    }
+
+    @Override
+    protected int getSlotAt(int x, int y) {
+        return super.getSlotAt(x - 1, y - 1);
+    }
+
+    @Override
+    public void draw(RenderContext context) {
+        if (this.compactItems.isEmpty() || this.previewType == PreviewType.NO_PREVIEW)
+            return;
+
+        int viewportWidth = context.viewportWidth();
+        int x = context.x() + (viewportWidth - this.getWidth()) / 2; // Align center
+        int y = context.y();
+        var graphics = context.graphics();
+        var font = context.font();
+        int mouseX = context.mouseX();
+        int mouseY = context.mouseY();
+
+        this.drawSlots(x, y, graphics, font, mouseX, mouseY, this.lastNonEmptySlot);
+        this.drawInnerTooltip(x, y, graphics, font, mouseX, mouseY);
+    }
+
+    @Override
+    protected void drawSlot(ItemStack stack, int x, int y, GuiGraphics graphics, Font font, int slot,
+                            boolean isHighlighted, boolean shortItemCount) {
+        int maxRowSize = this.getMaxRowSize();
+        int sx = this.slotXOffset + x + this.slotWidth * (slot % maxRowSize);
+        int sy = this.slotYOffset + y + this.slotHeight * (slot / maxRowSize);
+
+        if (isHighlighted) {
+            graphics.blitSprite(SLOT_HIGHLIGHT_BACK_SPRITE, sx, sy, 24, 24);
+        } else {
+            graphics.blitSprite(SLOT_BACKGROUND_SPRITE, sx, sy, 24, 24);
+        }
+
+        if (!stack.isEmpty())
+            this.drawItem(stack, sx + 4, sy + 4, graphics, font, shortItemCount);
+
+        if (isHighlighted) {
+            graphics.blitSprite(SLOT_HIGHLIGHT_FRONT_SPRITE, sx, sy, 24, 24);
+        }
+    }
+}

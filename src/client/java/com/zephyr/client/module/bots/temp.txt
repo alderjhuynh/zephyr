@@ -1,0 +1,8 @@
+THIS IS A TEMPORARY DOCUMENT
+
+I am NOT coding this right now, but when I do,
+this is where any full on automated bots will
+go. I'm already working on spearmace and
+elytramace bots that are 100% automated. I will
+probably do a crystal bot once I know how
+crystal works.
