@@ -53,7 +53,20 @@ public final class NotificationManager {
     public static void notify(String moduleName, boolean enabledNow) {
         if (!GlobalConfig.hotkeyPopupsEnabled()) return;
         if (StealthManager.isActive()) return;
-        ACTIVE.add(0, new Toast(moduleName, enabledNow, System.nanoTime()));
+        ACTIVE.add(0, new ModuleToast(moduleName, enabledNow, System.nanoTime()));
+    }
+
+    /**
+     * Queues a generic text toast (no ON/OFF status), e.g. an event notification from a
+     * module. Unlike {@link #notify} it is not gated by the Hotkey Popups setting, but it
+     * is still hidden while Stealth Mode is active.
+     *
+     * @param text  the message to display
+     * @param color the accent color for the toast's top strip
+     */
+    public static void notifyText(String text, int color) {
+        if (StealthManager.isActive()) return;
+        ACTIVE.add(0, new MessageToast(text, color, System.nanoTime()));
     }
 
     /** Renders and expires active toasts. Safe to call every frame even when none are active. */
@@ -85,22 +98,22 @@ public final class NotificationManager {
         }
     }
 
-    /** Draws one toast: background, accent strip (confetti-aware) and ON/OFF status text. */
+    /** Draws one toast: background, accent strip (confetti-aware) and status text. */
     private static void renderToast(GuiGraphicsExtractor graphics, Font font, Toast toast, int x, int y) {
         graphics.fill(x, y, x + TOAST_WIDTH, y + TOAST_HEIGHT, ZephyrScreen.PANEL_BG);
 
-        int accent = toast.enabledNow() ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
+        int accent = toast.accent();
         if (PartyManager.confetti) {
             accent = PartyManager.confettiAccent(accent);
         }
         graphics.fill(x, y, x + TOAST_WIDTH, y + 2, accent);
 
-        graphics.text(font, toast.moduleName(), x + 8, y + 9, ZephyrScreen.TEXT_MAIN, false);
+        graphics.text(font, toast.text(), x + 8, y + 9, ZephyrScreen.TEXT_MAIN, false);
 
-        String status = toast.enabledNow() ? "ON" : "OFF";
-        int statusColor = toast.enabledNow() ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
+        String status = toast.status();
+        if (status.isEmpty()) return;
         int statusWidth = font.width(status);
-        graphics.text(font, status, x + TOAST_WIDTH - 8 - statusWidth, y + 9, statusColor, false);
+        graphics.text(font, status, x + TOAST_WIDTH - 8 - statusWidth, y + 9, accent, false);
     }
 
     /** Horizontal offset for a toast at {@code elapsed} nanos: slides in, pauses, slides out. */
@@ -122,7 +135,54 @@ public final class NotificationManager {
         return (int) Math.round(eased * (TOAST_WIDTH + MARGIN));
     }
 
-    /** A single queued notification: the module/event name, its new state, and its birth time. */
-    private record Toast(String moduleName, boolean enabledNow, long createdAtNanos) {
+    /** A single queued notification: the displayed text, its accent color, and its birth time. */
+    private interface Toast {
+        /** The message text drawn in the toast body. */
+        String text();
+
+        /** The accent color for the top strip and the status text. */
+        int accent();
+
+        /** A short right-aligned status label (e.g. "ON"), or an empty string to hide it. */
+        String status();
+
+        /** The tick time the toast was queued, used for the slide in/out animation. */
+        long createdAtNanos();
+    }
+
+    /** Toast backing a module hotkey toggle, showing the module name and an ON/OFF status. */
+    private record ModuleToast(String moduleName, boolean enabledNow, long createdAtNanos) implements Toast {
+        @Override
+        public String text() {
+            return moduleName;
+        }
+
+        @Override
+        public int accent() {
+            return enabledNow ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
+        }
+
+        @Override
+        public String status() {
+            return enabledNow ? "ON" : "OFF";
+        }
+    }
+
+    /** Toast backing a generic event message with a fixed accent color and no status label. */
+    private record MessageToast(String message, int color, long createdAtNanos) implements Toast {
+        @Override
+        public String text() {
+            return message;
+        }
+
+        @Override
+        public int accent() {
+            return color;
+        }
+
+        @Override
+        public String status() {
+            return "";
+        }
     }
 }

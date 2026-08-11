@@ -6,6 +6,7 @@ import com.zephyr.client.configplusgui.keybind.KeybindManager;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -25,6 +26,7 @@ import java.util.Set;
  * so recorded keys are never misinterpreted as hotkey presses.
  */
 public final class KeybindGuiScreen extends ZephyrScreen {
+    private static final int SEARCH_HEIGHT = 20;
     private static final int ROW_HEIGHT = 24;
     private static final int SECTION_GAP = 6;
     private static final int CLEAR_BOX_SIZE = 12;
@@ -33,6 +35,9 @@ public final class KeybindGuiScreen extends ZephyrScreen {
     private final LinkedHashSet<Integer> captureBuffer = new LinkedHashSet<>();
     private final Set<Integer> currentlyHeld = new java.util.HashSet<>();
     private Object capturingTarget = null; // Module or KeybindManager.SystemAction
+
+    private String searchQuery = "";
+    private EditBox searchBox;
 
     private double scrollOffset = 0;
 
@@ -56,10 +61,36 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         return capturingTarget != null;
     }
 
+    /** Vertical space above the scrollable list: the title plus the search box. */
+    @Override
+    protected int headerHeight() {
+        return TITLE_HEIGHT + SEARCH_HEIGHT;
+    }
+
+    /** Creates the module search box below the title. */
+    @Override
+    protected void initWidgets() {
+        int searchY = panelY + TITLE_HEIGHT + 2;
+        searchBox = new EditBox(this.font, panelX + PADDING, searchY, panelWidth - PADDING * 2, 16,
+                Component.literal("Search"));
+        searchBox.setHint(Component.literal("Search modules..."));
+        searchBox.setBordered(false);
+        searchBox.setResponder(query -> {
+            this.searchQuery = query;
+            this.scrollOffset = 0;
+        });
+        this.addRenderableWidget(searchBox);
+    }
+
     /** Renders the chrome, the scrolled bind list, and any clear-boxes for set binds. */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         withPanelSlide(() -> {
+            // The search box's x/y were fixed at init() time; keep it tracking the
+            // panel while a slide-cycle animation is temporarily offsetting panelX.
+            searchBox.setX(panelX + PADDING);
+            searchBox.setY(panelY + TITLE_HEIGHT + 2);
+
             renderChrome(graphics, mouseX, mouseY);
 
             int listTop = panelY + headerHeight();
@@ -238,9 +269,10 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         return true;
     }
 
-    /** Builds the row list: system actions first (plus a gap), then every module. */
+    /** Builds the row list: system actions first (plus a gap), then every module filtered by search. */
     private List<Row> computeRows() {
         List<Row> rows = new ArrayList<>();
+        String query = searchQuery.toLowerCase();
         int cursor = panelY + headerHeight();
 
         for (KeybindManager.SystemAction action : KeybindManager.SystemAction.values()) {
@@ -251,6 +283,10 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         cursor += SECTION_GAP;
 
         for (Module module : ModuleManager.getModules()) {
+            if (!query.isBlank() && !module.getName().toLowerCase().contains(query)
+                    && !module.getCategory().getDisplayName().toLowerCase().contains(query)) {
+                continue;
+            }
             rows.add(new Row(module, module.getName(), KeybindManager.get(module), cursor));
             cursor += ROW_HEIGHT;
         }

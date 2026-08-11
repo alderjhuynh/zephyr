@@ -1,6 +1,6 @@
 # Zephyr
 
-A client-side hacked client / utility mod for **Minecraft 26.2**, built on [Fabric](https://fabricmc.net/). Zephyr packs over 60 modules into four categories, Movement, Combat, QoL, and Disable, with a fully clickable GUI, a chat command system, configurable keybinds, configurable profiles, and Discord Rich Presence.
+A client-side hacked client / utility mod for **Minecraft 26.2**, built on [Fabric](https://fabricmc.net/). Zephyr packs 85 modules into four categories, Movement, Combat, QoL, and Disable, with a fully clickable GUI, a chat command system, configurable keybinds, configurable profiles, and Discord Rich Presence.
 
 > **Use at your own risk.** Zephyr modifies client behavior and may violate the rules of the servers you play on. Use it only on servers where such modifications are allowed.
 
@@ -137,11 +137,16 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Aerodynamics  | Boosts velocity while sprinting                                       |
 | Air Jump      | Allows jumping in the air                                             |
 | Anti Hunger   | Avoids unnecessary sprint packets                                     |
+| Auto Walk     | Walks forward automatically without holding W                         |
+| Blink         | Suppresses your position packets while enabled                        |
 | Elytra Boost  | Accelerates while gliding                                             |
 | Flight        | Enables client flight                                                 |
 | High Jump     | Increases jump height                                                 |
+| Ice Speed     | Stops you from sliding uncontrollably on ice                          |
+| Jesus         | Lets you walk on water as if it were solid ground                     |
 | No Fall       | Prevents fall damage packets                                          |
 | No Slowdown   | Cancels the movement speed reduction from using items, webs, or water |
+| Scaffold      | Places a block under your feet while you walk                         |
 | Sprint        | Automatically sprints while moving                                    |
 | Step          | Raises the step height                                                |
 | Trident Boost | Enables dry riptide boosts                                            |
@@ -152,6 +157,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 |-------------------|-----------------------------------------------------------------------------------------------------------|
 | AnchorAura        | Charges a respawn anchor in a target's face and detonates it, shielding yourself behind a glowstone block |
 | Anime Protagonist | Attempts to teleport behind a hit entity                                                                  |
+| Auto Crystal      | Places and detonates end crystals on a target's obsidian support                                          |
 | Auto Place        | Automatically places a specified block on a hit entity                                                    |
 | Breach Swap       | Enables Breach Swapping under a certain fall distance                                                     |
 | Criticals         | Creates falling packets to enable crits and mace slams                                                    |
@@ -163,6 +169,9 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Lunge Swap        | Automatically attempts a Lunge Swap when attacking without a target                                       |
 | Reach             | Increases reach distance                                                                                  |
 | Shieldbreaker     | Automatically breaks shields                                                                              |
+| Spear Damage      | Spoofs speed for massive spear stabs without moving                                                       |
+| Target Strafe     | Orbits around a nearby target while you move                                                              |
+| Totem Pop Notifier| Notifies you when nearby players pop their totems                                                         |
 | TriggerBot        | Attacks whenever an entity is in your crosshair and your cooldown is full                                 |
 | XBowCart          | Places a rail, TNT minecart, and fire to catch your own crossbow arrows                                   |
 
@@ -174,7 +183,6 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | ArmorRenderer       | Shows equipped armor and held items on the HUD with their durability                                                                          |
 | Auto Tool           | Swaps to the correct tool to mine a block                                                                                                     |
 | Container ESP       | Outlines containers                                                                                                                           |
-| Discord Presence    | Shows Zephyr Client as your Discord presence                                                                                                  |
 | Durability Swap     | Saves tools with low durability from being used to mine blocks                                                                                |
 | Fast Attack         | Simulates attack actions multiple times per tick                                                                                              |
 | Fast Use            | Simulates use actions multiple times per tick                                                                                                 |
@@ -186,6 +194,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Inventory Packets   | Skips packets when closing the inventory, letting you use crafting slots as storage                                                           |
 | Inventory Renderer  | Shows your entire inventory on the HUD with item counts and durability                                                                        |
 | Item Restock        | Swaps a totem or item for a matching one from your inventory                                                                                  |
+| Jade                | Shows a tooltip with details about the block or entity you're looking at                                                                      |
 | Periodic Attack     | Automatically attacks on a fixed interval                                                                                                     |
 | Periodic Use        | Automatically right-clicks on a fixed interval                                                                                                |
 | Pick Before Place   | Forces a block pick action before placing a block                                                                                             |
@@ -213,6 +222,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Disable Bossbar                | Hides bossbars                                                |
 | Disable Dead Mob Interaction   | Blocks interactions with dead mobs                            |
 | Disable Dead Mob Rendering     | Hides dead mobs                                               |
+| Disable Damage Tilt            | Removes the camera tilt when you take damage                   |
 | Disable First-Person Fire      | Lowers or removes the first-person fire overlay while on fire |
 | Disable First-Person Particles | Hides your own status particles                               |
 | Disable Fluid Fog              | Removes fog while underwater or in lava for better visibility |

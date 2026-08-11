@@ -44,6 +44,11 @@ public final class ModuleManager {
         register(Sprint.INSTANCE);
         register(Step.INSTANCE);
         register(TridentBoost.INSTANCE);
+        register(AutoWalk.INSTANCE);
+        register(Blink.INSTANCE);
+        register(IceSpeed.INSTANCE);
+        register(Jesus.INSTANCE);
+        register(Scaffold.INSTANCE);
         // disable
         register(disableAxeStripping.INSTANCE);
         register(disableBlockBreakingCooldown.INSTANCE);
@@ -63,6 +68,7 @@ public final class ModuleManager {
         register(disableScoreboard.INSTANCE);
         register(disableShovelPathing.INSTANCE);
         register(disableTotemAnimation.INSTANCE);
+        register(disableDamageTilt.INSTANCE);
         // qol
         register(AppleSkin.INSTANCE);
         register(ArmorRenderer.INSTANCE);
@@ -109,6 +115,10 @@ public final class ModuleManager {
         register(LungeSwap.INSTANCE);
         register(Reach.INSTANCE);
         register(ShieldBreaker.INSTANCE);
+        register(AutoCrystal.INSTANCE);
+        register(SpearDamage.INSTANCE);
+        register(TargetStrafe.INSTANCE);
+        register(TotemPopNotifier.INSTANCE);
         register(TriggerBot.INSTANCE);
         register(XBowCart.INSTANCE);
 
