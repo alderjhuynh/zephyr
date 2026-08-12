@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zephyr Client</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0a10;
+    --bg-alt: #100e16;
+    --panel: #17141d;
+    --panel-2: #1c1824;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.14);
+    --text: #f2eff8;
+    --text-dim: #9a94ab;
+    --text-faint: #6b6478;
+
+    --accent: #D1B9EB;
+    --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
+    --accent-softer: color-mix(in srgb, var(--accent) 10%, transparent);
+    --accent-dim: color-mix(in srgb, var(--accent) 55%, var(--text-dim));
+    --accent-on: color-mix(in srgb, var(--accent) 88%, black);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -5%, var(--accent-softer), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, var(--accent-softer), transparent 55%);
+    transition: background 0.5s ease;
+  }
+
+  .pixel { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header.nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(14px);
+    background: rgba(11,10,16,0.75);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+  }
+  .logo-mark {
+    width: 10px; height: 10px;
+    background: var(--accent);
+    transition: background 0.4s ease;
+    box-shadow: 0 0 12px var(--accent-soft);
+  }
+  .nav-links {
+    display: flex;
+    gap: 34px;
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+  .nav-links a { transition: color 0.2s ease; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-size: 13px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: #0b0a10;
+    font-weight: 700;
+    transition: background 0.35s ease, transform 0.15s ease;
+  }
+  .nav-cta:hover { transform: translateY(-1px); }
+
+  @media (max-width: 780px) {
+    .nav-links { display: none; }
+  }
+
+  .hero {
+    padding: 96px 0 70px;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 60px;
+    align-items: center;
+  }
+  @media (max-width: 940px) {
+    .hero-grid { grid-template-columns: 1fr; }
+  }
+
+  .minecraft-client-thing {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--accent-dim);
+    letter-spacing: 0.18em;
+    margin-bottom: 22px;
+    transition: color 0.4s ease;
+  }
+
+  h1.headline {
+    font-size: 52px;
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 22px;
+  }
+  h1.headline em {
+    font-style: normal;
+    color: var(--accent);
+    transition: color 0.4s ease;
+  }
+  @media (max-width: 940px) { h1.headline { font-size: 40px; } }
+
+  .subhead {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--text-dim);
+    max-width: 460px;
+    margin-bottom: 36px;
+  }
+
+  .hero-actions { display: flex; gap: 14px; margin-bottom: 52px; }
+  .btn-primary {
+    padding: 14px 26px;
+    background: var(--accent);
+    color: #0b0a10;
+    font-weight: 700;
+    font-size: 14px;
+    transition: background 0.35s ease, transform 0.15s ease;
+  }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-ghost {
+    padding: 14px 26px;
+    border: 1px solid var(--border-strong);
+    font-size: 14px;
+    color: var(--text-dim);
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+
+  .stat-row { display: flex; gap: 40px; }
+  .stat .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--accent);
+    transition: color 0.4s ease;
+  }
+  .stat .label {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .gui {
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .gui-top {
+    height: 3px;
+    background: var(--accent);
+    transition: background 0.4s ease;
+  }
+  .gui-header {
+    padding: 16px 18px 12px;
+    background: #0e0c13;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+  }
+  .gui-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 0 10px 10px;
+    background: #0e0c13;
+  }
+  .gui-tab {
+    flex: 1;
+    text-align: center;
+    padding: 9px 4px;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .gui-tab:hover { color: var(--text); }
+  .gui-tab.active {
+    background: var(--accent);
+    color: #0b0a10;
+    font-weight: 700;
+  }
+  .gui-search {
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .gui-search input {
+    width: 100%;
+    display: block;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 10px 18px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    caret-color: var(--accent);
+  }
+  .gui-search input::placeholder { color: var(--text-faint); }
+  .gui-list {
+    padding: 6px 0;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  .gui-list::-webkit-scrollbar { width: 6px; }
+  .gui-list::-webkit-scrollbar-track { background: transparent; }
+  .gui-list::-webkit-scrollbar-thumb {
+    background: var(--accent-soft);
+    border-radius: 3px;
+  }
+  .gui-list::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+  .gui-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .gui-row:last-child { border-bottom: none; }
+  .gui-row-name { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .gui-row-desc {
+    font-size: 11px;
+    color: var(--text-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .gui-row .toggle {
+    flex: none;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    border: 1px solid var(--border-strong);
+    padding: 4px 9px;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .gui-row.on .toggle {
+    color: var(--accent);
+    border-color: var(--accent);
+    transition: color 0.4s ease, border-color 0.4s ease;
+  }
+  .gui-empty {
+    padding: 30px 20px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  .quickstart {
+    padding: 90px 0;
+    border-top: 1px solid var(--border);
+  }
+  .quickstart h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 40px; }
+  .quickstart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+  }
+  @media (max-width: 860px) { .quickstart-grid { grid-template-columns: 1fr; gap: 44px; } }
+
+  .quickstart-label {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--accent-dim);
+    margin-bottom: 20px;
+    transition: color 0.4s ease;
+  }
+
+  .step-list { display: flex; flex-direction: column; gap: 0; }
+  .step-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-item:first-child { padding-top: 0; }
+  .step-item:last-child { border-bottom: none; }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    flex-shrink: 0;
+    padding-top: 2px;
+    transition: color 0.4s ease;
+  }
+  .step-item p { font-size: 14px; line-height: 1.55; color: var(--text-dim); }
+  .step-item code {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    background: var(--panel-2);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 12.5px;
+  }
+
+  .key-list { display: flex; flex-direction: column; gap: 0; }
+  .key-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .key-row:first-child { padding-top: 0; }
+  .key-row:last-child { border-bottom: none; }
+  .key-combo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--accent);
+    border: 1px solid var(--border-strong);
+    padding: 5px 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: color 0.4s ease;
+  }
+  .key-row p { font-size: 13.5px; color: var(--text-dim); }
+
+  .req-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 13.5px;
+  }
+  .req-table td { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .req-table tr:last-child td { border-bottom: none; }
+  .req-table td:first-child { color: var(--text-dim); }
+  .req-table td:last-child { text-align: right; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+
+  .theme-section {
+    padding: 90px 0;
+    border-top: 1px solid var(--border);
+  }
+  .theme-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .theme-header h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; }
+  .theme-current {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .theme-current span {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    transition: color 0.4s ease;
+  }
+
+  .swatch-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 6px;
+  }
+  .swatch-dot {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 2px solid transparent;
+  }
+  .swatch:hover .swatch-dot { transform: translateY(-3px); }
+  .swatch[data-active="true"] .swatch-dot {
+    border-color: var(--text);
+    box-shadow: 0 0 0 3px var(--bg), 0 0 0 4px var(--border-strong);
+  }
+  .swatch[data-active="true"] { color: var(--text); }
+
+  .modules-section { padding: 20px 0 100px; }
+  .modules-section h2 { font-size: 28px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.01em; }
+  .modules-sub { color: var(--text-dim); font-size: 15px; margin-bottom: 44px; max-width: 520px; }
+
+  .module-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  @media (max-width: 900px) { .module-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .module-grid { grid-template-columns: 1fr; } }
+
+  .module-card {
+    background: var(--bg-alt);
+    padding: 30px 26px;
+    transition: background 0.25s ease;
+    position: relative;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    border: none;
+    font-family: inherit;
+    color: inherit;
+    display: block;
+  }
+  .module-card:hover { background: var(--panel); }
+  .module-card:hover::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--accent);
+  }
+  .module-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 18px;
+    transition: color 0.4s ease;
+  }
+  .module-card h3 {
+    font-size: 17px;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .module-card p {
+    font-size: 13.5px;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+
+  .cta-band {
+    border-top: 1px solid var(--border);
+    padding: 90px 0;
+    text-align: center;
+  }
+  .cta-band h2 {
+    font-size: 34px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .cta-band p {
+    color: var(--text-dim);
+    margin-bottom: 34px;
+    font-size: 15px;
+  }
+  .cta-actions { display: flex; gap: 14px; justify-content: center; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 30px 0;
+  }
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .footer-row .logo-mark { width: 7px; height: 7px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-row">
+    <div class="logo pixel"><span class="logo-mark"></span>ZEPHYR</div>
+    <nav class="nav-links">
+      <a href="#quickstart">Get started</a>
+      <a href="#modules">Modules</a>
+      <a href="#themes">Themes</a>
+      <a href="#download">Download</a>
+    </nav>
+    <a href="#download" class="nav-cta pixel">Download</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="minecraft-client-thing">FABRIC CLIENT</div>
+      <h1 class="headline">EVERYTHING YOU NEED,<br><em>NOTHING YOU DON'T</em></h1>
+      <p class="subhead">Zephyr is a client-side utility mod for Minecraft, built on Fabric. Use 85 modules across Movement, Combat, QoL, and Disable, wrapped in a clickable GUI with chat commands, keybinds, profiles, and Discord Rich Presence.</p>
+      <div class="hero-actions">
+        <a href="#download" class="btn-primary pixel">Download Zephyr</a>
+        <a href="#modules" class="btn-ghost pixel">View modules</a>
+      </div>
+      <div class="stat-row">
+        <div class="stat">
+          <div class="num">85</div>
+          <div class="label mono">MODULES</div>
+        </div>
+        <div class="stat">
+          <div class="num">6</div>
+          <div class="label mono">THEMES</div>
+        </div>
+        <div class="stat">
+          <div class="num">26.2</div>
+          <div class="label mono">SUPPORTED</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gui" id="hero-gui">
+      <div class="gui-top"></div>
+      <div class="gui-header pixel">ZEPHYR</div>
+      <div class="gui-tabs pixel" id="gui-tabs">
+        <button class="gui-tab" data-category="all">All</button>
+        <button class="gui-tab" data-category="movement">Movement</button>
+        <button class="gui-tab active" data-category="disable">Disable</button>
+        <button class="gui-tab" data-category="qol">QoL</button>
+        <button class="gui-tab" data-category="combat">Combat</button>
+      </div>
+      <div class="gui-search">
+        <input type="text" id="gui-search-input" class="mono" placeholder="search modules…" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="gui-list" id="gui-list">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="quickstart" id="quickstart">
+  <div class="wrap quickstart-grid">
+    <div>
+      <div class="quickstart-label mono">GETTING STARTED</div>
+      <div class="step-list">
+        <div class="step-item">
+          <span class="step-num mono">01</span>
+          <p>Install <strong>Fabric Loader</strong> for Minecraft 26.2 with the Fabric installer.</p>
+        </div>
+        <div class="step-item">
+          <span class="step-num mono">02</span>
+          <p>Install <strong>Fabric API</strong> for 26.2 from Modrinth or CurseForge.</p>
+        </div>
+        <div class="step-item">
+          <span class="step-num mono">03</span>
+          <p>Drop the Zephyr <code>.jar</code> into your <code>.minecraft/mods</code> folder and launch the Fabric profile.</p>
+        </div>
+        <div class="step-item">
+          <span class="step-num mono">04</span>
+          <p>Press <code>L</code> + <code>Enter</code> in-game to open the menu. Every bind is reconfigurable from the Keybinds screen.</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="quickstart-label mono">DEFAULT BINDS</div>
+      <div class="key-list">
+        <div class="key-row">
+          <span class="key-combo">L + ENTER</span>
+          <p>Open the main menu</p>
+        </div>
+        <div class="key-row">
+          <span class="key-combo">TAB</span>
+          <p>Cycle through keybinds, profiles, and settings screens</p>
+        </div>
+        <div class="key-row">
+          <span class="key-combo">CLICK / R-CLICK</span>
+          <p>Toggle a module / open its settings panel</p>
+        </div>
+        <div class="key-row">
+          <span class="key-combo">F6</span>
+          <p>Toggle Stealth Mode (snapshots and disables every module)</p>
+        </div>
+        <div class="key-row">
+          <span class="key-combo">.</span>
+          <p>Open chat with the command prefix pre-typed</p>
+        </div>
+      </div>
+      <table class="req-table mono">
+        <tr><td>Minecraft</td><td>26.2</td></tr>
+        <tr><td>Fabric Loader</td><td>0.19.3+</td></tr>
+        <tr><td>Fabric API</td><td>latest for 26.2</td></tr>
+        <tr><td>Java</td><td>25+</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="theme-section" id="themes">
+  <div class="wrap">
+    <div class="theme-header">
+      <h2>Highly customizable.</h2>
+      <div class="theme-current mono">ACTIVE: <span id="theme-label">LAVENDER</span></div>
+    </div>
+    <div class="modules-sub">Don't like the main themes? You can choose a custom color ingame.</div>
+    <div class="swatch-row" id="swatch-row"></div>
+  </div>
+</section>
+
+<section class="modules-section" id="modules">
+  <div class="wrap">
+    <h2>No fluff.</h2>
+    <p class="modules-sub">Search and toggle from the click-GUI, or drive everything from chat with <code class="mono">.z module &lt;name&gt; &lt;on|off|toggle&gt;</code>. Every module gets its own settings panel.</p>
+    <div class="module-grid" id="module-grid"></div>
+  </div>
+</section>
+
+<section class="cta-band" id="download">
+  <div class="wrap">
+    <h2>Drop the jar in. Launch Fabric.</h2>
+    <p class="mono">v1.1.2 · 26.2 · Fabric Loader 0.19.3+ · Java 25+</p>
+    <div class="cta-actions">
+      <a href="https://github.com/alderjhuynh/zephyr/releases/download/1.1.2.26.2/zephyr-1.1.2.26.2.jar" class="btn-primary pixel">Download</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <div class="pixel"><span class="logo-mark"></span> ZEPHYR</div>
+    <div>Use at your own risk; may violate server rules. Not affiliated with Mojang or Microsoft.</div>
+  </div>
+</footer>
+
+<script>
+  const THEMES = [
+    { id: "lavender", name: "LAVENDER", hex: "#D1B9EB" },
+    { id: "sky",      name: "SKY",      hex: "#8FC7F0" },
+    { id: "mint",     name: "MINT",     hex: "#8FE3C0" },
+    { id: "gold",     name: "GOLD",     hex: "#F0D58F" },
+    { id: "coral",    name: "CORAL",    hex: "#F0A08F" },
+    { id: "rose",     name: "ROSE",     hex: "#F08FC9" },
+  ];
+
+  const MODULES = {
+    movement: {
+      label: "Movement",
+      tagline: "Speed, jumps, and flight. Move however you want.",
+      items: [
+        { name: "Aerodynamics", desc: "Boosts velocity while sprinting" },
+        { name: "AirJump", desc: "Allows jumping in the air" },
+        { name: "Anti Hunger", desc: "Avoids unnecessary sprint packets" },
+        { name: "Auto Walk", desc: "Walks forward automatically without holding W" },
+        { name: "Blink", desc: "Suppresses your position packets while enabled" },
+        { name: "Elytra Boost", desc: "Accelerates while gliding" },
+        { name: "Flight", desc: "Enables client flight" },
+        { name: "High Jump", desc: "Increases jump height" },
+        { name: "Ice Speed", desc: "Stops you from sliding uncontrollably on ice" },
+        { name: "Jesus", desc: "Lets you walk on water as if it were solid ground" },
+        { name: "No Fall", desc: "Prevents fall damage packets" },
+        { name: "No Slowdown", desc: "Cancels the movement speed reduction from using items, walking in webs, or pushing through water" },
+        { name: "Scaffold", desc: "Places a block under your feet while you walk" },
+        { name: "Sprint", desc: "Automatically sprints while moving" },
+        { name: "Step", desc: "Raises the step height" },
+        { name: "Trident Boost", desc: "Enables dry riptide boosts" },
+      ],
+    },
+    combat: {
+      label: "Combat",
+      tagline: "Automated hits, aura, and combat utility.",
+      items: [
+        { name: "AnchorAura", desc: "Charges a respawn anchor in a target's face and detonates it, shielding yourself behind a glowstone block" },
+        { name: "Anime Protagonist", desc: "Attempts to teleport behind a hit entity" },
+        { name: "Auto Crystal", desc: "Places and detonates end crystals on a target's obsidian support" },
+        { name: "Auto Place", desc: "Automatically places a specified block on a hit entity" },
+        { name: "Breach Swap", desc: "Enables Breach Swapping under a certain fall distance" },
+        { name: "Criticals", desc: "Creates falling packets to enable crits and mace slams" },
+        { name: "Density Swap", desc: "Enables Density Swapping over a certain fall distance" },
+        { name: "Hit Assist", desc: "Sends the attack packet anyway when you miss, if you were looking close enough to an entity" },
+        { name: "InstaCart", desc: "Automatically places a rail and TNT minecart to catch your own flaming arrows" },
+        { name: "KillAura", desc: "Automatically attacks for you" },
+        { name: "Knockback", desc: "Reduces the amount of knockback you take" },
+        { name: "Lunge Swap", desc: "Automatically attempts a Lunge Swap when attacking without a target" },
+        { name: "Reach", desc: "Increases reach distance" },
+        { name: "Shieldbreaker", desc: "Automatically breaks shields" },
+        { name: "Spear Damage", desc: "Spoofs speed for massive spear stabs without moving" },
+        { name: "Target Strafe", desc: "Orbits around a nearby target while you move" },
+        { name: "Totem Pop Notifier", desc: "Notifies you when nearby players pop their totems" },
+        { name: "TriggerBot", desc: "Attacks whenever an entity is in your crosshair and your cooldown is full" },
+        { name: "XBowCart", desc: "Places a rail, TNT minecart, and fire to catch your own crossbow arrows" },
+      ],
+    },
+    qol: {
+      label: "QoL",
+      tagline: "HUD, tools, and everyday quality-of-life automation.",
+      items: [
+        { name: "AppleSkin", desc: "Shows hunger, saturation, exhaustion, and estimated health restored on the HUD" },
+        { name: "ArmorRenderer", desc: "Shows equipped armor and held items on the HUD with their durability" },
+        { name: "AutoTool", desc: "Swaps to the correct tool to mine a block" },
+        { name: "Container ESP", desc: "Outlines containers" },
+        { name: "Durability Swap", desc: "Saves tools with low durability from being used to mine blocks" },
+        { name: "Fast Attack", desc: "Simulates attack actions multiple times per tick" },
+        { name: "Fast Use", desc: "Simulates use actions multiple times per tick" },
+        { name: "FreeCam", desc: "Detaches the camera to fly freely while your player stays in place" },
+        { name: "FullBright", desc: "Increases gamma" },
+        { name: "Gui Move", desc: "Allows movement inputs while GUIs are open" },
+        { name: "Hold Attack", desc: "Continually simulates pressing the attack key" },
+        { name: "Hold Use", desc: "Continually simulates pressing the use key" },
+        { name: "Inventory Packets", desc: "Skips sending packets when closing the inventory, allowing you to use the crafting slots as storage" },
+        { name: "InventoryRenderer", desc: "Shows your inventory on the HUD" },
+        { name: "Item Restock", desc: "Swaps a totem or item for a matching one from your inventory" },
+        { name: "Jade", desc: "Shows a tooltip with details about the block or entity you're looking at" },
+        { name: "Periodic Attack", desc: "Automatically attacks on a fixed interval" },
+        { name: "Periodic Use", desc: "Automatically right-clicks on a fixed interval" },
+        { name: "Pick Before Place", desc: "Forces a block pick action before placing a block" },
+        { name: "PlayerESP", desc: "Glows nearby players" },
+        { name: "Potion Saver", desc: "Attempts to extend the duration of potions" },
+        { name: "Render Invisibility", desc: "Renders invisible players as translucent" },
+        { name: "Safe Walk", desc: "Prevents you from walking off block edges until you jump" },
+        { name: "Seedcracker", desc: "Cracks the world seed by scanning generated structures" },
+        { name: "ShulkerBoxTooltip", desc: "Shows the contents of shulker boxes and other containers in their tooltip" },
+        { name: "Sneak", desc: "Automatically sneaks" },
+        { name: "Speed Mine", desc: "Speeds up block breaking via synthetic Haste or predicted damage packets" },
+        { name: "Time Changer", desc: "Changes the time of day client-side" },
+        { name: "Tracers", desc: "Draws lines from your crosshair to nearby players" },
+        { name: "Xray", desc: "Outlines blocks in a list through walls" },
+        { name: "Zoom", desc: "Smoothly zooms your FOV in to a custom level while enabled" },
+      ],
+    },
+    disable: {
+      label: "Disable",
+      tagline: "Turn off vanilla behaviors and visual clutter.",
+      items: [
+        { name: "Disable Axe Stripping", desc: "Prevents axe stripping" },
+        { name: "Disable Block Cooldown", desc: "Removes block breaking cooldown" },
+        { name: "Disable Block Outline", desc: "Hides the black outline on the targeted block" },
+        { name: "Disable Block Particles", desc: "Hides block breaking particles" },
+        { name: "Disable Bossbar", desc: "Hides bossbars" },
+        { name: "Disable Damage Tilt", desc: "Removes the camera tilt when you take damage" },
+        { name: "Disable Dead Mob Interaction", desc: "Blocks interactions with dead mobs" },
+        { name: "Disable Dead Mob Rendering", desc: "Hides dead mobs" },
+        { name: "Disable First-Person Fire", desc: "Lowers or removes the first-person fire overlay while on fire" },
+        { name: "Disable First-Person Particles", desc: "Hides own status particles" },
+        { name: "Disable Fluid Fog", desc: "Removes fog while underwater or in lava for better visibility" },
+        { name: "Disable Fog", desc: "Hides fog rendering" },
+        { name: "Disable Nausea", desc: "Hides nausea overlays when distortion effects are 0" },
+        { name: "Disable Portal GUI Closing", desc: "Keeps GUIs open in portals" },
+        { name: "Disable Portal Sound", desc: "Mutes nether portal ambience" },
+        { name: "Disable Rain", desc: "Hides rain and rain sounds" },
+        { name: "Disable Scoreboard", desc: "Hides the sidebar scoreboard" },
+        { name: "Disable Shovel Pathing", desc: "Prevents shovel pathing" },
+        { name: "Disable Totem Animation", desc: "Prevents the totem of undying pop-up animation and effects" },
+      ],
+    },
+  };
+
+  const CATEGORY_ORDER = ["movement", "disable", "qol", "combat"];
+
+  let state = { theme: "lavender", category: "disable", search: "" };
+
+  const root = document.documentElement;
+  const swatchRow = document.getElementById("swatch-row");
+  const themeLabel = document.getElementById("theme-label");
+  const guiList = document.getElementById("gui-list");
+  const guiTabs = document.getElementById("gui-tabs");
+  const guiSearchInput = document.getElementById("gui-search-input");
+  const moduleGrid = document.getElementById("module-grid");
+  const heroGui = document.getElementById("hero-gui");
+
+  // Stable pseudo-"enabled" state per module name, just for visual variety.
+  function hashOn(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+    return h % 4 === 0;
+  }
+
+  function getVisibleModules() {
+    const cats = state.category === "all" ? CATEGORY_ORDER : [state.category];
+    const q = state.search.trim().toLowerCase();
+    const rows = [];
+    cats.forEach(catKey => {
+      MODULES[catKey].items.forEach(item => {
+        if (!q || item.name.toLowerCase().includes(q)) {
+          rows.push(item);
+        }
+      });
+    });
+    return rows;
+  }
+
+  function renderGuiList() {
+    const rows = getVisibleModules();
+    if (rows.length === 0) {
+      guiList.innerHTML = `<div class="gui-empty mono">no modules match “${state.search}”</div>`;
+      return;
+    }
+    guiList.innerHTML = rows.map(item => {
+      const on = hashOn(item.name);
+      return `
+        <div class="gui-row ${on ? "on" : ""}">
+          <div class="gui-row-name">
+            <span>${item.name}</span>
+            <span class="gui-row-desc">${item.desc}</span>
+          </div>
+          <button class="toggle mono" data-name="${item.name}">${on ? "ON" : "OFF"}</button>
+        </div>
+      `;
+    }).join("");
+
+    guiList.querySelectorAll(".toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const row = btn.closest(".gui-row");
+        const nowOn = !row.classList.contains("on");
+        row.classList.toggle("on", nowOn);
+        btn.textContent = nowOn ? "ON" : "OFF";
+      });
+    });
+  }
+
+  function setCategory(catKey) {
+    state.category = catKey;
+    guiTabs.querySelectorAll(".gui-tab").forEach(tab => {
+      tab.classList.toggle("active", tab.dataset.category === catKey);
+    });
+    renderGuiList();
+  }
+
+  function renderTabs() {
+    guiTabs.querySelectorAll(".gui-tab").forEach(tab => {
+      tab.addEventListener("click", () => setCategory(tab.dataset.category));
+    });
+  }
+
+  function renderSearch() {
+    guiSearchInput.addEventListener("input", () => {
+      state.search = guiSearchInput.value;
+      renderGuiList();
+    });
+  }
+
+  function renderModuleGrid() {
+    moduleGrid.innerHTML = CATEGORY_ORDER.map(catKey => {
+      const cat = MODULES[catKey];
+      return `
+        <button class="module-card" data-category="${catKey}">
+          <div class="module-count mono">${cat.items.length} MODULES</div>
+          <h3>${cat.label}</h3>
+          <p>${cat.tagline}</p>
+        </button>
+      `;
+    }).join("");
+
+    moduleGrid.querySelectorAll(".module-card").forEach(card => {
+      card.addEventListener("click", () => {
+        setCategory(card.dataset.category);
+        guiSearchInput.value = "";
+        state.search = "";
+        renderGuiList();
+        heroGui.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+  }
+
+  function renderSwatches() {
+    swatchRow.innerHTML = THEMES.map(t => `
+      <button class="swatch" data-id="${t.id}" data-active="${t.id === state.theme}" aria-label="${t.name} theme">
+        <span class="swatch-dot" style="background:${t.hex}"></span>
+        <span>${t.name}</span>
+      </button>
+    `).join("");
+
+    swatchRow.querySelectorAll(".swatch").forEach(btn => {
+      btn.addEventListener("click", () => applyTheme(btn.dataset.id));
+    });
+  }
+
+  function applyTheme(id) {
+    const theme = THEMES.find(t => t.id === id);
+    if (!theme) return;
+    state.theme = id;
+    root.style.setProperty("--accent", theme.hex);
+    themeLabel.textContent = theme.name;
+    swatchRow.querySelectorAll(".swatch").forEach(btn => {
+      btn.dataset.active = String(btn.dataset.id === id);
+    });
+  }
+
+  renderTabs();
+  renderSearch();
+  renderGuiList();
+  renderModuleGrid();
+  renderSwatches();
+  applyTheme(state.theme);
+</script>
+
+</body>
+</html>
