@@ -138,8 +138,9 @@ public final class KeybindManager {
     /**
      * Evaluates every bind for the current frame. Uses edge detection (a bind fires once on
      * the press transition, not continuously) and skips module/system evaluation while the
-     * player is typing or capturing a new bind. Screen-cycling still works while any
-     * {@link ZephyrScreen} is open.
+     * player is typing or capturing a new bind. Module binds are only evaluated while no
+     * screen is open at all, so a bind can never toggle a module mid-menu. Screen-cycling
+     * still works while any {@link ZephyrScreen} is open.
      */
     public static void tick(Minecraft client) {
         Screen screen = client.gui.screen();
@@ -158,7 +159,7 @@ public final class KeybindManager {
             SYSTEM_WAS_DOWN.put(SystemAction.CYCLE_SCREEN, false);
         }
 
-        if (!suppressed) {
+        if (screen == null) {
             tickModuleBinds(client);
         }
     }

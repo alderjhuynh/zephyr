@@ -23,11 +23,15 @@ public final class CommandPrefixHandler {
     /**
      * Polls the Command Prefix keybind each tick. On the rising edge of the
      * keybind press (while no screen is open), opens the chat screen pre-filled
-     * with the prefix text.
+     * with the prefix text. Polling is skipped entirely while any screen is open.
      *
      * @param client the Minecraft client instance
      */
     public static void tick(Minecraft client) {
+        if (client.gui.screen() != null) {
+            return;
+        }
+
         Keybind bind = KeybindManager.get(KeybindManager.SystemAction.COMMAND_PREFIX);
         if (!bind.isSet()) {
             wasDown = false;
@@ -35,7 +39,7 @@ public final class CommandPrefixHandler {
         }
 
         boolean down = isDown(client, bind);
-        if (down && !wasDown && client.gui.screen() == null) {
+        if (down && !wasDown) {
             client.gui.setScreen(new ChatScreen(prefixValue(bind), false));
         }
         wasDown = down;

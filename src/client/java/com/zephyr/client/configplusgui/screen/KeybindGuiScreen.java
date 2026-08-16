@@ -7,6 +7,7 @@ import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -247,6 +248,15 @@ public final class KeybindGuiScreen extends ZephyrScreen {
             return true;
         }
         return super.keyPressed(event);
+    }
+
+    /** While capturing, swallows character input so it never reaches the focused search box. */
+    @Override
+    public boolean charTyped(CharacterEvent event) {
+        if (capturingTarget != null) {
+            return true;
+        }
+        return super.charTyped(event);
     }
 
     /** While capturing, commits the combo once every captured key has been released. */
