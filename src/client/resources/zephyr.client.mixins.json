@@ -45,7 +45,7 @@
 		"movement.NoSlowdown.WaterMixin",
 		"movement.TridentBoost.TridentItemMixin",
 		"movement.AutoWalk.KeyboardInputMixin",
-		"movement.Pathing.KeyboardInputMixin",
+		"bots.pathing.KeyboardInputMixin",
 		"movement.Blink.LocalPlayerMixin",
 		"movement.IceSpeed.BlockMixin",
 		"movement.Jesus.LivingEntityMixin",

@@ -1,4 +1,4 @@
-package com.zephyr.client.module.movement;
+package com.zephyr.client.module.bots.pathing;
 
 import com.zephyr.client.commands.CommandManager;
 import com.zephyr.client.configplusgui.module.Category;

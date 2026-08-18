@@ -2,6 +2,7 @@ package com.zephyr.client.configplusgui.module;
 
 import com.zephyr.client.configplusgui.config.ConfigManager;
 import com.zephyr.client.configplusgui.config.ProfileManager;
+import com.zephyr.client.module.bots.pathing.Pathing;
 import com.zephyr.client.module.combat.KillAura.*;
 import com.zephyr.client.module.combat.AnimeProtagonist.*;
 

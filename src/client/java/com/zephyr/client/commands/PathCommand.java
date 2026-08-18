@@ -1,6 +1,6 @@
 package com.zephyr.client.commands;
 
-import com.zephyr.client.module.movement.Pathing;
+import com.zephyr.client.module.bots.pathing.Pathing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 
