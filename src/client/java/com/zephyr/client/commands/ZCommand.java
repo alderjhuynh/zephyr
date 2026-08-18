@@ -20,7 +20,7 @@ public final class ZCommand extends Command {
     public static final ZCommand INSTANCE = new ZCommand();
 
     private ZCommand() {
-        super("z", "Shows diagnostics or controls modules: .z module <name> <on|off|toggle> | .z seedcracker <command>");
+        super("z", "Shows diagnostics or controls modules: .z module <name> <on|off|toggle> | .z seedcracker <command> | .z path <x> <y> <z>");
     }
 
     /**
@@ -34,7 +34,7 @@ public final class ZCommand extends Command {
     @Override
     public List<String> suggest(String[] args) {
         if (args.length == 1) {
-            return List.of("module", "seedcracker");
+            return List.of("module", "seedcracker", "path");
         }
         if (args[0].equalsIgnoreCase("module")) {
             if (args.length == 2) {
@@ -47,7 +47,10 @@ public final class ZCommand extends Command {
         if (args[0].equalsIgnoreCase("seedcracker")) {
             return SeedcrackerCommand.INSTANCE.suggest(Arrays.copyOfRange(args, 1, args.length));
         }
-        return List.of("module", "seedcracker");
+        if (args[0].equalsIgnoreCase("path")) {
+            return PathCommand.INSTANCE.suggest(Arrays.copyOfRange(args, 1, args.length));
+        }
+        return List.of("module", "seedcracker", "path");
     }
 
     /**
@@ -71,7 +74,11 @@ public final class ZCommand extends Command {
             SeedcrackerCommand.INSTANCE.execute(Arrays.copyOfRange(args, 1, args.length));
             return;
         }
-        CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | seedcracker <command>]");
+        if (args[0].equalsIgnoreCase("path")) {
+            PathCommand.INSTANCE.execute(Arrays.copyOfRange(args, 1, args.length));
+            return;
+        }
+        CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | seedcracker <command> | path <x> <y> <z>]");
     }
 
     private void diagnostics() {

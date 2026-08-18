@@ -49,6 +49,7 @@ public final class ModuleManager {
         register(IceSpeed.INSTANCE);
         register(Jesus.INSTANCE);
         register(Scaffold.INSTANCE);
+        register(Pathing.INSTANCE);
         // disable
         register(disableAxeStripping.INSTANCE);
         register(disableBlockBreakingCooldown.INSTANCE);
