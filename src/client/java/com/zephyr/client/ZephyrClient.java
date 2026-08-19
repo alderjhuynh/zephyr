@@ -13,6 +13,7 @@ import com.zephyr.client.commands.CommandManager;
 import com.zephyr.client.commands.CommandPrefixHandler;
 import com.zephyr.client.commands.ZCommand;
 import com.zephyr.client.discord.DiscordPresenceManager;
+import com.zephyr.client.module.bots.pathing.TargetRender;
 import com.zephyr.client.module.qol.jade.JadeRenderer;
 import com.zephyr.client.module.qol.shulkerboxtooltip.ShulkerBoxTooltipProviders;
 import com.zephyr.client.module.qol.shulkerboxtooltip.tooltip.PreviewClientTooltipComponent;
@@ -100,6 +101,8 @@ ZephyrClient implements ClientModInitializer {
 							client.getWindow().getGuiScaledHeight());
 					JadeRenderer.render(graphics, tickCounter.getRealtimeDeltaTicks());
 				});
+
+		TargetRender.init();
 
 
 		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ModuleManager.saveAll());

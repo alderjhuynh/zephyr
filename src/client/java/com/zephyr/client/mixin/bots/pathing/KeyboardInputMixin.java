@@ -31,6 +31,16 @@ public abstract class KeyboardInputMixin {
 
         ClientInputAccessor accessor = (ClientInputAccessor) this;
         Input current = accessor.zephyr$getKeyPresses();
+
+        // Hold still instead of walking off an edge that cannot be bridged yet.
+        if (module.wantsPause()) {
+            accessor.zephyr$setKeyPresses(new Input(
+                    false, false, current.left(), current.right(),
+                    false, false, current.sprint()));
+            accessor.zephyr$setMoveVector(new Vec2(0.0F, 0.0F));
+            return;
+        }
+
         accessor.zephyr$setKeyPresses(new Input(
                 true, false, current.left(), current.right(),
                 module.wantsJump(), false, current.sprint()));

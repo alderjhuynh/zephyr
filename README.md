@@ -61,9 +61,32 @@ Zephyr's chat commands give you quick control over the client without opening th
 |--------------------------------------|--------------------------------------------------------------------------------|
 | `.z`                                 | Shows diagnostics: mod version, active profile, and enabled/total module count |
 | `.z module <name> <on\|off\|toggle>` | Controls a module by name, e.g. `.z module KillAura on`                        |
+| `.z path <x> <y> <z> [destructive]`  | Walks to coordinates via A*; `destructive` mines through walls and bridges gaps |
+| `.z path stop`                       | Stops the current path walk                                                    |
 
 - Tab-completion works in the chat box: type the prefix and start typing, and commands and arguments are suggested as you go.
 - Names or arguments containing spaces can be double-quoted, e.g. `.z module "Anime Protagonist" toggle`.
+
+## Pathing
+
+**Pathing** is a Movement module that walks you to a set of coordinates using client-side A* pathfinding. Set a destination with:
+
+```
+.z path <x> <y> <z>
+.z path <x> <y> <z> destructive
+.z path stop
+```
+
+The route is drawn as dots on the HUD: passed waypoints green, upcoming ones cyan, and the waypoint you are heading toward yellow. The destination itself gets a red marker with its distance.
+
+By default the bot only walks over solid ground. If a wall or a gap blocks the way it reports that no path exists. Appending `destructive` enables two extra behaviors:
+
+- **Mining**: the pathfinder may carve through mineable blocks (a full wall mines the feet block and the block above it). While walking, the bot breaks the nearest reachable block, aiming at it so breaking cracks show normally.
+- **Placing**: gaps too large to fall across are bridged by placing support blocks under each step. The bot uses whatever block item is in the hotbar, including blocks it picked up from mining, and aims its placement so the floor lands exactly where the path needs it.
+
+The A* search accounts for these edits with relative costs: walking a flat step costs `1.0`, climbing `1.3`, falling `1.0 + 0.1/block`, mining a block `+2.5`, and placing a bridge block `+2.0`, so it prefers the cheapest route (e.g. stepping up instead of mining through). When destructive mode is active the start message reports the chosen route's cost and how many blocks it plans to mine and place, and the HUD colors those blocks red (to mine) and blue (to place).
+
+If a bridge is needed but no placeable block is in the hotbar, the bot holds still at the edge instead of walking off it, and warns you once.
 
 ## Seedcracker
 
@@ -146,6 +169,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Jesus         | Lets you walk on water as if it were solid ground                     |
 | No Fall       | Prevents fall damage packets                                          |
 | No Slowdown   | Cancels the movement speed reduction from using items, webs, or water |
+| Pathing       | Walks to coordinates via A*; optional destructive mode mines and bridges |
 | Scaffold      | Places a block under your feet while you walk                         |
 | Sprint        | Automatically sprints while moving                                    |
 | Step          | Raises the step height                                                |
