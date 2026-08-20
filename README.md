@@ -62,6 +62,7 @@ Zephyr's chat commands give you quick control over the client without opening th
 | `.z`                                 | Shows diagnostics: mod version, active profile, and enabled/total module count |
 | `.z module <name> <on\|off\|toggle>` | Controls a module by name, e.g. `.z module KillAura on`                        |
 | `.z path <x> <y> <z> [destructive]`  | Walks to coordinates via A*; `destructive` mines through walls and bridges gaps |
+| `.z path task mine <block>`          | Walks to the nearest instance of a block and mines it (e.g. `minecraft:deepslate_diamond_ore`) |
 | `.z path stop`                       | Stops the current path walk                                                    |
 
 - Tab-completion works in the chat box: type the prefix and start typing, and commands and arguments are suggested as you go.
@@ -74,10 +75,19 @@ Zephyr's chat commands give you quick control over the client without opening th
 ```
 .z path <x> <y> <z>
 .z path <x> <y> <z> destructive
+.z path task mine <block>
 .z path stop
 ```
 
-The route is drawn as dots on the HUD: passed waypoints green, upcoming ones cyan, and the waypoint you are heading toward yellow. The destination itself gets a red marker with its distance.
+To just grab a specific resource, point it at any block and it will walk to the nearest one and mine it:
+
+```
+.z path task mine minecraft:deepslate_diamond_ore
+```
+
+The bot scans the loaded chunks around you for the nearest block of that type (the name can be full `minecraft:deepslate_diamond_ore` or just `deepslate_diamond_ore`), paths there destructively — digging through walls and bridging gaps as needed — and breaks the block once it is in reach, then announces the task is complete. It works with any block id, including ores, logs, and other resources. Unbreakable blocks (e.g. `minecraft:bedrock`) report that no path exists since they cannot be mined.
+
+The route is drawn as dots on the HUD: passed waypoints green, upcoming ones cyan, and the waypoint you are heading toward yellow. The destination itself gets a red marker with its distance, and a mine task's target block is highlighted red.
 
 By default the bot only walks over solid ground. If a wall or a gap blocks the way it reports that no path exists. Appending `destructive` enables two extra behaviors:
 

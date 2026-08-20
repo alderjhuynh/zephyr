@@ -11,6 +11,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -54,7 +55,12 @@ public final class TargetRender {
 
 		List<BlockPos> path = Pathing.INSTANCE.getPath();
 		drawPath(graphics, client, path, Pathing.INSTANCE.getPathIndex(), width, height);
-		drawBlocks(graphics, client, Pathing.INSTANCE.getBlocksToMine(), MINE_DOT);
+		Set<BlockPos> mine = new HashSet<>(Pathing.INSTANCE.getBlocksToMine());
+		BlockPos taskTarget = Pathing.INSTANCE.getTaskTarget();
+		if (taskTarget != null) {
+			mine.add(taskTarget);
+		}
+		drawBlocks(graphics, client, mine, MINE_DOT);
 		drawBlocks(graphics, client, Pathing.INSTANCE.getBlocksToPlace(), PLACE_DOT);
 		drawTarget(graphics, client, Pathing.INSTANCE.getTarget(), width, height);
 	}

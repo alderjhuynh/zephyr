@@ -14,6 +14,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -59,6 +60,9 @@ public final class Pathing extends Module {
     private BlockPos miningTarget;
     private Direction miningDirection;
     private boolean noPlacementBlocksReported;
+    private Block taskBlock;
+    private String taskBlockId;
+    private BlockPos taskTarget;
 
     private Pathing() {
         super("Pathing", "Walks to a set of coordinates using A* pathfinding", Category.MOVEMENT);
@@ -86,8 +90,30 @@ public final class Pathing extends Module {
      * @return the computed route plan, or {@code null} if not in a world
      */
     public AStarPathfinder.PathResult startPath(BlockPos target, boolean destructive) {
+        return begin(target, destructive, null, null);
+    }
+
+    /**
+     * Starts a mine task: walks to {@code target} (destructive, so the route may
+     * dig through walls and bridge gaps) and breaks the {@code block} sitting at
+     * that position. The module finishes and disables itself once the block is
+     * mined.
+     *
+     * @param target  the position of the block to mine
+     * @param block   the block type to break
+     * @param blockId the block's registry id, used for progress messages
+     * @return the computed route plan, or {@code null} if not in a world
+     */
+    public AStarPathfinder.PathResult startTask(BlockPos target, Block block, String blockId) {
+        return begin(target, true, block, blockId);
+    }
+
+    private AStarPathfinder.PathResult begin(BlockPos target, boolean destructive, Block taskBlock, String taskBlockId) {
         this.target = target;
         this.destructive = destructive;
+        this.taskBlock = taskBlock;
+        this.taskBlockId = taskBlockId;
+        this.taskTarget = taskBlock != null ? target.immutable() : null;
         this.path = new ArrayList<>();
         this.blocksToMine = new HashSet<>();
         this.blocksToPlace = new HashSet<>();
@@ -125,6 +151,21 @@ public final class Pathing extends Module {
     /** The destination block the bot is walking to, or {@code null}. */
     public BlockPos getTarget() {
         return target;
+    }
+
+    /** Whether the current walk is a mine task with a target block. */
+    public boolean isTask() {
+        return taskBlock != null;
+    }
+
+    /** The registry id of the block being mined by the current task. */
+    public String getTaskBlockId() {
+        return taskBlockId;
+    }
+
+    /** The position of the block the current task must break, or {@code null}. */
+    public BlockPos getTaskTarget() {
+        return taskTarget;
     }
 
     /** The current A* route, from start to goal (may be empty). */
@@ -193,6 +234,9 @@ public final class Pathing extends Module {
         miningTarget = null;
         miningDirection = null;
         noPlacementBlocksReported = false;
+        taskBlock = null;
+        taskBlockId = null;
+        taskTarget = null;
     }
 
     @Override
@@ -200,7 +244,13 @@ public final class Pathing extends Module {
         LocalPlayer player = client.player;
         if (player == null || client.level == null || target == null) return;
 
-        if (reached(player, target)) {
+        if (taskBlock != null) {
+            if (!isTaskBlockPresent(client)) {
+                CommandManager.sendMessage("Task complete: mined " + taskBlockId + " at " + target.toShortString());
+                setEnabled(false);
+                return;
+            }
+        } else if (reached(player, target)) {
             CommandManager.sendMessage("Pathing: reached " + target.toShortString());
             setEnabled(false);
             return;
@@ -220,7 +270,11 @@ public final class Pathing extends Module {
             pathIndex = 0;
             recomputeTimer = RECOMPUTE_INTERVAL;
             if (path.isEmpty()) {
-                CommandManager.sendMessage("Pathing: no path found to " + target.toShortString());
+                if (taskBlock != null) {
+                    CommandManager.sendMessage("Task: no path to " + taskBlockId + " at " + target.toShortString());
+                } else {
+                    CommandManager.sendMessage("Pathing: no path found to " + target.toShortString());
+                }
                 setEnabled(false);
                 return;
             }
@@ -234,7 +288,15 @@ public final class Pathing extends Module {
         }
 
         if (pathIndex >= path.size()) {
-            setEnabled(false);
+            if (taskBlock == null) {
+                setEnabled(false);
+                return;
+            }
+            // The task block still needs breaking: hold next to it and let
+            // handleMining finish the job while the input mixin keeps pushing
+            // forward into the wall.
+            player.setYRot(yawTo(player.getX(), player.getZ(), target.getX() + 0.5, target.getZ() + 0.5));
+            wantsJump = false;
             return;
         }
 
@@ -345,6 +407,13 @@ public final class Pathing extends Module {
     /** Returns the nearest unreachable-skipped mine target, pruning cleared blocks. */
     private BlockPos pickMineTarget(Minecraft client, LocalPlayer player) {
         pruneMineTargets(client);
+
+        // A task's target block is the priority: break it as soon as it is in reach.
+        if (taskTarget != null && isTaskBlockPresent(client)
+                && isMineable(client, taskTarget)
+                && distanceSq(player, taskTarget) <= INTERACTION_RANGE * INTERACTION_RANGE) {
+            return taskTarget;
+        }
 
         // Prefer the block blocking the current waypoint so the walk does not
         // wander off digging sideways while a wall is still in the way.
@@ -496,6 +565,12 @@ public final class Pathing extends Module {
         BlockState state = client.level.getBlockState(pos);
         if (state.isAir() || state.canBeReplaced() || isLava(client, pos)) return false;
         return state.getDestroySpeed(client.level, pos) != -1.0f;
+    }
+
+    /** Whether the current task's target block is still in place (not yet mined). */
+    private boolean isTaskBlockPresent(Minecraft client) {
+        return taskTarget != null && taskBlock != null
+                && client.level.getBlockState(taskTarget).getBlock() == taskBlock;
     }
 
     private static boolean isLava(Minecraft client, BlockPos pos) {

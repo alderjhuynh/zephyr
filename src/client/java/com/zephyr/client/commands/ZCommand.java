@@ -20,7 +20,7 @@ public final class ZCommand extends Command {
     public static final ZCommand INSTANCE = new ZCommand();
 
     private ZCommand() {
-        super("z", "Shows diagnostics or controls modules: .z module <name> <on|off|toggle> | .z seedcracker <command> | .z path <x> <y> <z>");
+        super("z", "Shows diagnostics or controls modules: .z module <name> <on|off|toggle> | .z seedcracker <command> | .z path <x> <y> <z> [destructive] | .z path task mine <block>");
     }
 
     /**
@@ -78,7 +78,7 @@ public final class ZCommand extends Command {
             PathCommand.INSTANCE.execute(Arrays.copyOfRange(args, 1, args.length));
             return;
         }
-        CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | seedcracker <command> | path <x> <y> <z>]");
+        CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | seedcracker <command> | path <x> <y> <z> [destructive] | path task mine <block>]");
     }
 
     private void diagnostics() {
