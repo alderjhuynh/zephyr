@@ -1,8 +1,8 @@
 package com.zephyr.client.mixin.combat.DensitySwap;
 
 import com.zephyr.client.mixin.combat.BreachSwap.ForceAttackMixin;
-import com.zephyr.client.module.combat.BreachSwap;
 import com.zephyr.client.module.combat.DensitySwap;
+import com.zephyr.client.module.combat.MaceSwapGuard;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.registries.Registries;
@@ -21,19 +21,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * to back the {@code DensitySwap} module: when the local player's fall distance is at or above
  * the configured minimum, the mixin swaps to the highest-Density mace in the hotbar and
  * re-triggers the attack via {@link ForceAttackMixin}, so the swing lands with the Density
- * enchantment active. Note: the swap is currently gated on the {@link BreachSwap} module's
- * enabled flag, matching the original code.
+ * enchantment active.
  */
 @Mixin(MultiPlayerGameMode.class)
 public class AttackMixin {
-    private static int previousSlot = -1;
-    private static boolean isProcessingAttack = false;
 
 
     /** Returns the hotbar slot of the mace with the highest Density enchantment level, or -1 if none exists. */
     private static int findBestSlot(Minecraft client) {
         int bestSlot = -1;
-        int bestLevel = -1;
+        int bestLevel = 0;
 
         var density = client.level.registryAccess()
                 .lookupOrThrow(Registries.ENCHANTMENT)
@@ -46,6 +43,7 @@ public class AttackMixin {
                 continue;
 
             int level = stack.getEnchantments().getLevel(density);
+            if (level <= 0) continue;
 
             if (level > bestLevel) {
                 bestLevel = level;
@@ -57,28 +55,28 @@ public class AttackMixin {
     }
 
     /** Performs the Density swap and re-attack at the HEAD of each attack when conditions are met. */
-    @Inject(method = "attack", at = @At("HEAD"))
+    @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
     private void onStartAttack(Player player, Entity entity, CallbackInfo ci) {
+        if (MaceSwapGuard.isProcessingAttack) return;
         Minecraft client = Minecraft.getInstance();
-            if (client.player.fallDistance >= DensitySwap.INSTANCE.minFall.get()) {
-                if (BreachSwap.INSTANCE.isEnabled()) {
-                    if (isProcessingAttack) return;
+        if (client.player == null || client.level == null) return;
+        if (!DensitySwap.INSTANCE.isEnabled()) return;
+        if (!(client.player.fallDistance >= DensitySwap.INSTANCE.minFall.get())) return;
 
-                    int best = findBestSlot(client);
-                    if (best != -1) {
-                        previousSlot = client.player.getInventory().getSelectedSlot();
-                        client.player.getInventory().setSelectedSlot(best);
+        int best = findBestSlot(client);
+        if (best == -1) return;
 
-                        isProcessingAttack = true;
-                        try {
-                            ((ForceAttackMixin) client).invokeDoAttack();
-                        } finally {
-                            isProcessingAttack = false;
-                        }
-                        client.player.getInventory().setSelectedSlot(previousSlot);
-                        previousSlot = -1;
-                    }
-                }
-            }
+        MaceSwapGuard.previousSlot = client.player.getInventory().getSelectedSlot();
+        client.player.getInventory().setSelectedSlot(best);
+
+        MaceSwapGuard.isProcessingAttack = true;
+        try {
+            ((ForceAttackMixin) client).invokeDoAttack();
+            ci.cancel();
+        } finally {
+            MaceSwapGuard.isProcessingAttack = false;
         }
+        client.player.getInventory().setSelectedSlot(MaceSwapGuard.previousSlot);
+        MaceSwapGuard.previousSlot = -1;
+    }
 }
