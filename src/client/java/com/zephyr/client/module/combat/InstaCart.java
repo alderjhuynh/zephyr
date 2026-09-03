@@ -1,7 +1,10 @@
 package com.zephyr.client.module.combat;
 
+import com.zephyr.client.TickScheduler;
 import com.zephyr.client.configplusgui.module.Category;
 import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.setting.BooleanSetting;
+import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.mixin.combat.AbstractArrowInvoker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -36,15 +39,27 @@ public final class InstaCart extends Module {
     /** Number of ticks of trajectory simulation used to predict where an arrow will land. */
     private static final int LOOKAHEAD_TICKS = 8;
 
+    /** Extended lookahead used in legit mode so the two-tick placement starts early enough. */
+    private static final int LEGIT_LOOKAHEAD_TICKS = 12;
+
     private static final double ARROW_GRAVITY = 0.05;
     private static final double ARROW_DRAG = 0.99;
 
     private final Map<Integer, BlockPos> predictions = new HashMap<>();
     private final Set<Integer> processed = new HashSet<>();
+    private final Set<Integer> cartPending = new HashSet<>();
 
     private InstaCart() {
         super("InstaCart", "Automatically places a rail and TNT minecart to catch your own flaming arrows", Category.COMBAT);
+        addSetting(legit);
+        addSetting(placementDelay);
     }
+
+    /** When enabled, spreads the rail and cart placements over two separate ticks (vanilla-plausible). */
+    public final BooleanSetting legit = new BooleanSetting("Legit", false);
+
+    /** Ticks to wait between placing the rail and placing the minecart in legit mode. */
+    public final NumberSetting placementDelay = new NumberSetting("Placement Delay", 1.0, 0.0, 20.0, 1.0);
 
     /** Tracks the predicted landing position for each in-flight arrow and places the rail + minecart. */
     @Override
@@ -63,6 +78,8 @@ public final class InstaCart extends Module {
         rangeSq *= rangeSq;
 
         cleanup(client);
+
+        int lookahead = legit.get() ? LEGIT_LOOKAHEAD_TICKS : LOOKAHEAD_TICKS;
 
         for (Entity entity : client.level.entitiesForRendering()) {
 
@@ -83,7 +100,7 @@ public final class InstaCart extends Module {
             if (player.distanceToSqr(arrow) > rangeSq)
                 continue;
 
-            predictions.computeIfAbsent(id, ignored -> predict(client, arrow));
+            predictions.computeIfAbsent(id, ignored -> predict(client, arrow, lookahead));
         }
 
         Iterator<Map.Entry<Integer, BlockPos>> iterator = predictions.entrySet().iterator();
@@ -95,17 +112,31 @@ public final class InstaCart extends Module {
             Entity entity = client.level.getEntity(entry.getKey());
 
             if (!(entity instanceof Arrow arrow)) {
+                cartPending.remove(entry.getKey());
                 iterator.remove();
                 continue;
             }
 
             if (((AbstractArrowInvoker) arrow).zephyr$isInGround()) {
+                cartPending.remove(entry.getKey());
                 iterator.remove();
                 processed.add(arrow.getId());
                 continue;
             }
 
-            if (place(client, entry.getValue())) {
+            int id = arrow.getId();
+
+            if (legit.get()) {
+
+                if (!cartPending.contains(id)) {
+                    int originalSlot = player.getInventory().getSelectedSlot();
+                    if (placeRail(client, entry.getValue(), true, true)) {
+                        cartPending.add(id);
+                        scheduleCart(id, entry.getValue(), originalSlot);
+                    }
+                }
+
+            } else if (place(client, entry.getValue())) {
                 processed.add(arrow.getId());
                 iterator.remove();
             }
@@ -125,12 +156,12 @@ public final class InstaCart extends Module {
         return stack.getEnchantments().getLevel(flame) >= 1;
     }
 
-    private static BlockPos predict(Minecraft client, Arrow arrow) {
+    private static BlockPos predict(Minecraft client, Arrow arrow, int lookaheadTicks) {
 
         Vec3 pos = arrow.position();
         Vec3 vel = arrow.getDeltaMovement();
 
-        for (int i = 0; i < LOOKAHEAD_TICKS; i++) {
+        for (int i = 0; i < lookaheadTicks; i++) {
 
             Vec3 next = pos.add(vel);
 
@@ -156,6 +187,10 @@ public final class InstaCart extends Module {
     }
 
     private static boolean place(Minecraft client, BlockPos placePos) {
+        return placeRail(client, placePos, false, false) && placeCart(client, placePos, false, false);
+    }
+
+    private static boolean placeRail(Minecraft client, BlockPos placePos, boolean swingHand, boolean holdSlot) {
 
         if (placePos == null)
             return false;
@@ -163,14 +198,16 @@ public final class InstaCart extends Module {
         LocalPlayer player = client.player;
 
         int railSlot = findRailSlot(player);
-        int cartSlot = findMinecartSlot(player);
 
-        if (railSlot == -1 || cartSlot == -1)
+        if (railSlot == -1)
             return false;
 
         int previousSlot = player.getInventory().getSelectedSlot();
 
         player.getInventory().setSelectedSlot(railSlot);
+
+        if (swingHand)
+            player.swing(InteractionHand.MAIN_HAND);
 
         client.gameMode.useItemOn(
                 player,
@@ -183,7 +220,30 @@ public final class InstaCart extends Module {
                 )
         );
 
+        if (!holdSlot)
+            player.getInventory().setSelectedSlot(previousSlot);
+
+        return true;
+    }
+
+    private static boolean placeCart(Minecraft client, BlockPos placePos, boolean swingHand, boolean holdSlot) {
+
+        if (placePos == null)
+            return false;
+
+        LocalPlayer player = client.player;
+
+        int cartSlot = findMinecartSlot(player);
+
+        if (cartSlot == -1)
+            return false;
+
+        int previousSlot = player.getInventory().getSelectedSlot();
+
         player.getInventory().setSelectedSlot(cartSlot);
+
+        if (swingHand)
+            player.swing(InteractionHand.MAIN_HAND);
 
         client.gameMode.useItemOn(
                 player,
@@ -196,9 +256,47 @@ public final class InstaCart extends Module {
                 )
         );
 
-        player.getInventory().setSelectedSlot(previousSlot);
+        if (!holdSlot)
+            player.getInventory().setSelectedSlot(previousSlot);
 
         return true;
+    }
+
+    private void scheduleCart(int id, BlockPos placePos, int originalSlot) {
+        int delay = placementDelay.get().intValue();
+
+        TickScheduler.schedule(delay, () -> {
+            if (!isEnabled())
+                return;
+
+            Minecraft client = Minecraft.getInstance();
+
+            if (client.player == null
+                    || client.level == null
+                    || client.gameMode == null)
+                return;
+
+            Entity entity = client.level.getEntity(id);
+
+            if (!(entity instanceof Arrow arrow))
+                return;
+
+            if (((AbstractArrowInvoker) arrow).zephyr$isInGround())
+                return;
+
+            if (placeCart(client, placePos, true, true)) {
+                processed.add(id);
+                cartPending.remove(id);
+                predictions.remove(id);
+            }
+        });
+
+        TickScheduler.schedule(delay * 2, () -> {
+            Minecraft client = Minecraft.getInstance();
+            if (client.player == null)
+                return;
+            client.player.getInventory().setSelectedSlot(originalSlot);
+        });
     }
 
     private static boolean isRail(ItemStack stack) {
@@ -237,5 +335,17 @@ public final class InstaCart extends Module {
             Entity entity = client.level.getEntity(id);
             return !(entity instanceof Arrow);
         });
+
+        cartPending.removeIf(id -> {
+            Entity entity = client.level.getEntity(id);
+            return !(entity instanceof Arrow);
+        });
+    }
+
+    @Override
+    protected void onDisable() {
+        predictions.clear();
+        processed.clear();
+        cartPending.clear();
     }
 }

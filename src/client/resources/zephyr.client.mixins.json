@@ -81,6 +81,7 @@
 		"qol.SpeedMine.ClientLevelAccessor",
 		"qol.SpeedMine.ConnectionMixin",
 		"qol.SpeedMine.CurrentBreakingPosAccessor",
+		"qol.Tracer.LevelExtractorMixin",
 		"combat.Reach.PlayerMixin",
 		"combat.AbstractArrowInvoker",
 		"combat.TargetStrafe.KeyboardInputMixin",
@@ -113,7 +114,8 @@
 		"qol.ShulkerBoxTooltip.ItemStackMixin",
 		"qol.ShulkerBoxTooltip.ItemContainerContentsMixin",
 		"qol.ShulkerBoxTooltip.GuiGraphicsMixin",
-		"qol.ShulkerBoxTooltip.ScreenMixin"
+		"qol.ShulkerBoxTooltip.ScreenMixin",
+		"combat.XBowCart.MultiPlayerGameModeMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

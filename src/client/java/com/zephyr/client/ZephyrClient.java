@@ -1,5 +1,6 @@
 package com.zephyr.client;
 
+import com.zephyr.client.TickScheduler;
 import com.zephyr.client.configplusgui.secretsettings.bettermovement.BetterMovement;
 import com.zephyr.client.configplusgui.config.GlobalConfig;
 import com.zephyr.client.configplusgui.config.ProfileManager;
@@ -70,6 +71,7 @@ ZephyrClient implements ClientModInitializer {
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			TickScheduler.tick();
 			guiKeybindHandler.tick(client);
 			CommandPrefixHandler.tick(client);
 			ModuleManager.tick(client);

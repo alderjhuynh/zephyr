@@ -4,7 +4,6 @@ import com.zephyr.client.configplusgui.module.Category;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
 import com.zephyr.client.configplusgui.module.Module;
 import net.minecraft.client.Minecraft;
-import org.lwjgl.opengl.ARBUniformBufferObject;
 
 /**
  * Automatically places a block on an entity that was just attacked. In WEB mode a cobweb is
