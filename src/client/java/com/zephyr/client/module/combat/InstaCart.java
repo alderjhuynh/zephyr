@@ -235,31 +235,50 @@ public final class InstaCart extends Module {
 
         int cartSlot = findMinecartSlot(player);
 
-        if (cartSlot == -1)
-            return false;
+        if (cartSlot != -1) {
+            int previousSlot = player.getInventory().getSelectedSlot();
 
-        int previousSlot = player.getInventory().getSelectedSlot();
+            player.getInventory().setSelectedSlot(cartSlot);
 
-        player.getInventory().setSelectedSlot(cartSlot);
+            if (swingHand)
+                player.swing(InteractionHand.MAIN_HAND);
 
-        if (swingHand)
-            player.swing(InteractionHand.MAIN_HAND);
+            client.gameMode.useItemOn(
+                    player,
+                    InteractionHand.MAIN_HAND,
+                    new BlockHitResult(
+                            Vec3.atCenterOf(placePos),
+                            Direction.UP,
+                            placePos,
+                            false
+                    )
+            );
 
-        client.gameMode.useItemOn(
-                player,
-                InteractionHand.MAIN_HAND,
-                new BlockHitResult(
-                        Vec3.atCenterOf(placePos),
-                        Direction.UP,
-                        placePos,
-                        false
-                )
-        );
+            if (!holdSlot)
+                player.getInventory().setSelectedSlot(previousSlot);
 
-        if (!holdSlot)
-            player.getInventory().setSelectedSlot(previousSlot);
+            return true;
+        }
 
-        return true;
+        if (player.getOffhandItem().is(Items.TNT_MINECART)) {
+            if (swingHand)
+                player.swing(InteractionHand.OFF_HAND);
+
+            client.gameMode.useItemOn(
+                    player,
+                    InteractionHand.OFF_HAND,
+                    new BlockHitResult(
+                            Vec3.atCenterOf(placePos),
+                            Direction.UP,
+                            placePos,
+                            false
+                    )
+            );
+
+            return true;
+        }
+
+        return false;
     }
 
     private void scheduleCart(int id, BlockPos placePos, int originalSlot) {

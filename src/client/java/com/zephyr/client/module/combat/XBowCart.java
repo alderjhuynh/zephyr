@@ -201,7 +201,7 @@ public final class XBowCart extends Module {
         if (firePos == null)
             return;
 
-        if (findMinecartSlot(player) == -1
+        if ((findMinecartSlot(player) == -1 && !player.getOffhandItem().is(Items.TNT_MINECART))
                 || findFlintAndSteelSlot(player) == -1)
             return;
 
@@ -375,10 +375,11 @@ public final class XBowCart extends Module {
         int fireSlot = findFlintAndSteelSlot(player);
         int railSlot = findRailSlot(player);
         int cartSlot = findMinecartSlot(player);
+        boolean hasCartInOffhand = player.getOffhandItem().is(Items.TNT_MINECART);
 
         if (fireSlot == -1
                 || railSlot == -1
-                || cartSlot == -1)
+                || (cartSlot == -1 && !hasCartInOffhand))
             return false;
 
         BlockPos firePos = findFirePos(client, railPos, arrow.getDeltaMovement());
@@ -394,7 +395,9 @@ public final class XBowCart extends Module {
         player.getInventory().setSelectedSlot(railSlot);
         placeRail(client, railPos, false, false);
 
-        player.getInventory().setSelectedSlot(cartSlot);
+        if (cartSlot != -1) {
+            player.getInventory().setSelectedSlot(cartSlot);
+        }
         placeCart(client, railPos, false, false);
 
         player.getInventory().setSelectedSlot(previousSlot);
@@ -447,31 +450,50 @@ public final class XBowCart extends Module {
 
         int cartSlot = findMinecartSlot(player);
 
-        if (cartSlot == -1)
-            return false;
+        if (cartSlot != -1) {
+            int previousSlot = player.getInventory().getSelectedSlot();
 
-        int previousSlot = player.getInventory().getSelectedSlot();
+            player.getInventory().setSelectedSlot(cartSlot);
 
-        player.getInventory().setSelectedSlot(cartSlot);
+            if (swingHand)
+                player.swing(InteractionHand.MAIN_HAND);
 
-        if (swingHand)
-            player.swing(InteractionHand.MAIN_HAND);
+            client.gameMode.useItemOn(
+                    player,
+                    InteractionHand.MAIN_HAND,
+                    new BlockHitResult(
+                            Vec3.atCenterOf(placePos),
+                            Direction.UP,
+                            placePos,
+                            false
+                    )
+            );
 
-        client.gameMode.useItemOn(
-                player,
-                InteractionHand.MAIN_HAND,
-                new BlockHitResult(
-                        Vec3.atCenterOf(placePos),
-                        Direction.UP,
-                        placePos,
-                        false
-                )
-        );
+            if (!holdSlot)
+                player.getInventory().setSelectedSlot(previousSlot);
 
-        if (!holdSlot)
-            player.getInventory().setSelectedSlot(previousSlot);
+            return true;
+        }
 
-        return true;
+        if (player.getOffhandItem().is(Items.TNT_MINECART)) {
+            if (swingHand)
+                player.swing(InteractionHand.OFF_HAND);
+
+            client.gameMode.useItemOn(
+                    player,
+                    InteractionHand.OFF_HAND,
+                    new BlockHitResult(
+                            Vec3.atCenterOf(placePos),
+                            Direction.UP,
+                            placePos,
+                            false
+                    )
+            );
+
+            return true;
+        }
+
+        return false;
     }
 
     private static boolean placeFire(Minecraft client, BlockPos firePos, boolean swingHand, boolean holdSlot) {
