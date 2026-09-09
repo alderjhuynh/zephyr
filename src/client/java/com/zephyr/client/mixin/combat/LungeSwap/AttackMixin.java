@@ -1,5 +1,6 @@
 package com.zephyr.client.mixin.combat.LungeSwap;
 
+import com.zephyr.client.TickScheduler;
 import com.zephyr.client.module.combat.LungeSwap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -66,24 +67,45 @@ public class AttackMixin {
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
         Minecraft client = (Minecraft)(Object) this;
         if (client.hitResult == null || client.hitResult.getType() == HitResult.Type.MISS) {
-            if (LungeSwap.INSTANCE.isEnabled()) {
-                if (isProcessingAttack) return;
+            if (!LungeSwap.INSTANCE.isEnabled()) return;
+            if (isProcessingAttack) return;
 
-                int best = findBestSlot(client);
-                if (best != -1) {
-                    previousSlot = client.player.getInventory().getSelectedSlot();
-                    client.player.getInventory().setSelectedSlot(best);
+            int best = findBestSlot(client);
+            if (best != -1) {
+                int originalSlot = client.player.getInventory().getSelectedSlot();
+                previousSlot = originalSlot;
+                client.player.getInventory().setSelectedSlot(best);
 
-                    isProcessingAttack = true;
-                    try {
-                        ((ForceAttackMixin) client).invokeDoAttack();
-                    } finally {
-                        isProcessingAttack = false;
+                isProcessingAttack = true;
+                try {
+                    ((ForceAttackMixin) client).invokeDoAttack();
+                } finally {
+                    isProcessingAttack = false;
+                }
+
+                // Delay should affect swapping BACK, not swapping to the spear
+                if (LungeSwap.INSTANCE.legit.get()) {
+                    int swapDelay = LungeSwap.INSTANCE.delay.get().intValue();
+                    // placementDelay is alias to delay (InstaCart/XBowCart compatibility)
+                    swapDelay = LungeSwap.INSTANCE.placementDelay.get().intValue();
+                    if (swapDelay <= 0) {
+                        client.player.getInventory().setSelectedSlot(previousSlot);
+                        previousSlot = -1;
+                    } else {
+                        int restoreSlot = previousSlot;
+                        previousSlot = -1;
+                        TickScheduler.schedule(swapDelay, () -> {
+                            Minecraft mc = Minecraft.getInstance();
+                            if (mc.player != null) {
+                                mc.player.getInventory().setSelectedSlot(restoreSlot);
+                            }
+                        });
                     }
+                } else {
                     client.player.getInventory().setSelectedSlot(previousSlot);
                     previousSlot = -1;
                 }
-            };
             }
         }
     }
+}
