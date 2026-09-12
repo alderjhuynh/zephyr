@@ -115,7 +115,8 @@
 		"qol.ShulkerBoxTooltip.ItemContainerContentsMixin",
 		"qol.ShulkerBoxTooltip.GuiGraphicsMixin",
 		"qol.ShulkerBoxTooltip.ScreenMixin",
-		"combat.XBowCart.MultiPlayerGameModeMixin"
+		"combat.XBowCart.MultiPlayerGameModeMixin",
+		"combat.PearlCatch.EnderPearlItemMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

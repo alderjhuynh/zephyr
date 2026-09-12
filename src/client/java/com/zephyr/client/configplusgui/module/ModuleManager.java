@@ -115,6 +115,7 @@ public final class ModuleManager {
         register(KillAura.INSTANCE);
         register(Knockback.INSTANCE);
         register(LungeSwap.INSTANCE);
+        register(PearlCatch.INSTANCE);
         register(Reach.INSTANCE);
         register(ShieldBreaker.INSTANCE);
         register(AutoCrystal.INSTANCE);
