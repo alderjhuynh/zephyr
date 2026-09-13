@@ -103,6 +103,7 @@ public final class ModuleManager {
         register(Tracer.INSTANCE);
         register(Xray.INSTANCE);
         register(Zoom.INSTANCE);
+        register(MouseTweaks.INSTANCE);
         // combat
         register(AnimeProtagonist.INSTANCE);
         register(AnchorAura.INSTANCE);
