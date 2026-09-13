@@ -34,7 +34,8 @@ public final class ZCommand extends Command {
             "kit", "ckit", "look", "clook",
             "permissionlevel", "cpermissionlevel", "ping", "cping",
             "pos", "cpos", "relog", "crelog",
-            "time", "ctime", "tp", "ctp", "uuid", "cuuid"
+            "time", "ctime", "tp", "ctp", "uuid", "cuuid",
+            "player", "cplayer"
     );
 
     /**
@@ -97,6 +98,7 @@ public final class ZCommand extends Command {
             case "time", "ctime" -> TimeCommand.INSTANCE;
             case "tp", "ctp" -> TeleportCommand.INSTANCE;
             case "uuid", "cuuid" -> UuidCommand.INSTANCE;
+            case "player", "cplayer" -> FakePlayerCommand.INSTANCE;
             default -> null;
         };
     }
@@ -136,7 +138,7 @@ public final class ZCommand extends Command {
             return;
         }
         CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | seedcracker <command> | path <x> <y> <z> [destructive] | path task mine <block>]");
-        CommandManager.sendMessage("Ported: alias, config, crackrng, creativetab, enchant, find, findblock, gamemode, getdata, ghostblock, give, glow, hotbar, kit, look, permissionlevel, ping, pos, relog, time, tp, uuid (prefix c optional)");
+        CommandManager.sendMessage("Ported: alias, config, crackrng, creativetab, enchant, find, findblock, gamemode, getdata, ghostblock, give, glow, hotbar, kit, look, permissionlevel, ping, pos, relog, time, tp, uuid, player (prefix c optional)");
     }
 
     private void diagnostics() {

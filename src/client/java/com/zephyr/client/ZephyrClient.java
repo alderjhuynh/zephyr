@@ -12,7 +12,9 @@ import com.zephyr.client.configplusgui.keybind.KeybindManager;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.commands.CommandManager;
 import com.zephyr.client.commands.CommandPrefixHandler;
+import com.zephyr.client.commands.FakePlayerCommand;
 import com.zephyr.client.commands.ZCommand;
+import com.zephyr.client.fakeplayer.FakePlayerManager;
 import com.zephyr.client.discord.DiscordPresenceManager;
 import com.zephyr.client.module.bots.pathing.TargetRender;
 import com.zephyr.client.module.qol.jade.JadeRenderer;
@@ -52,7 +54,10 @@ ZephyrClient implements ClientModInitializer {
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> DiscordPresenceManager.initialize());
 		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> DiscordPresenceManager.shutdown());
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> DiscordPresenceManager.onWorldTransition());
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> DiscordPresenceManager.onWorldTransition());
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			DiscordPresenceManager.onWorldTransition();
+			FakePlayerManager.onDisconnect();
+		});
 
 
 		GlobalConfig.init();
@@ -60,6 +65,7 @@ ZephyrClient implements ClientModInitializer {
 		ProfileManager.init();
 		KeybindManager.init();
 		CommandManager.register(ZCommand.INSTANCE);
+		CommandManager.register(FakePlayerCommand.INSTANCE);
 
 		ShulkerBoxTooltipProviders.register();
 

@@ -1,6 +1,6 @@
 # Zephyr
 
-A client-side hacked client / utility mod for **Minecraft 26.2**, built on [Fabric](https://fabricmc.net/). Zephyr packs 85 modules into four categories, Movement, Combat, QoL, and Disable, with a fully clickable GUI, a chat command system, configurable keybinds, configurable profiles, and Discord Rich Presence.
+A client-side hacked client / utility mod for **Minecraft 26.2**, built on [Fabric](https://fabricmc.net/). Zephyr packs 88 modules into four categories, Movement, Combat, QoL, and Disable, with a fully clickable GUI, a chat command system, configurable keybinds, configurable profiles, and Discord Rich Presence.
 
 > **Use at your own risk.** Zephyr modifies client behavior and may violate the rules of the servers you play on. Use it only on servers where such modifications are allowed.
 
@@ -64,6 +64,8 @@ Zephyr's chat commands give you quick control over the client without opening th
 | `.z path <x> <y> <z> [destructive]`  | Walks to coordinates via A*; `destructive` mines through walls and bridges gaps |
 | `.z path task mine <block>`          | Walks to the nearest instance of a block and mines it (e.g. `minecraft:deepslate_diamond_ore`) |
 | `.z path stop`                       | Stops the current path walk                                                    |
+| `.z <command> [args]`                | Delegates to any ported [ClientCommands](#clientcommands) command (see below)  |
+| `.z player <name> <action>`          | Spawns/controls a singleplayer fake player (see [Fake Players](#fake-players)) |
 
 - Tab-completion works in the chat box: type the prefix and start typing, and commands and arguments are suggested as you go.
 - Names or arguments containing spaces can be double-quoted, e.g. `.z module "Anime Protagonist" toggle`.
@@ -153,10 +155,75 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 
 > **Note:** The original mod's preview keybind/locking features are intentionally left out, in Zephyr the preview is simply always shown while the module is enabled. Shulker box colors are rendered using a dedicated Zephyr texture.
 
+## ClientCommands
+
+Zephyr includes a partial port of [ClientCommands](https://github.com/Earthcomputer/clientcommands), exposed through `.z` (and its `c`-prefixed aliases). Every ported command is delegated by `ZCommand` and benefits from the same prefix/tab-completion as the built-in commands.
+
+| Command | Description | Alias |
+|---------|-------------|-------|
+| `alias` | Manage command aliases stored in `config/zephyr/aliases.json`: `add <key> <command>`, `list`, `remove <key>`, `exec <key> [args]`; supports `%` placeholders and direct `.z <alias>` execution | `calias` |
+| `config` | View/set client configs: `list`, `get <key>`, `set <key> <value>` | `cconfig` |
+| `crackrng` | RNG cracking is incomplete in this port  (I PROMISE IM WOKRING ON IT)| `ccrackrng` |
+| `creativetab` | Manage custom creative tabs: `add`/`remove`/`modify` ... | `ccreativetab` |
+| `enchant` | Yeah... I need to finish rng cracking before I port this... | `cenchant` |
+| `find` | Find nearby entities by type/name | `cfind` |
+| `findblock` | Find nearest block: `findblock <block>` | `cfindblock` |
+| `gamemode` | Query gamemodes: `query <player>`, `list <gamemode>` | `cgamemode` |
+| `getdata` | Get NBT data: `entity <uuid>` or `block <x> <y> <z>` with optional path | `cgetdata` |
+| `ghostblock` | Ghost blocks client-side: `set <x> <y> <z> <block>` or `fill <x1> <y1> <z1> <x2> <y2> <z2> <block> [replace <filter>]` | `cghostblock` |
+| `give` | Give items in creative: `give <item> [count]` | `cgive` |
+| `glow` | Glow entities/blocks: `entities <type>`, `block <x> <y> <z>`, `area ...` with optional duration | `cglow` |
+| `hotbar` | Hotbar save/restore: `save`/`restore <1-9>` | `chotbar` |
+| `kit` | Kit management: `create`/`delete`/`edit`/`load`/`list`/`preview <name>` | `ckit` |
+| `look` | Look at block/angles: `block <x> <y> <z>`, `angles <yaw> <pitch>`, `cardinal <north|...>` | `clook` |
+| `permissionlevel` | Show your permission level | `cpermissionlevel` |
+| `ping` | Show ping: `ping [player]` | `cping` |
+| `pos` | Convert dimension coords: `pos [to/from any vanilla dimension] [<x> <y> <z>]` | `cpos` |
+| `relog` | Relog to the current server | `crelog` |
+| `time` | Client time: `query`/`set <time>`/`reset` | `ctime` |
+| `tp` | Spectator teleport: `tp <player|uuid>` | `ctp` |
+| `uuid` | Get UUID: `uuid <player|uuid>` | `cuuid` |
+
+Usage is `.z <command> [args]` or `.z c<command> [args]` (e.g. `.z give minecraft:diamond 64`, `.z cpos to nether`). Entity selectors and the full RNG tooling from upstream ClientCommands remain incomplete.
+
+## Fake Players
+
+**Fake Players** (`src/client/java/com/zephyr/client/fakeplayer/`) is a singleplayer-only port of `carpet.commands.PlayerCommand`, wired as `.z player`. It is gated by `FakePlayerManager.isSingleplayer()` so joining vanilla/multiplayer servers without Zephyr on the server is always safe.
+
+All state lives in `src/client/java` and uses an `EmbeddedChannel` `FakeClientConnection` + reflection-set `channel` to keep enderpearl teleport/chunk tracking alive on the integrated server. `ZephyrClient` clears fake players on `DISCONNECT`.
+
+```
+.z player <name> spawn [at <x> <y> <z>] [facing <yaw> <pitch>] [in <survival|creative|adventure|spectator>] [in <dimension>]
+.z player <name> kill
+.z player <name> stop
+.z player <name> use [once|continuous|interval [ticks]]
+.z player <name> attack [once|continuous|interval [ticks]]
+.z player <name> jump [once|continuous|interval [ticks]]
+.z player <name> sneak / unsneak
+.z player <name> sprint / unsprint
+.z player <name> look <north|south|east|west|up|down|at <x> <y> <z>|<yaw> <pitch>>
+.z player <name> turn <left|right|back|<yaw> <pitch>>
+.z player <name> move <forward|backward|left|right|stop>
+.z player <name> hotbar <1-9>
+.z player <name> drop [all|mainhand|offhand]
+.z player <name> dropStack [all|mainhand|offhand]
+.z player <name> mount / dismount
+.z player <name> shadow        # shadow the real player (disconnects you and spawns a bot copying you)
+.z player list
+```
+## Mouse Tweaks
+
+**Mouse Tweaks** (`src/client/java/com/zephyr/client/module/qol/MouseTweaks.java:19`) is a QoL inventory module *inspired by* [Mouse Tweaks](https://github.com/YaLTeR/MouseTweaks). I did not use the source or any code from anything related. All of the code within Zephyr is of my own mind, though the specific actions it aims to replicate are not. While enabled it replaces vanilla container dragging:
+
+- **RMB Tweak**: vanilla-like RMB drag but revisiting slots places again (configurable).
+- **LMB Tweak (with item)**: drag with an item on cursor to pick up matching items; with Shift, quick-moves them.
+- **LMB Tweak (without item)**: Shift + LMB drag to quick-move every visited slot.
+- **Wheel Tweak**: scroll over a stack to push one item per tick to the other inventory (scroll down) or pull from it (scroll up).
+
 ## Features
 
 - **Click GUI**: searchable module list with per-category tabs and per-module settings panels
-- **Commands**: chat-based control with `.z`, including tab-completion and argument suggestions
+- **Commands**: chat-based control with `.z`, including tab-completion and argument suggestions.
 - **Global settings**: theme/custom accent colors, toast popups, HUD overlay, and other client-wide options
 - **Profiles**: save and switch between different module/setting configurations
 - **Keybinds**: bind any module or system action to up to three simultaneous keys, all editable in-game
@@ -197,17 +264,18 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Criticals         | Creates falling packets to enable crits and mace slams                                                    |
 | Density Swap      | Enables Density Swapping over a certain fall distance                                                     |
 | Hit Assist        | Sends the attack packet anyway when you miss, if you were looking close enough to an entity               |
-| InstaCart         | Automatically places a rail and TNT minecart to catch your own flaming arrows                             |
+| InstaCart         | Automatically places a rail and TNT minecart to catch your flaming arrows |
 | KillAura          | Automatically attacks for you                                                                             |
 | Knockback         | Reduces the amount of knockback you take                                                                  |
-| Lunge Swap        | Automatically attempts a Lunge Swap when attacking without a target                                       |
+| Lunge Swap        | Automatically attempts a Lunge Swap when attacking without a target                |
+| Pearl Catch       | Catches a thrown Ender Pearl with a Wind Charge                             |
 | Reach             | Increases reach distance                                                                                  |
 | Shieldbreaker     | Automatically breaks shields                                                                              |
 | Spear Damage      | Spoofs speed for massive spear stabs without moving                                                       |
 | Target Strafe     | Orbits around a nearby target while you move                                                              |
 | Totem Pop Notifier| Notifies you when nearby players pop their totems                                                         |
 | TriggerBot        | Attacks whenever an entity is in your crosshair and your cooldown is full                                 |
-| XBowCart          | Places a rail, TNT minecart, and fire to catch your own crossbow arrows                                   |
+| XBowCart          | Places a rail, TNT minecart, and fire to catch your own crossbow arrows          |
 
 ### QoL
 
@@ -216,7 +284,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | AppleSkin           | Food-related HUD improvements: saturation, exhaustion, and hunger/health restored while holding food                                          |
 | ArmorRenderer       | Shows equipped armor and held items on the HUD with their durability                                                                          |
 | Auto Tool           | Swaps to the correct tool to mine a block                                                                                                     |
-| Container ESP       | Outlines containers                                                                                                                           |
+| Container ESP       | Outlines containers                                                                                |
 | Durability Swap     | Saves tools with low durability from being used to mine blocks                                                                                |
 | Fast Attack         | Simulates attack actions multiple times per tick                                                                                              |
 | Fast Use            | Simulates use actions multiple times per tick                                                                                                 |
@@ -229,6 +297,7 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Inventory Renderer  | Shows your entire inventory on the HUD with item counts and durability                                                                        |
 | Item Restock        | Swaps a totem or item for a matching one from your inventory                                                                                  |
 | Jade                | Shows a tooltip with details about the block or entity you're looking at                                                                      |
+| Mouse Tweaks        | Inventory drag/scroll tweaks                              |
 | Periodic Attack     | Automatically attacks on a fixed interval                                                                                                     |
 | Periodic Use        | Automatically right-clicks on a fixed interval                                                                                                |
 | Pick Before Place   | Forces a block pick action before placing a block                                                                                             |
@@ -241,8 +310,8 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Sneak               | Automatically sneaks                                                                                                                          |
 | Speed Mine          | Speeds up block breaking via synthetic Haste or predicted damage packets                                                                      |
 | Time Changer        | Changes the time of day client-side                                                                                                           |
-| Tracers             | Draws lines from your crosshair to nearby players                                                                                             |
-| Xray                | Outlines blocks in a list through walls, with presets or a custom list with per-block colors                                                  |
+| Tracers             | Draws lines from your crosshair to nearby players                                                         |
+| Xray                | Outlines blocks in a list through walls, with presets or a custom list with per-block colors            |
 | Zoom                | Smoothly zooms your FOV in to a custom level while enabled                                                                                    |
 
 ### Disable
@@ -294,6 +363,7 @@ src/main/java/com/zephyr/          Mod entry point (Zephyr) and the common mixin
 src/main/resources/                fabric.mod.json, mixin configs, icon
 src/client/java/com/zephyr/client/
 ├── ZephyrClient.java              Client initializer: wires up every system
+├── TickScheduler.java / MillisScheduler.java   Tick and wall-clock schedulers (used by InstaCart/XBowCart legit timing — 57fc1e0)
 ├── configplusgui/                 The core framework ("config plus GUI")
 │   ├── config/                    GlobalConfig, ConfigManager, ProfileManager, StealthManager
 │   ├── module/                    Module (base class), Category, ModuleManager
@@ -302,14 +372,16 @@ src/client/java/com/zephyr/client/
 │   ├── screen/                    The Zephyr menu screens (ClickGui, Keybinds, Profiles, Config, ...)
 │   ├── hud/                       HudRenderer, NotificationManager, PartyManager, ThemeColor, ...
 │   └── secretsettings/            The hidden "Better Movement" feature (dash, glide, double jump, ...)
-├── commands/                      Chat command system (.z ...)
+├── commands/                      Chat command system (.z ...) — ZCommand delegates to SeedcrackerCommand, PathCommand, + ClientCommands port (Alias, Give, GhostBlock, ...)
+├── fakeplayer/                    Singleplayer fake players (FakePlayerEntity/Manager/ActionPack/Connection — .z player, see Fake Players)
 ├── discord/                       Discord Rich Presence
 ├── mixin/                         One package per feature area; each class targets one vanilla class
 │   ├── bettermovement/  combat/  disable/  movement/  qol/  commands/
 └── module/                        The modules themselves, grouped by Category
+    ├── bots/pathing/              AStarPathfinder, Pathing, BlockLocator, TargetRender (destructive + task mine)
     ├── combat/  disable/  movement/
     └── qol/                       Includes large self-contained features: seedcracker/, jade/,
-                                   shulkerboxtooltip/, appleskin/, freecam/
+                                   shulkerboxtooltip/, appleskin/, freecam/, mousetweaks/
 ```
 
 ### How a module works
@@ -348,7 +420,7 @@ Mixins are organized in `src/client/java/com/zephyr/client/mixin` mirroring the 
 
 ### Commands
 
-`commands/Command` is the abstract base; `CommandManager` handles registration, dispatch, and tab-completion (via Brigadier `Suggestions`). The `.z` command is `ZCommand`, and Seedcracker's sub-commands are handled by `SeedcrackerCommand`. `CommandPrefixHandler` intercepts the configurable prefix keybind and opens chat pre-filled; `mixin/commands/ChatInterceptMixin` makes sure prefixed messages never reach the server.
+`commands/Command` is the abstract base; `CommandManager` handles registration, dispatch, and tab-completion (via Brigadier `Suggestions`). The `.z` command is `ZCommand`, and Seedcracker's sub-commands are handled by `SeedcrackerCommand`. `CommandPrefixHandler` intercepts the configurable prefix keybind and opens chat pre-filled; `mixin/commands/ChatInterceptMixin` makes sure prefixed messages never reach the server. Ported [ClientCommands](https://github.com/Earthcomputer/clientcommands) live as `AliasCommand`, `GiveCommand`, `GhostBlockCommand`, etc. and are resolved via `ZCommand.resolveDelegate()` with the same `c`-prefix aliasing (`.z cplayer` → `FakePlayerCommand`). `FakePlayerCommand` gates on `FakePlayerManager.isSingleplayer()` and drives `fakeplayer/FakePlayerEntity` on the integrated server only.
 
 ### Config, profiles, and persistence
 
