@@ -32,6 +32,7 @@ public final class ZCommand extends Command {
             "ghostblock", "cghostblock", "give", "cgive",
             "glow", "cglow", "hotbar", "chotbar",
             "kit", "ckit", "look", "clook",
+            "notebook", "cnotebook",
             "permissionlevel", "cpermissionlevel", "ping", "cping",
             "pos", "cpos", "relog", "crelog",
             "time", "ctime", "tp", "ctp", "uuid", "cuuid",
@@ -99,6 +100,7 @@ public final class ZCommand extends Command {
             case "tp", "ctp" -> TeleportCommand.INSTANCE;
             case "uuid", "cuuid" -> UuidCommand.INSTANCE;
             case "player", "cplayer" -> FakePlayerCommand.INSTANCE;
+            case "notebook", "cnotebook" -> NotebookCommand.INSTANCE;
             default -> null;
         };
     }
@@ -137,8 +139,8 @@ public final class ZCommand extends Command {
         if (AliasCommand.INSTANCE.tryExecuteAlias(args[0], Arrays.copyOfRange(args, 1, args.length))) {
             return;
         }
-        CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | seedcracker <command> | path <x> <y> <z> [destructive] | path task mine <block>]");
-        CommandManager.sendMessage("Ported: alias, config, crackrng, creativetab, enchant, find, findblock, gamemode, getdata, ghostblock, give, glow, hotbar, kit, look, permissionlevel, ping, pos, relog, time, tp, uuid, player (prefix c optional)");
+        CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | seedcracker <command> | path <x> <y> <z> [destructive] | path task mine <block> | notebook [clear]]");
+        CommandManager.sendMessage("Ported: alias, config, crackrng, creativetab, enchant, find, findblock, gamemode, getdata, ghostblock, give, glow, hotbar, kit, look, notebook, permissionlevel, ping, pos, relog, time, tp, uuid, player (prefix c optional)");
     }
 
     private void diagnostics() {
