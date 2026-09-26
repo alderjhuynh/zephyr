@@ -8,6 +8,7 @@ import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.configplusgui.setting.Setting;
 import com.zephyr.client.configplusgui.setting.StringSetting;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -211,7 +212,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
         if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
-        if (button != 0) return false;
+        if (button != InputConstants.MOUSE_BUTTON_LEFT) return false;
 
         for (Row row : computeRows()) {
             if (rowContains(row, mouseX, mouseY)) {
@@ -276,7 +277,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
     /** Updates the dragged slider live, marking it dirty so it saves on release. */
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        if (event.button() == 0 && draggingSetting != null) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && draggingSetting != null) {
             updateSliderFromMouse(draggingSetting, event.x());
             draggingDirty = true;
             return true;
@@ -287,7 +288,7 @@ public final class ConfigGuiScreen extends ZephyrScreen {
     /** Ends a slider drag, persisting the value once when it actually changed. */
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (event.button() == 0 && draggingSetting != null) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && draggingSetting != null) {
             if (draggingDirty) {
                 GlobalConfig.save();
             }

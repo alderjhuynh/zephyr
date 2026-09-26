@@ -1,6 +1,7 @@
 package com.zephyr.client.configplusgui.screen;
 
 import com.zephyr.client.configplusgui.secretsettings.bettermovement.BetterMovement;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.zephyr.client.configplusgui.hud.PartyManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -112,7 +113,7 @@ public final class SecretGuiScreen extends ZephyrScreen {
         if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
-        if (button != 0) return false;
+        if (button != InputConstants.MOUSE_BUTTON_LEFT) return false;
 
         int scroll = (int) scrollOffset;
         for (Row row : computeRows()) {

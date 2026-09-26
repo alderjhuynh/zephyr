@@ -59,7 +59,7 @@ public final class MouseTweaksHandler {
     private static boolean disableRMBDraggingFunctionality(AbstractContainerScreen<?> screen) {
         AbstractContainerScreenAccessor accessor = (AbstractContainerScreenAccessor) screen;
         accessor.zephyr$setSkipNextRelease(true);
-        if (accessor.zephyr$getIsQuickCrafting() && accessor.zephyr$getQuickCraftingButton() == 1) {
+        if (accessor.zephyr$getIsQuickCrafting() && accessor.zephyr$getQuickCraftingButton() == InputConstants.MOUSE_BUTTON_RIGHT) {
             accessor.zephyr$setIsQuickCrafting(false);
             return true;
         }
@@ -106,11 +106,11 @@ public final class MouseTweaksHandler {
         oldSelectedSlot = slotUnderMouse;
 
         ItemStack stackOnMouse = mc.player.containerMenu.getCarried();
-        if (button == 0) { // LEFT
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             if (stackOnMouse.isEmpty()) {
                 canDoLMBDrag = true;
             }
-        } else if (button == 1) { // RIGHT
+        } else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
             if (stackOnMouse.isEmpty()) return false;
             if (!MouseTweaks.INSTANCE.rmbTweakEnabled()) return false;
             canDoRMBDrag = true;
@@ -122,8 +122,8 @@ public final class MouseTweaksHandler {
     public static boolean onMouseReleased(AbstractContainerScreen<?> screen, double x, double y, int button) {
         updateScreen(screen);
         if (!MouseTweaks.INSTANCE.isEnabled()) return false;
-        if (button == 0) canDoLMBDrag = false;
-        else if (button == 1) canDoRMBDrag = false;
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) canDoLMBDrag = false;
+        else if (button == InputConstants.MOUSE_BUTTON_RIGHT) canDoRMBDrag = false;
         return false;
     }
 
@@ -138,7 +138,7 @@ public final class MouseTweaksHandler {
 
         ItemStack stackOnMouse = mc.player.containerMenu.getCarried();
 
-        if (canDoRMBDrag && button == 1 && !rmbTweakLeftOriginalSlot) {
+        if (canDoRMBDrag && button == InputConstants.MOUSE_BUTTON_RIGHT && !rmbTweakLeftOriginalSlot) {
             rmbTweakLeftOriginalSlot = true;
             disableRMBDraggingFunctionality(screen);
             rmbTweakMaybeClickSlot(screen, oldSelectedSlot, stackOnMouse);
@@ -149,7 +149,7 @@ public final class MouseTweaksHandler {
         if (selectedSlot == null) return false;
         if (isIgnored(selectedSlot)) return false;
 
-        if (button == 0) { // LEFT
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             if (!canDoLMBDrag) return false;
             ItemStack slotStack = selectedSlot.getItem();
             if (slotStack.isEmpty()) return false;
@@ -171,7 +171,7 @@ public final class MouseTweaksHandler {
                     }
                 }
             }
-        } else if (button == 1) { // RIGHT
+        } else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
             if (!canDoRMBDrag) return false;
             rmbTweakMaybeClickSlot(screen, selectedSlot, stackOnMouse);
         }

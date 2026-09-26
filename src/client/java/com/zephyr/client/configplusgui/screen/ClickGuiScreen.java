@@ -10,6 +10,7 @@ import com.zephyr.client.configplusgui.setting.EnumSetting;
 import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.configplusgui.setting.Setting;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
@@ -273,7 +274,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         double mouseX = event.x();
         double mouseY = event.y();
         int button = event.button();
-        if (button == 0) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             int tabY = panelY + TITLE_HEIGHT;
             if (mouseY >= tabY && mouseY < tabY + TAB_HEIGHT - 2) {
                 for (TabLayout tab : computeTabLayout()) {
@@ -300,9 +301,9 @@ public final class ClickGuiScreen extends ZephyrScreen {
 
             if (mouseY >= top && mouseY < top + ROW_HEIGHT
                     && mouseX >= panelX + PADDING && mouseX <= panelX + panelWidth - PADDING) {
-                if (button == 0) {
+                if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                     row.module.toggle();
-                } else if (button == 1) {
+                } else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
                     expandedModule = (expandedModule == row.module) ? null : row.module;
                 }
                 clearListEditing();
@@ -443,7 +444,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
         double mouseX = event.x();
         int button = event.button();
-        if (button == 0 && draggingSetting != null) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && draggingSetting != null) {
             updateSliderFromMouse(draggingSetting, mouseX);
             return true;
         }
@@ -454,7 +455,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
         int button = event.button();
-        if (button == 0 && draggingSetting != null) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && draggingSetting != null) {
             draggingSetting = null;
             return true;
         }

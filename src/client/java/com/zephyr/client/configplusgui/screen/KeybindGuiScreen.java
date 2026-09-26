@@ -172,7 +172,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
         if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
-        if (button != 0) return false;
+        if (button != InputConstants.MOUSE_BUTTON_LEFT) return false;
 
         int scroll = (int) scrollOffset;
         for (Row row : computeRows()) {
