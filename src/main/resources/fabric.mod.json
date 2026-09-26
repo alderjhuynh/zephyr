@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "zephyr",
+	"version": "${version}",
+	"name": "zephyr",
+	"description": "Feature-rich utility mod",
+	"authors": [
+		"Auraea"
+	],
+	"contact": {
+		"sources": "https://github.com/alderjhuynh/zephyr"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/zephyr/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.zephyr.Zephyr"
+		],
+		"client": [
+			"com.zephyr.client.ZephyrClient"
+		]
+	},
+	"mixins": [
+		"zephyr.mixins.json",
+		{
+			"config": "zephyr.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
