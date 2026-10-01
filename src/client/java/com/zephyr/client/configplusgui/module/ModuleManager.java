@@ -61,6 +61,7 @@ public final class ModuleManager {
         register(disableDeadMobInteraction.INSTANCE);
         register(disableDeadMobRendering.INSTANCE);
         register(disableFirstPersonFire.INSTANCE);
+        register(disableFireRendering.INSTANCE);
         register(disableFirstPersonEffectParticles.INSTANCE);
         register(disableFluidFog.INSTANCE);
         register(disableFogRendering.INSTANCE);
@@ -72,6 +73,7 @@ public final class ModuleManager {
         register(disableShovelPathing.INSTANCE);
         register(disableTotemAnimation.INSTANCE);
         register(disableDamageTilt.INSTANCE);
+        register(disableExplosionParticles.INSTANCE);
         // qol
         register(AppleSkin.INSTANCE);
         register(ArmorRenderer.INSTANCE);
@@ -108,7 +110,9 @@ public final class ModuleManager {
         // combat
         register(AnimeProtagonist.INSTANCE);
         register(AnchorAura.INSTANCE);
+        register(AnchorHelper.INSTANCE);
         register(AutoPlace.INSTANCE);
+        register(CrystalHelper.INSTANCE);
         register(BreachSwap.INSTANCE);
         register(Criticals.INSTANCE);
         register(DensitySwap.INSTANCE);

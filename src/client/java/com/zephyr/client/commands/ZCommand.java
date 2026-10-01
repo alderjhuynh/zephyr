@@ -26,6 +26,7 @@ public final class ZCommand extends Command {
     private static final List<String> SUBCOMMANDS = List.of(
             "module", "seedcracker", "path",
             "alias", "calias", "config", "cconfig", "crackrng", "ccrackrng",
+            "cornerstone", "ccornerstone",
             "creativetab", "ccreativetab", "enchant", "cenchant",
             "find", "cfind", "findblock", "cfindblock",
             "gamemode", "cgamemode", "getdata", "cgetdata",
@@ -80,6 +81,7 @@ public final class ZCommand extends Command {
             case "alias", "calias" -> AliasCommand.INSTANCE;
             case "config", "cconfig" -> ConfigCommand.INSTANCE;
             case "crackrng", "ccrackrng" -> CrackRngCommand.INSTANCE;
+            case "cornerstone", "ccornerstone" -> com.zephyr.client.cornerstone.CornerstoneCommand.INSTANCE;
             case "creativetab", "ccreativetab" -> CreativeTabCommand.INSTANCE;
             case "enchant", "cenchant" -> EnchantCommand.INSTANCE;
             case "find", "cfind" -> FindCommand.INSTANCE;
@@ -140,7 +142,7 @@ public final class ZCommand extends Command {
             return;
         }
         CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | seedcracker <command> | path <x> <y> <z> [destructive] | path task mine <block> | notebook [clear]]");
-        CommandManager.sendMessage("Ported: alias, config, crackrng, creativetab, enchant, find, findblock, gamemode, getdata, ghostblock, give, glow, hotbar, kit, look, notebook, permissionlevel, ping, pos, relog, time, tp, uuid, player (prefix c optional)");
+        CommandManager.sendMessage("Ported: alias, config, cornerstone, crackrng, creativetab, enchant, find, findblock, gamemode, getdata, ghostblock, give, glow, hotbar, kit, look, notebook, permissionlevel, ping, pos, relog, time, tp, uuid, player (prefix c optional)");
     }
 
     private void diagnostics() {
