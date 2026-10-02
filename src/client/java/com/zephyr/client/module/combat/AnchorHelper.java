@@ -19,14 +19,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.arrow.Arrow;
-import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.block.BaseFireBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -41,17 +37,19 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * Automatically places a rail, TNT minecart, and fire to catch the local player's own
- * crossbow arrows: the arrow's trajectory is predicted, a rail and minecart are placed at
- * the landing block, and fire is placed behind the landing position so the arrow ignites it
- * and detonates the cart.
+ * Automatically places a respawn anchor, charges it with glowstone, shields behind
+ * glowstone, and detonates it to catch the local player's own crossbow arrows:
+ * the arrow's trajectory is predicted, an anchor is placed at the landing block,
+ * charged, shielded, and detonated.
  *
  * <p>With the {@code Legit} setting enabled, the module instead intercepts the player's
- * crossbow fire attempt, spreads rail, cart, and fire placement across separate ticks with
- * randomized humanlike jitter, and only then fires the crossbow programmatically.</p>
+ * anchor placement, spreads the charge, shield, and detonate steps across separate
+ * ticks with randomized humanlike jitter. Sequence: place respawn anchor (detected,
+ * not scheduled) -&gt; interact while holding glowstone -&gt; place shield (glowstone)
+ * -&gt; interact without holding glowstone to detonate.</p>
  */
-public final class XBowCart extends Module {
-    public static final XBowCart INSTANCE = new XBowCart();
+public final class AnchorHelper extends Module {
+    public static final AnchorHelper INSTANCE = new AnchorHelper();
 
     /** Number of ticks of trajectory simulation used to predict where an arrow will land. */
     private static final int LOOKAHEAD_TICKS = 8;
@@ -70,14 +68,11 @@ public final class XBowCart extends Module {
     /** True while a legit placement sequence is scheduled and not yet finished. */
     private boolean sequenceActive;
 
-    /** Set while programmatically firing so the mixin lets the fire through. */
-    private boolean suppressIntercept;
-
     /** The selected slot held before the legit sequence started; restored on abort/finish. */
     private int sequenceSlot;
 
-    private XBowCart() {
-        super("XBowCart", "Places a rail, TNT minecart, and fire to catch your own crossbow arrows", Category.COMBAT);
+    private AnchorHelper() {
+        super("AnchorHelper", "Places a respawn anchor, charges it with glowstone, shields with glowstone, and detonates to catch your own crossbow arrows", Category.COMBAT);
         addSetting(legit);
         addSetting(placementDelay);
         addSetting(jitter);
@@ -86,7 +81,7 @@ public final class XBowCart extends Module {
         addSetting(onlyIfLethal);
     }
 
-    /** When enabled, cancels the crossbow fire and places rail, cart, then fire first. */
+    /** When enabled, reacts to manual anchor placement and spreads charge, shield, then detonate across ticks. */
     public final BooleanSetting legit = new BooleanSetting("Legit", false);
 
     /** Base ticks between each placement step in legit mode. */
@@ -95,16 +90,16 @@ public final class XBowCart extends Module {
     /** Max random extra ticks added to each legit placement step for humanlike jitter. */
     public final NumberSetting jitter = new NumberSetting("Jitter", 2.0, 0.0, 6.0, 1.0);
 
-    /** When enabled, places the most blast resistant block between the player and the cart as a shield. */
+    /** When enabled, places a glowstone block between the player and the anchor as a shield. */
     public final BooleanSetting safety = new BooleanSetting("Safety", false);
 
     /** When enabled, uses exposure-accurate explosion damage (raytraces + armor reduction) for lethal checks. */
     public final BooleanSetting accurateDamage = new BooleanSetting("Accurate Damage", false);
 
-    /** When enabled with Safety, only places the shield if the cart explosion would kill the player. */
+    /** When enabled with Safety, only places the shield if the anchor explosion would kill the player. */
     public final BooleanSetting onlyIfLethal = new BooleanSetting("Only If Lethal", false);
 
-    /** Tracks the predicted landing position for each in-flight arrow and places fire, rail, and minecart. */
+    /** Tracks the predicted landing position for each in-flight arrow and places/charges/shields/detonates the anchor. */
     @Override
     public void tick(Minecraft client) {
         if (client.player == null
@@ -177,12 +172,11 @@ public final class XBowCart extends Module {
 
     /**
      * Called from the {@code MultiPlayerGameMode#useItemOn} mixin when the local player
-     * places a rail while legit mode is active. Checks for a loaded crossbow in the
-     * hotbar, derives the rail position from the hit result, and schedules the
-     * remaining cart, fire, and crossbow steps. The rail placement itself is not
+     * places a respawn anchor while legit mode is active. Schedules the remaining
+     * charge, shield, and detonate steps. The anchor placement itself is not
      * cancelled.
      */
-    public void onRailPlace(LocalPlayer player, InteractionHand hand, BlockHitResult hit) {
+    public void onAnchorPlace(LocalPlayer player, InteractionHand hand, BlockHitResult hit) {
         if (!isEnabled() || !legit.get())
             return;
 
@@ -205,97 +199,80 @@ public final class XBowCart extends Module {
             return;
 
         ItemStack stack = player.getItemInHand(hand);
-        if (!isRail(stack))
+        if (!stack.is(Items.RESPAWN_ANCHOR))
             return;
 
-        if (findChargedCrossbowSlot(player) == -1)
-            return;
-
-        BlockPos railPos = hit.getBlockPos().relative(hit.getDirection());
-        if (railPos == null)
+        BlockPos anchorPos = hit.getBlockPos().relative(hit.getDirection());
+        if (anchorPos == null)
             return;
 
         Vec3 velocity = player.getLookAngle()
                 .multiply(CROSSBOW_POWER, CROSSBOW_POWER, CROSSBOW_POWER);
 
-        BlockPos firePos = findFirePos(client, railPos, velocity);
-
-        if (firePos == null)
+        int glowSlot = findGlowstoneSlot(player, 1);
+        if (glowSlot == -1)
             return;
 
-        if ((findMinecartSlot(player) == -1 && !player.getOffhandItem().is(Items.TNT_MINECART))
-                || findFlintAndSteelSlot(player) == -1)
+        if (findDetonateSlot(player, glowSlot) == -1)
             return;
 
         sequenceActive = true;
-        startSequence(player, hand, railPos, firePos, velocity);
+        startSequence(player, hand, anchorPos, velocity);
     }
 
-    /** Kept for compatibility; legit mode is now triggered by rail placement. */
+    /** Kept for compatibility; legit mode is now triggered by anchor placement. */
     public boolean onUseItemFireAttempt(Player player, InteractionHand hand) {
         return false;
     }
 
-    /** Schedules the cart, fire, and crossbow steps across ticks with random jitter.
-     *  The rail is assumed to have been placed by the player and is not scheduled. */
+    /** Schedules the charge, shield, and detonate steps across ticks with random jitter.
+     *  The anchor is assumed to have been placed by the player and is not scheduled. */
     private void startSequence(Player player, InteractionHand hand,
-                               BlockPos railPos, BlockPos firePos) {
-        startSequence(player, hand, railPos, firePos, player.getLookAngle().multiply(CROSSBOW_POWER, CROSSBOW_POWER, CROSSBOW_POWER));
-    }
-
-    private void startSequence(Player player, InteractionHand hand,
-                               BlockPos railPos, BlockPos firePos, Vec3 velocity) {
+                               BlockPos anchorPos, Vec3 velocity) {
         sequenceSlot = player.getInventory().getSelectedSlot();
         int step = placementDelay.get().intValue();
         int jit = jitter.get().intValue();
 
-        int cartDelay = 1 + random.nextInt(jit + 1);
-        int fireDelay = step + random.nextInt(jit + 1);
-        int shootDelay = step + random.nextInt(jit + 1);
+        int chargeDelay = 1 + random.nextInt(jit + 1);
+        int shieldDelay = step + random.nextInt(jit + 1);
+        int detonateDelay = step + random.nextInt(jit + 1);
 
         // Determine if we need a shield in legit sequence. Evaluate at schedule time.
+        // The shield block is always glowstone, so require a second glowstone when shielding.
         BlockPos shieldPos = null;
         boolean doShield = false;
-        int shieldDelay = 0;
         if (safety.get()) {
-            boolean lethalCheck = !onlyIfLethal.get() || wouldKill(Minecraft.getInstance(), railPos, velocity);
+            boolean lethalCheck = !onlyIfLethal.get() || wouldKill(Minecraft.getInstance(), anchorPos, velocity);
             if (lethalCheck) {
-                BlockPos candidate = findShieldPos(Minecraft.getInstance(), railPos, firePos);
-                int bestSlot = findBestShieldSlot(player);
-                if (candidate != null && bestSlot != -1) {
+                BlockPos candidate = findShieldPos(Minecraft.getInstance(), anchorPos);
+                int glowForShield = findGlowstoneSlot(player, 2);
+                if (candidate != null && glowForShield != -1) {
                     shieldPos = candidate;
                     doShield = true;
-                    shieldDelay = step + random.nextInt(jit + 1);
                 }
             }
         }
 
-        TickScheduler.schedule(cartDelay, () -> {
+        TickScheduler.schedule(chargeDelay, () -> {
             Minecraft mc = Minecraft.getInstance();
             if (!isSequenceRunning(mc)) return;
-            if (!placeCart(mc, railPos, true, true)) abortSequence(mc);
+            if (!chargeAnchor(mc, anchorPos, true, true)) abortSequence(mc);
         });
 
         if (doShield) {
             BlockPos finalShieldPos = shieldPos;
-            TickScheduler.schedule(cartDelay + shieldDelay, () -> {
+            TickScheduler.schedule(chargeDelay + shieldDelay, () -> {
                 Minecraft mc = Minecraft.getInstance();
                 if (!isSequenceRunning(mc)) return;
-                // Re-check lethal at execution time if needed; not aborting if not lethal anymore but we already decided.
                 // Place shield; failure does not abort the whole sequence (shield is best-effort).
                 placeShield(mc, finalShieldPos, true, true);
             });
-            TickScheduler.schedule(cartDelay + shieldDelay + fireDelay, () -> {
+            TickScheduler.schedule(chargeDelay + shieldDelay + detonateDelay, () -> {
                 Minecraft mc = Minecraft.getInstance();
                 if (!isSequenceRunning(mc)) return;
-                if (!placeFire(mc, firePos, true, true)) abortSequence(mc);
+                if (!detonateAnchor(mc, anchorPos, true, true)) abortSequence(mc);
             });
-            TickScheduler.schedule(cartDelay + shieldDelay + fireDelay + shootDelay, () -> {
-                Minecraft mc = Minecraft.getInstance();
-                if (!isSequenceRunning(mc)) return;
-                fireCrossbow(mc, hand);
-            });
-            TickScheduler.schedule(cartDelay + shieldDelay + fireDelay + shootDelay + 1, () -> {
+            TickScheduler.schedule(chargeDelay + shieldDelay + detonateDelay + 1, () -> {
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player != null) {
                     mc.player.getInventory().setSelectedSlot(sequenceSlot);
@@ -303,19 +280,13 @@ public final class XBowCart extends Module {
                 sequenceActive = false;
             });
         } else {
-            TickScheduler.schedule(cartDelay + fireDelay, () -> {
+            TickScheduler.schedule(chargeDelay + detonateDelay, () -> {
                 Minecraft mc = Minecraft.getInstance();
                 if (!isSequenceRunning(mc)) return;
-                if (!placeFire(mc, firePos, true, true)) abortSequence(mc);
+                if (!detonateAnchor(mc, anchorPos, true, true)) abortSequence(mc);
             });
 
-            TickScheduler.schedule(cartDelay + fireDelay + shootDelay, () -> {
-                Minecraft mc = Minecraft.getInstance();
-                if (!isSequenceRunning(mc)) return;
-                fireCrossbow(mc, hand);
-            });
-
-            TickScheduler.schedule(cartDelay + fireDelay + shootDelay + 1, () -> {
+            TickScheduler.schedule(chargeDelay + detonateDelay + 1, () -> {
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player != null) {
                     mc.player.getInventory().setSelectedSlot(sequenceSlot);
@@ -330,47 +301,12 @@ public final class XBowCart extends Module {
                 && mc.player != null && mc.level != null && mc.gameMode != null;
     }
 
-    /** Restores the pre-sequence slot and stops the sequence without firing. */
+    /** Restores the pre-sequence slot and stops the sequence without detonating. */
     private void abortSequence(Minecraft mc) {
         if (mc.player != null) {
             mc.player.getInventory().setSelectedSlot(sequenceSlot);
         }
         sequenceActive = false;
-    }
-
-    /** Programmatically fires a loaded crossbow from the hotbar. */
-    private void fireCrossbow(Minecraft mc, InteractionHand hand) {
-        LocalPlayer player = mc.player;
-
-        if (player == null || mc.gameMode == null)
-            return;
-
-        int crossbowSlot = findChargedCrossbowSlot(player);
-        if (crossbowSlot == -1)
-            return;
-
-        player.getInventory().setSelectedSlot(crossbowSlot);
-
-        if (!CrossbowItem.isCharged(player.getItemInHand(hand)))
-            return;
-
-        suppressIntercept = true;
-        try {
-            player.swing(hand);
-            mc.gameMode.useItem(player, hand);
-        } finally {
-            suppressIntercept = false;
-        }
-    }
-
-    private static int findChargedCrossbowSlot(Player player) {
-        for (int i = 0; i < 9; i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            if (stack.is(Items.CROSSBOW) && CrossbowItem.isCharged(stack)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     private static boolean hasValidCrossbow(Minecraft client) {
@@ -437,79 +373,107 @@ public final class XBowCart extends Module {
         return null;
     }
 
-    private static boolean place(Minecraft client, Arrow arrow, BlockPos railPos) {
+    private static boolean place(Minecraft client, Arrow arrow, BlockPos anchorPos) {
 
-        if (railPos == null)
+        if (anchorPos == null)
             return false;
 
         LocalPlayer player = client.player;
 
-        int fireSlot = findFlintAndSteelSlot(player);
-        int railSlot = findRailSlot(player);
-        int cartSlot = findMinecartSlot(player);
-        boolean hasCartInOffhand = player.getOffhandItem().is(Items.TNT_MINECART);
+        int anchorSlot = findAnchorSlot(player);
+        int glowSlot = findGlowstoneSlot(player, 1);
 
-        if (fireSlot == -1
-                || railSlot == -1
-                || (cartSlot == -1 && !hasCartInOffhand))
+        if (anchorSlot == -1 || glowSlot == -1)
             return false;
 
-        BlockPos firePos = findFirePos(client, railPos, arrow.getDeltaMovement());
-
-        if (firePos == null)
+        if (findDetonateSlot(player, glowSlot) == -1)
             return false;
 
         int previousSlot = player.getInventory().getSelectedSlot();
 
-        player.getInventory().setSelectedSlot(fireSlot);
-        placeFire(client, firePos, false, false);
+        player.getInventory().setSelectedSlot(anchorSlot);
+        if (!placeAnchor(client, anchorPos, false, false)) {
+            player.getInventory().setSelectedSlot(previousSlot);
+            return false;
+        }
 
-        player.getInventory().setSelectedSlot(railSlot);
-        placeRail(client, railPos, false, false);
+        if (!chargeAnchor(client, anchorPos, false, false)) {
+            player.getInventory().setSelectedSlot(previousSlot);
+            return false;
+        }
 
-        // Safety shield: place most blast resistant block between player and cart,
-        // close to the player, never overwriting firePos.
+        // Safety shield: place a glowstone block between player and anchor,
+        // never overwriting the anchor itself.
         if (INSTANCE.safety.get()) {
-            boolean shouldShield = !INSTANCE.onlyIfLethal.get() || wouldKill(client, railPos, arrow.getDeltaMovement());
+            boolean shouldShield = !INSTANCE.onlyIfLethal.get() || wouldKill(client, anchorPos, arrow.getDeltaMovement());
             if (shouldShield) {
-                BlockPos shieldPos = findShieldPos(client, railPos, firePos);
+                BlockPos shieldPos = findShieldPos(client, anchorPos);
                 if (shieldPos != null) {
-                    // Use a temporary slot switch for shield; placeShield handles its own slot logic
-                    // Save current slot to restore afterwards
                     int tmp = player.getInventory().getSelectedSlot();
-                    boolean placed = placeShield(client, shieldPos, false, false);
+                    placeShield(client, shieldPos, false, false);
                     // placeShield already restores if holdSlot=false, but we ensure we return to tmp
                     player.getInventory().setSelectedSlot(tmp);
-                    // shield failure is non-fatal; continue to cart
+                    // shield failure is non-fatal; continue to detonate
                 }
             }
         }
 
-        if (cartSlot != -1) {
-            player.getInventory().setSelectedSlot(cartSlot);
-        }
-        placeCart(client, railPos, false, false);
+        detonateAnchor(client, anchorPos, false, false);
 
         player.getInventory().setSelectedSlot(previousSlot);
 
         return true;
     }
 
-    private static boolean placeRail(Minecraft client, BlockPos placePos, boolean swingHand, boolean holdSlot) {
+    private static boolean placeAnchor(Minecraft client, BlockPos placePos, boolean swingHand, boolean holdSlot) {
 
         if (placePos == null)
             return false;
 
         LocalPlayer player = client.player;
 
-        int railSlot = findRailSlot(player);
+        int anchorSlot = findAnchorSlot(player);
 
-        if (railSlot == -1)
+        if (anchorSlot == -1)
+            return false;
+
+        BlockHitResult hit = findSupport(client, placePos);
+        if (hit == null)
             return false;
 
         int previousSlot = player.getInventory().getSelectedSlot();
 
-        player.getInventory().setSelectedSlot(railSlot);
+        player.getInventory().setSelectedSlot(anchorSlot);
+
+        if (swingHand)
+            player.swing(InteractionHand.MAIN_HAND);
+
+        client.gameMode.useItemOn(player, InteractionHand.MAIN_HAND, hit);
+
+        if (!holdSlot)
+            player.getInventory().setSelectedSlot(previousSlot);
+
+        return true;
+    }
+
+    /** Interacts with the anchor while holding glowstone to charge it. */
+    private static boolean chargeAnchor(Minecraft client, BlockPos anchorPos, boolean swingHand, boolean holdSlot) {
+
+        if (anchorPos == null)
+            return false;
+
+        LocalPlayer player = client.player;
+        if (player == null || client.gameMode == null)
+            return false;
+
+        int glowSlot = findGlowstoneSlot(player, 1);
+
+        if (glowSlot == -1)
+            return false;
+
+        int previousSlot = player.getInventory().getSelectedSlot();
+
+        player.getInventory().setSelectedSlot(glowSlot);
 
         if (swingHand)
             player.swing(InteractionHand.MAIN_HAND);
@@ -518,9 +482,9 @@ public final class XBowCart extends Module {
                 player,
                 InteractionHand.MAIN_HAND,
                 new BlockHitResult(
-                        Vec3.atCenterOf(placePos),
+                        Vec3.atCenterOf(anchorPos),
                         Direction.UP,
-                        placePos.below(),
+                        anchorPos,
                         false
                 )
         );
@@ -531,89 +495,36 @@ public final class XBowCart extends Module {
         return true;
     }
 
-    private static boolean placeCart(Minecraft client, BlockPos placePos, boolean swingHand, boolean holdSlot) {
+    /** Interacts with the charged anchor without holding glowstone to detonate it. */
+    private static boolean detonateAnchor(Minecraft client, BlockPos anchorPos, boolean swingHand, boolean holdSlot) {
 
-        if (placePos == null)
+        if (anchorPos == null)
             return false;
 
         LocalPlayer player = client.player;
-
-        int cartSlot = findMinecartSlot(player);
-
-        if (cartSlot != -1) {
-            int previousSlot = player.getInventory().getSelectedSlot();
-
-            player.getInventory().setSelectedSlot(cartSlot);
-
-            if (swingHand)
-                player.swing(InteractionHand.MAIN_HAND);
-
-            client.gameMode.useItemOn(
-                    player,
-                    InteractionHand.MAIN_HAND,
-                    new BlockHitResult(
-                            Vec3.atCenterOf(placePos),
-                            Direction.UP,
-                            placePos,
-                            false
-                    )
-            );
-
-            if (!holdSlot)
-                player.getInventory().setSelectedSlot(previousSlot);
-
-            return true;
-        }
-
-        if (player.getOffhandItem().is(Items.TNT_MINECART)) {
-            if (swingHand)
-                player.swing(InteractionHand.OFF_HAND);
-
-            client.gameMode.useItemOn(
-                    player,
-                    InteractionHand.OFF_HAND,
-                    new BlockHitResult(
-                            Vec3.atCenterOf(placePos),
-                            Direction.UP,
-                            placePos,
-                            false
-                    )
-            );
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private static boolean placeFire(Minecraft client, BlockPos firePos, boolean swingHand, boolean holdSlot) {
-
-        if (firePos == null)
+        if (player == null || client.gameMode == null)
             return false;
 
-        LocalPlayer player = client.player;
+        int glowSlot = findGlowstoneSlot(player, 1);
+        int detonateSlot = findDetonateSlot(player, glowSlot);
 
-        int fireSlot = findFlintAndSteelSlot(player);
-
-        if (fireSlot == -1)
+        if (detonateSlot == -1)
             return false;
 
         int previousSlot = player.getInventory().getSelectedSlot();
 
-        player.getInventory().setSelectedSlot(fireSlot);
+        player.getInventory().setSelectedSlot(detonateSlot);
 
         if (swingHand)
             player.swing(InteractionHand.MAIN_HAND);
-
-        BlockPos support = firePos.below();
 
         client.gameMode.useItemOn(
                 player,
                 InteractionHand.MAIN_HAND,
                 new BlockHitResult(
-                        Vec3.atCenterOf(support),
+                        Vec3.atCenterOf(anchorPos),
                         Direction.UP,
-                        support,
+                        anchorPos,
                         false
                 )
         );
@@ -625,8 +536,8 @@ public final class XBowCart extends Module {
     }
 
     /**
-     * Places the most blast resistant block available in the hotbar at the given shield position.
-     * Returns true if a block was placed.
+     * Places a glowstone block at the given shield position.
+     * The shield block is always glowstone. Returns true if a block was placed.
      */
     private static boolean placeShield(Minecraft client, BlockPos shieldPos, boolean swingHand, boolean holdSlot) {
         if (shieldPos == null)
@@ -635,20 +546,8 @@ public final class XBowCart extends Module {
         if (player == null || client.gameMode == null)
             return false;
 
-        int shieldSlot = findBestShieldSlot(player);
+        int shieldSlot = findGlowstoneSlot(player, 1);
         if (shieldSlot == -1) {
-            // Try offhand if it holds a placeable resistant block
-            ItemStack off = player.getOffhandItem();
-            if (!off.isEmpty()) {
-                Block offBlock = Block.byItem(off.getItem());
-                if (offBlock != Blocks.AIR && offBlock.getExplosionResistance() > 0) {
-                    BlockHitResult hit = findSupport(client, shieldPos);
-                    if (hit == null) return false;
-                    if (swingHand) player.swing(InteractionHand.OFF_HAND);
-                    client.gameMode.useItemOn(player, InteractionHand.OFF_HAND, hit);
-                    return true;
-                }
-            }
             return false;
         }
 
@@ -665,46 +564,21 @@ public final class XBowCart extends Module {
         return true;
     }
 
-    private static BlockPos findFirePos(Minecraft client, BlockPos railPos, Vec3 velocity) {
-
-        Direction back = Direction.getApproximateNearest(velocity.x, velocity.y, velocity.z).getOpposite();
-
-        if (back.getAxis().isHorizontal()) {
-            BlockPos candidate = railPos.relative(back);
-            if (canPlaceFire(client, candidate)) {
-                return candidate;
-            }
-        }
-
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos candidate = railPos.relative(direction);
-            if (canPlaceFire(client, candidate)) {
-                return candidate;
-            }
-        }
-
-        return null;
-    }
-
-    private static boolean canPlaceFire(Minecraft client, BlockPos pos) {
-        return BaseFireBlock.canBePlacedAt(client.level, pos, Direction.NORTH);
-    }
-
     // ==================== Safety / Shield helpers ====================
 
     /**
-     * Finds the best shield position: closest to the player but still between player and cart,
-     * never overwriting firePos or railPos. Checks for replaceable air and a solid support.
+     * Finds the best shield position: closest to the player but still between player and anchor,
+     * never overwriting the anchor itself. Checks for replaceable air and a solid support.
      */
-    private static BlockPos findShieldPos(Minecraft client, BlockPos railPos, BlockPos firePos) {
-        if (client.player == null || client.level == null || railPos == null)
+    private static BlockPos findShieldPos(Minecraft client, BlockPos anchorPos) {
+        if (client.player == null || client.level == null || anchorPos == null)
             return null;
         LocalPlayer player = client.player;
-        Vec3 cartCenter = Vec3.atCenterOf(railPos);
+        Vec3 anchorCenter = Vec3.atCenterOf(anchorPos);
         double px = player.getX();
         double pz = player.getZ();
-        double dx = px - cartCenter.x;
-        double dz = pz - cartCenter.z;
+        double dx = px - anchorCenter.x;
+        double dz = pz - anchorCenter.z;
         double horizDist = Math.sqrt(dx * dx + dz * dz);
         if (horizDist < 2.0) return null;
         double ux = dx / horizDist;
@@ -717,22 +591,22 @@ public final class XBowCart extends Module {
         for (double distFromPlayer = 1.0; distFromPlayer < horizDist - 0.5; distFromPlayer += 1.0) {
             double cx = px - ux * distFromPlayer;
             double cz = pz - uz * distFromPlayer;
-            BlockPos candidate = BlockPos.containing(cx, railPos.getY(), cz);
-            if (candidate.equals(railPos) || candidate.equals(firePos) || candidate.equals(playerPos)) continue;
+            BlockPos candidate = BlockPos.containing(cx, anchorPos.getY(), cz);
+            if (candidate.equals(anchorPos) || candidate.equals(playerPos)) continue;
             BlockState state = client.level.getBlockState(candidate);
             if (!state.isAir() && !state.canBeReplaced()) continue;
             if (findSupport(client, candidate) == null) continue;
             if (player.distanceToSqr(Vec3.atCenterOf(candidate)) > rangeSq) continue;
             return candidate;
         }
-        // Try alternative Y levels if rail Y is blocked
+        // Try alternative Y levels if anchor Y is blocked
         for (double distFromPlayer = 1.0; distFromPlayer < horizDist - 0.5; distFromPlayer += 1.0) {
             double cx = px - ux * distFromPlayer;
             double cz = pz - uz * distFromPlayer;
             for (int yOff = -1; yOff <= 1; yOff++) {
                 if (yOff == 0) continue;
-                BlockPos candidate = BlockPos.containing(cx, railPos.getY() + yOff, cz);
-                if (candidate.equals(railPos) || candidate.equals(firePos) || candidate.equals(playerPos)) continue;
+                BlockPos candidate = BlockPos.containing(cx, anchorPos.getY() + yOff, cz);
+                if (candidate.equals(anchorPos) || candidate.equals(playerPos)) continue;
                 BlockState state = client.level.getBlockState(candidate);
                 if (!state.isAir() && !state.canBeReplaced()) continue;
                 if (findSupport(client, candidate) == null) continue;
@@ -755,39 +629,17 @@ public final class XBowCart extends Module {
         return null;
     }
 
-    private static int findBestShieldSlot(Player player) {
-        int bestSlot = -1;
-        float bestRes = -1.0F;
-        for (int i = 0; i < 9; i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            if (stack.isEmpty()) continue;
-            if (isRail(stack)) continue;
-            if (stack.is(Items.TNT_MINECART) || stack.is(Items.FLINT_AND_STEEL) || stack.is(Items.CROSSBOW)) continue;
-            Block block = Block.byItem(stack.getItem());
-            if (block == Blocks.AIR) continue;
-            float res = block.getExplosionResistance();
-            // Skip blocks with negligible resistance (e.g., air is 0, but we already filtered)
-            // Prefer higher resistance
-            if (res > bestRes) {
-                bestRes = res;
-                bestSlot = i;
-            }
-        }
-        return bestSlot;
-    }
-
     // ==================== Accurate damage simulation ====================
 
     /**
-     * Returns true if the TNT minecart at railPos would kill the player from explosion damage.
+     * Returns true if the respawn anchor at anchorPos would kill the player from explosion damage.
      * Uses optional accurate simulation with exposure raytracing and armor reduction.
      */
-    private static boolean wouldKill(Minecraft client, BlockPos railPos, Vec3 velocity) {
-        if (client.player == null || client.level == null || railPos == null) return false;
+    private static boolean wouldKill(Minecraft client, BlockPos anchorPos, Vec3 velocity) {
+        if (client.player == null || client.level == null || anchorPos == null) return false;
         LocalPlayer player = client.player;
-        float radius = getCartExplosionRadius(velocity);
-        Vec3 center = Vec3.atCenterOf(railPos);
-        // Center a bit higher for minecart (entity height). Use +0.5y to approximate cart center.
+        float radius = getAnchorExplosionRadius();
+        Vec3 center = Vec3.atCenterOf(anchorPos);
         center = new Vec3(center.x, center.y + 0.5, center.z);
         boolean accurate = INSTANCE.accurateDamage.get();
         float damage = accurate ? calculateAccurateDamage(client, center, player, radius) : calculateSimpleDamage(center, player, radius);
@@ -795,12 +647,8 @@ public final class XBowCart extends Module {
         return damage >= health;
     }
 
-    private static float getCartExplosionRadius(Vec3 velocity) {
-        if (velocity == null) return 4.0F;
-        double speed = velocity.length();
-        double capped = Math.min(speed, 5.0);
-        // Max radius: base 4 + random*1.5*capped, use max for lethal check (conservative)
-        return 4.0F + (float)(1.5 * capped);
+    private static float getAnchorExplosionRadius() {
+        return 5.0F;
     }
 
     private static float calculateSimpleDamage(Vec3 center, LivingEntity target, float radius) {
@@ -897,36 +745,34 @@ public final class XBowCart extends Module {
         return (float) seen / (float) total;
     }
 
-    private static boolean isRail(ItemStack stack) {
-        return stack.is(Items.RAIL)
-                || stack.is(Items.POWERED_RAIL)
-                || stack.is(Items.DETECTOR_RAIL)
-                || stack.is(Items.ACTIVATOR_RAIL);
-    }
-
-    private static int findFlintAndSteelSlot(Player player) {
+    private static int findAnchorSlot(Player player) {
         for (int i = 0; i < 9; i++) {
-            if (player.getInventory().getItem(i).is(Items.FLINT_AND_STEEL)) {
+            if (player.getInventory().getItem(i).is(Items.RESPAWN_ANCHOR)) {
                 return i;
             }
         }
         return -1;
     }
 
-    private static int findRailSlot(Player player) {
+    private static int findGlowstoneSlot(Player player, int minCount) {
         for (int i = 0; i < 9; i++) {
-            if (isRail(player.getInventory().getItem(i))) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (stack.is(Items.GLOWSTONE) && stack.getCount() >= minCount) {
                 return i;
             }
         }
         return -1;
     }
 
-    private static int findMinecartSlot(Player player) {
+    /** Finds a hotbar slot that does not hold glowstone for detonating (empty preferred). */
+    private static int findDetonateSlot(Player player, int glowSlot) {
         for (int i = 0; i < 9; i++) {
-            if (player.getInventory().getItem(i).is(Items.TNT_MINECART)) {
-                return i;
-            }
+            if (player.getInventory().getItem(i).isEmpty()) return i;
+        }
+        for (int i = 0; i < 9; i++) {
+            if (i == glowSlot) continue;
+            ItemStack stack = player.getInventory().getItem(i);
+            if (!stack.is(Items.GLOWSTONE)) return i;
         }
         return -1;
     }
@@ -949,6 +795,5 @@ public final class XBowCart extends Module {
         predictions.clear();
         processed.clear();
         sequenceActive = false;
-        suppressIntercept = false;
     }
 }

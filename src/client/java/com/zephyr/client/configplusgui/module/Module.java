@@ -16,21 +16,28 @@ public abstract class Module {
     private final String name;
     private final String description;
     private final Category category;
+    private final boolean hidden;
     private final List<Setting<?>> settings = new ArrayList<>();
 
     private boolean enabled;
 
     /** Creates a module that starts disabled. */
     protected Module(String name, String description, Category category) {
-        this(name, description, category, false);
+        this(name, description, category, false, false);
     }
 
     /** Creates a module with an explicit initial enabled state (e.g. for always-on features). */
     protected Module(String name, String description, Category category, boolean enabledByDefault) {
+        this(name, description, category, enabledByDefault, false);
+    }
+
+    /** Creates a module with hidden flag (hidden modules only shown when {@link HiddenModules#shouldShowHidden()} is true). */
+    protected Module(String name, String description, Category category, boolean enabledByDefault, boolean hidden) {
         this.name = name;
         this.description = description;
         this.category = category;
         this.enabled = enabledByDefault;
+        this.hidden = hidden;
     }
 
     /**
@@ -54,6 +61,11 @@ public abstract class Module {
     /** The tab this module appears under in the click-gui. */
     public final Category getCategory() {
         return category;
+    }
+
+    /** Whether this module is hidden and only shown when {@link HiddenModules#shouldShowHidden()} is true. */
+    public final boolean isHidden() {
+        return hidden;
     }
 
     /** The module's exposed settings, read-only; populated via {@link #addSetting}. */

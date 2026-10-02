@@ -61,6 +61,7 @@ public final class GlobalConfig {
     public static final BooleanSetting keybindConflictWarnings = new BooleanSetting("Keybind Conflict Warnings", true);
     public static final BooleanSetting discordPresence = new BooleanSetting("Discord Presence", true);
     public static final BooleanSetting stealthMode = new BooleanSetting("Stealth Mode", false);
+    public static final BooleanSetting TestMode = new BooleanSetting("TestMode", false);
 
     private GlobalConfig() {
     }
@@ -248,6 +249,23 @@ public final class GlobalConfig {
         StealthManager.setActive(!stealthMode.get());
     }
 
+    /** Whether hidden modules are forcibly shown (e.g. for testing). */
+    public static boolean isTestMode() {
+        return TestMode.get();
+    }
+
+    /** Enables/disables TestMode and persists the change. */
+    public static void setTestMode(boolean enabled) {
+        if (TestMode.get() == enabled) return;
+        TestMode.set(enabled);
+        save();
+    }
+
+    /** Flips TestMode. */
+    public static void toggleTestMode() {
+        setTestMode(!TestMode.get());
+    }
+
     /** Effective accent: the custom color when enabled, otherwise the theme preset. */
     public static int accent() {
         return PartyManager.rainbowAccent(useCustomColor.get() ? customAccent() : themeColor.accent());
@@ -343,6 +361,13 @@ public final class GlobalConfig {
             if (stealthMode.get()) {
                 stealthMode.set(false);
             }
+            if (json.has("TestMode")) {
+                TestMode.set(json.get("TestMode").getAsBoolean());
+            }
+            // also accept lowercase key for forwards compat
+            if (json.has("testMode")) {
+                TestMode.set(json.get("testMode").getAsBoolean());
+            }
         } catch (IOException | RuntimeException e) {
             Zephyr.LOGGER.warn("[Zephyr] Failed to load client config, falling back to defaults.", e);
         }
@@ -387,6 +412,7 @@ public final class GlobalConfig {
         root.addProperty("keybindConflictWarnings", keybindConflictWarnings.get());
         root.addProperty("discordPresence", discordPresence.get());
         root.addProperty("stealthMode", stealthMode.get());
+        root.addProperty("TestMode", TestMode.get());
 
         try {
             Files.createDirectories(CONFIG_PATH.getParent());

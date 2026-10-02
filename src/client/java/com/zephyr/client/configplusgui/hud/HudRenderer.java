@@ -2,6 +2,7 @@ package com.zephyr.client.configplusgui.hud;
 
 import com.zephyr.client.configplusgui.config.GlobalConfig;
 import com.zephyr.client.configplusgui.config.StealthManager;
+import com.zephyr.client.configplusgui.module.HiddenModules;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.Font;
@@ -142,8 +143,8 @@ public final class HudRenderer {
     /** Collects and case-insensitively sorts the names of all enabled modules. */
     private static List<String> activeModuleNames() {
         List<String> names = new ArrayList<>();
-        for (Module module : ModuleManager.getModules()) {
-            if (module.isEnabled()) {
+        for (Module module : ModuleManager.getVisibleModules()) {
+            if (module.isEnabled() && HiddenModules.isVisible(module)) {
                 names.add(module.getName());
             }
         }

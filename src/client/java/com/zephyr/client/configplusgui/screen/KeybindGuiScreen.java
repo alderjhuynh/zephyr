@@ -3,6 +3,7 @@ package com.zephyr.client.configplusgui.screen;
 import com.zephyr.client.configplusgui.keybind.GlfwKeyNames;
 import com.zephyr.client.configplusgui.keybind.Keybind;
 import com.zephyr.client.configplusgui.keybind.KeybindManager;
+import com.zephyr.client.configplusgui.module.HiddenModules;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -292,7 +293,8 @@ public final class KeybindGuiScreen extends ZephyrScreen {
 
         cursor += SECTION_GAP;
 
-        for (Module module : ModuleManager.getModules()) {
+        for (Module module : ModuleManager.getVisibleModules()) {
+            if (!HiddenModules.isVisible(module)) continue;
             if (!query.isBlank() && !module.getName().toLowerCase().contains(query)
                     && !module.getCategory().getDisplayName().toLowerCase().contains(query)) {
                 continue;

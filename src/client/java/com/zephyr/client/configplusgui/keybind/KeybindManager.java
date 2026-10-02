@@ -212,7 +212,7 @@ public final class KeybindManager {
 
     /** On each module bind's press edge, toggles the module and shows a notification toast. */
     private static void tickModuleBinds(Minecraft client) {
-        for (Module module : ModuleManager.getModules()) {
+        for (Module module : ModuleManager.getVisibleModules()) {
             Keybind bind = get(module);
             if (!bind.isSet()) continue;
 

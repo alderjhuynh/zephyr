@@ -174,14 +174,28 @@ public final class KitCommand extends Command {
         nbt.put(ContainerHelper.TAG_ITEMS, items);
         try (var collector = new net.minecraft.util.ProblemReporter.ScopedCollector(LOGGER)) {
             var input = TagValueInput.create(collector, reg, nbt);
-            inv.load(input.listOrEmpty(ContainerHelper.TAG_ITEMS, ItemStackWithSlot.CODEC));
+            inv.clearContent();
+            for (ItemStackWithSlot entry : input.listOrEmpty(ContainerHelper.TAG_ITEMS, ItemStackWithSlot.CODEC)) {
+                if (entry.isValidInContainer(inv.getContainerSize())) {
+                    inv.setItem(entry.slot(), entry.stack());
+                }
+            }
         }
     }
 
     private static ListTag saveInventory(HolderLookup.Provider reg, Inventory inv) {
         try (var collector = new net.minecraft.util.ProblemReporter.ScopedCollector(LOGGER)) {
             var output = TagValueOutput.createWithContext(collector, reg);
-            inv.save(output.list(ContainerHelper.TAG_ITEMS, ItemStackWithSlot.CODEC));
+            var list = output.list(ContainerHelper.TAG_ITEMS, ItemStackWithSlot.CODEC);
+            // Include main inventory (0-35) plus armor (36-39) and offhand (40).
+            // getContainerSize() also covers body/saddle on newer versions; include
+            // everything so nothing wearable is silently dropped.
+            for (int i = 0; i < inv.getContainerSize(); i++) {
+                ItemStack stack = inv.getItem(i);
+                if (!stack.isEmpty()) {
+                    list.add(new ItemStackWithSlot(i, stack));
+                }
+            }
             return output.buildResult().getListOrEmpty(ContainerHelper.TAG_ITEMS);
         }
     }

@@ -11,6 +11,7 @@ import com.zephyr.client.module.movement.*;
 import com.zephyr.client.module.disable.*;
 import com.zephyr.client.module.qol.*;
 import com.zephyr.client.module.qol.jade.Jade;
+import com.zephyr.client.module.hidden.WhatEvenIsThis;
 import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ public final class ModuleManager {
         register(disableDeadMobInteraction.INSTANCE);
         register(disableDeadMobRendering.INSTANCE);
         register(disableFirstPersonFire.INSTANCE);
+        register(disableFireRendering.INSTANCE);
         register(disableFirstPersonEffectParticles.INSTANCE);
         register(disableFluidFog.INSTANCE);
         register(disableFogRendering.INSTANCE);
@@ -71,6 +73,7 @@ public final class ModuleManager {
         register(disableShovelPathing.INSTANCE);
         register(disableTotemAnimation.INSTANCE);
         register(disableDamageTilt.INSTANCE);
+        register(disableExplosionParticles.INSTANCE);
         // qol
         register(AppleSkin.INSTANCE);
         register(ArmorRenderer.INSTANCE);
@@ -107,7 +110,9 @@ public final class ModuleManager {
         // combat
         register(AnimeProtagonist.INSTANCE);
         register(AnchorAura.INSTANCE);
+        register(AnchorHelper.INSTANCE);
         register(AutoPlace.INSTANCE);
+        register(CrystalHelper.INSTANCE);
         register(BreachSwap.INSTANCE);
         register(Criticals.INSTANCE);
         register(DensitySwap.INSTANCE);
@@ -125,6 +130,8 @@ public final class ModuleManager {
         register(TotemPopNotifier.INSTANCE);
         register(TriggerBot.INSTANCE);
         register(XBowCart.INSTANCE);
+        // hidden
+        register(WhatEvenIsThis.INSTANCE);
 
         ConfigManager.load(MODULES);
     }
@@ -137,6 +144,11 @@ public final class ModuleManager {
     /** Returns all registered modules in registration order, read-only. */
     public static List<Module> getModules() {
         return Collections.unmodifiableList(MODULES);
+    }
+
+    /** Returns only the modules visible to the current player/mode (hidden modules filtered when not allowed). */
+    public static List<Module> getVisibleModules() {
+        return HiddenModules.filterVisible(MODULES);
     }
 
     /**
@@ -153,10 +165,10 @@ public final class ModuleManager {
         return null;
     }
 
-    /** The number of currently enabled modules. */
+    /** The number of currently enabled modules (hidden modules excluded when not visible). */
     public static int enabledCount() {
         int count = 0;
-        for (Module module : MODULES) {
+        for (Module module : getVisibleModules()) {
             if (module.isEnabled()) count++;
         }
         return count;

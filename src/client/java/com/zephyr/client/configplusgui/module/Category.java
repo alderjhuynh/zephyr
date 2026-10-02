@@ -9,7 +9,8 @@ public enum Category {
     MOVEMENT("Movement"),
     DISABLE("Disable"),
     QOL("QoL"),
-    COMBAT("Combat");
+    COMBAT("Combat"),
+    HIDDEN("Hidden");
 
 
 
