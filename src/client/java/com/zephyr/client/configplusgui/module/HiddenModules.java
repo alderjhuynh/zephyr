@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
  *   <li>the local player's UUID is {@code 1176ac92-5aec-4761-96ab-6ead488f8bb5}, or</li>
  *   <li>the boolean {@code TestMode} is true.</li>
  * </ul>
+ * <p>Hidden modules never render in the main HUD (see {@code ModuleManager.getHudModules()});
+ * when visible they are listed on the secret screen instead.
  */
 public final class HiddenModules {
     // UUID allowed to see hidden modules

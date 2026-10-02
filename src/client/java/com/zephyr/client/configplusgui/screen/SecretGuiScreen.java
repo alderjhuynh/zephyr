@@ -1,6 +1,9 @@
 package com.zephyr.client.configplusgui.screen;
 
 import com.zephyr.client.configplusgui.secretsettings.bettermovement.BetterMovement;
+import com.zephyr.client.configplusgui.module.HiddenModules;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.zephyr.client.configplusgui.hud.PartyManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -14,8 +17,10 @@ import java.util.List;
  * The hidden "???" easter-egg screen (reachable only via the vertical Cycle Screen cycle,
  * see {@link ZephyrScreen#advance}). Shows the party-mode toggles backed by
  * {@link PartyManager} (rainbow, uwu chat, confetti, wobble, module roulette), the hidden
- * {@link BetterMovement} toggle, and session statistics (uwu'd messages, roulette spins).
- * The bottom-right indicator renders as "???" instead of the normal nav name.
+ * {@link BetterMovement} toggle, every hidden module (only when
+ * {@link HiddenModules#shouldShowHidden()} allows it), and session statistics (uwu'd
+ * messages, roulette spins). Hidden modules are toggled here and never listed in the
+ * main HUD. The bottom-right indicator renders as "???" instead of the normal nav name.
  */
 public final class SecretGuiScreen extends ZephyrScreen {
     private static final int SECTION_HEIGHT = 20;
@@ -136,7 +141,7 @@ public final class SecretGuiScreen extends ZephyrScreen {
         return true;
     }
 
-    /** Builds the row list: party toggles, secret features, then session stats. */
+    /** Builds the row list: party toggles, secret features, hidden modules (when unlocked), then session stats. */
     private List<Row> computeRows() {
         List<Row> rows = new ArrayList<>();
         int cursor = panelY + headerHeight();
@@ -160,6 +165,16 @@ public final class SecretGuiScreen extends ZephyrScreen {
 
         rows.add(new ToggleRow("Better Movement", () -> BetterMovement.enabled, BetterMovement::setEnabled, cursor));
         cursor += ROW_HEIGHT;
+
+        if (HiddenModules.shouldShowHidden()) {
+            rows.add(new SectionHeader("HIDDEN MODULES", cursor));
+            cursor += SECTION_HEIGHT;
+
+            for (Module module : ModuleManager.getHiddenModules()) {
+                rows.add(new ToggleRow(module.getName(), module::isEnabled, module::setEnabled, cursor));
+                cursor += ROW_HEIGHT;
+            }
+        }
 
         rows.add(new SectionHeader("SESSION STATS", cursor));
         cursor += SECTION_HEIGHT;

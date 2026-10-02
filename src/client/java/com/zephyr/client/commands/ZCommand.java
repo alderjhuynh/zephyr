@@ -152,7 +152,7 @@ public final class ZCommand extends Command {
         CommandManager.sendMessage("Zephyr v" + version()
                 + " | Profile: " + ProfileManager.getActiveProfile());
         CommandManager.sendMessage("Modules: " + ModuleManager.enabledCount() + "/"
-                + ModuleManager.getVisibleModules().size() + " enabled | Prefix: " + prefixText);
+                + ModuleManager.getHudModules().size() + " enabled | Prefix: " + prefixText);
     }
 
     private void module(String[] args) {

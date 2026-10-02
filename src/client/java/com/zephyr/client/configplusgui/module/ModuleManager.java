@@ -152,6 +152,34 @@ public final class ModuleManager {
     }
 
     /**
+     * Returns the modules rendered in the main HUD. Hidden modules are never included here,
+     * even when they are unlocked — they are listed on the secret screen instead.
+     */
+    public static List<Module> getHudModules() {
+        List<Module> hud = new ArrayList<>();
+        for (Module module : MODULES) {
+            if (!module.isHidden()) {
+                hud.add(module);
+            }
+        }
+        return Collections.unmodifiableList(hud);
+    }
+
+    /**
+     * Returns every hidden module. Callers must gate rendering on
+     * {@link HiddenModules#shouldShowHidden()}; the secret screen does this.
+     */
+    public static List<Module> getHiddenModules() {
+        List<Module> hidden = new ArrayList<>();
+        for (Module module : MODULES) {
+            if (module.isHidden()) {
+                hidden.add(module);
+            }
+        }
+        return Collections.unmodifiableList(hidden);
+    }
+
+    /**
      * Looks up a module by name, case-insensitively.
      *
      * @return the matching module, or {@code null} if none is registered
@@ -165,10 +193,10 @@ public final class ModuleManager {
         return null;
     }
 
-    /** The number of currently enabled modules (hidden modules excluded when not visible). */
+    /** The number of currently enabled non-hidden modules, matching what the main HUD lists. */
     public static int enabledCount() {
         int count = 0;
-        for (Module module : getVisibleModules()) {
+        for (Module module : getHudModules()) {
             if (module.isEnabled()) count++;
         }
         return count;
