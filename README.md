@@ -228,32 +228,17 @@ Zephyr has no anticheat protection. It does not attempt to hide what you're doin
 
 ---
 
-## Troubleshooting
-
-- **Menu won't open?** Press `L` and `Enter` *at the same time* while no screen is open. If you rebound it, check the Keybinds screen.
-- **`.` doesn't open commands?** Your Command Prefix bind changed it. The prefix is whatever that bind is set to.
-- **Module won't toggle from a key?** You may be typing in chat, in a Zephyr screen (module keys only work with no screen open), or have a conflict — look for the conflict toast.
-- **Settings not saving?** They autosave every 60s by default (configurable) and always on quit. Check `config/zephyr/` is writable.
-- **Discord status not showing?** Enable *Discord Presence* in Config and make sure the desktop Discord app is running.
-- **Fresh start?** Close the game, delete `.minecraft/config/zephyr/`, relaunch.
-
----
-
 ## Building from source
-
-You don't need this to *use* Zephyr — only to develop it.
 
 ```bash
 ./gradlew build
-# jar lands in build/libs/
 ```
 
-Requires JDK 25. CI builds on every push (`ubuntu-24.04`, Microsoft JDK 25) and uploads `build/libs/`.
+Requires JDK 25. CI builds on every push and uploads `build/libs/`.
 
 ---
 
 ## License / credits
 
 - Author: **Auraea**
-- License: **CC0-1.0** (public domain) — see `LICENSE`.
 - Built on Fabric + Fabric API, with bundled Discord IPC and Seedfinding libraries. QoL pieces adapted from AppleSkin, Jade, ShulkerBoxTooltip, SeedcrackerX, Carpet, and Cornerstone concepts. Thanks to their authors.
