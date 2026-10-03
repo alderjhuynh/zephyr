@@ -9,6 +9,9 @@ import com.zephyr.client.module.combat.*;
 import com.zephyr.client.module.movement.*;
 import com.zephyr.client.module.disable.*;
 import com.zephyr.client.module.qol.*;
+import com.zephyr.client.module.qol.jade.Jade;
+import com.zephyr.client.module.bots.pathing.Pathing;
+import com.zephyr.client.module.hidden.WhatEvenIsThis;
 import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;
@@ -33,6 +36,13 @@ public final class ModuleManager {
         register(NoSlowdown.INSTANCE);
         register(Sprint.INSTANCE);
         register(Step.INSTANCE);
+        register(TridentBoost.INSTANCE);
+        register(AutoWalk.INSTANCE);
+        register(Blink.INSTANCE);
+        register(IceSpeed.INSTANCE);
+        register(Jesus.INSTANCE);
+        register(Scaffold.INSTANCE);
+        register(Pathing.INSTANCE);
         // disable
         register(disableAxeStripping.INSTANCE);
         register(disableBlockBreakingCooldown.INSTANCE);
@@ -42,6 +52,7 @@ public final class ModuleManager {
         register(disableDeadMobInteraction.INSTANCE);
         register(disableDeadMobRendering.INSTANCE);
         register(disableFirstPersonFire.INSTANCE);
+        register(disableFireRendering.INSTANCE);
         register(disableFirstPersonEffectParticles.INSTANCE);
         register(disableFluidFog.INSTANCE);
         register(disableFogRendering.INSTANCE);
@@ -52,6 +63,8 @@ public final class ModuleManager {
         register(disableScoreboard.INSTANCE);
         register(disableShovelPathing.INSTANCE);
         register(disableTotemAnimation.INSTANCE);
+        register(disableDamageTilt.INSTANCE);
+        register(disableExplosionParticles.INSTANCE);
         // qol
         register(AppleSkin.INSTANCE);
         register(ArmorRenderer.INSTANCE);
@@ -68,6 +81,8 @@ public final class ModuleManager {
         register(InventoryPackets.INSTANCE);
         register(InventoryRenderer.INSTANCE);
         register(ItemRestock.INSTANCE);
+        register(Jade.INSTANCE);
+        register(MouseTweaks.INSTANCE);
         register(PeriodicAttack.INSTANCE);
         register(PeriodicUse.INSTANCE);
         register(PickBeforePlace.INSTANCE);
@@ -85,7 +100,9 @@ public final class ModuleManager {
         // combat
         register(AnimeProtagonist.INSTANCE);
         register(AnchorAura.INSTANCE);
+        register(AnchorHelper.INSTANCE);
         register(AutoPlace.INSTANCE);
+        register(CrystalHelper.INSTANCE);
         register(BreachSwap.INSTANCE);
         register(Criticals.INSTANCE);
         register(DensitySwap.INSTANCE);
@@ -93,10 +110,16 @@ public final class ModuleManager {
         register(InstaCart.INSTANCE);
         register(KillAura.INSTANCE);
         register(Knockback.INSTANCE);
+        register(PearlCatch.INSTANCE);
         register(Reach.INSTANCE);
         register(ShieldBreaker.INSTANCE);
+        register(AutoCrystal.INSTANCE);
+        register(TargetStrafe.INSTANCE);
+        register(TotemPopNotifier.INSTANCE);
         register(TriggerBot.INSTANCE);
         register(XBowCart.INSTANCE);
+        // hidden
+        register(WhatEvenIsThis.INSTANCE);
 
         ConfigManager.load(MODULES);
     }
@@ -107,6 +130,30 @@ public final class ModuleManager {
 
     public static List<Module> getModules() {
         return Collections.unmodifiableList(MODULES);
+    }
+
+    public static List<Module> getVisibleModules() {
+        return HiddenModules.filterVisible(MODULES);
+    }
+
+    public static List<Module> getHudModules() {
+        List<Module> hud = new ArrayList<>();
+        for (Module module : MODULES) {
+            if (!module.isHidden()) {
+                hud.add(module);
+            }
+        }
+        return Collections.unmodifiableList(hud);
+    }
+
+    public static List<Module> getHiddenModules() {
+        List<Module> hidden = new ArrayList<>();
+        for (Module module : MODULES) {
+            if (module.isHidden()) {
+                hidden.add(module);
+            }
+        }
+        return Collections.unmodifiableList(hidden);
     }
 
     public static Module get(String name) {
@@ -120,7 +167,7 @@ public final class ModuleManager {
 
     public static int enabledCount() {
         int count = 0;
-        for (Module module : MODULES) {
+        for (Module module : getHudModules()) {
             if (module.isEnabled()) count++;
         }
         return count;

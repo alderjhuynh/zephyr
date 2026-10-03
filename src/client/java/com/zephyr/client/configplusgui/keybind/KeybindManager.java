@@ -174,7 +174,7 @@ public final class KeybindManager {
     }
 
     private static void tickModuleBinds(Minecraft client) {
-        for (Module module : ModuleManager.getModules()) {
+        for (Module module : ModuleManager.getVisibleModules()) {
             Keybind bind = get(module);
             if (!bind.isSet()) continue;
 

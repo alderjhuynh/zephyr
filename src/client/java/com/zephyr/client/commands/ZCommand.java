@@ -9,27 +9,86 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+// Backport of 26.3's ZCommand dispatcher (minus seedcracker/crackrng, which
+// are not ported to 1.21.1). Every ported command is reachable as
+// `.z <name>` with an optional `c` prefix alias, plus direct alias execution.
 public final class ZCommand extends Command {
     public static final ZCommand INSTANCE = new ZCommand();
 
     private ZCommand() {
-        super("z", "Shows diagnostics or controls modules: .z module <name> <on|off|toggle>");
+        super("z", "Shows diagnostics or controls modules: .z module <name> <on|off|toggle> | .z path <x> <y> <z> [destructive] | .z path task mine <block>");
     }
+
+    private static final List<String> SUBCOMMANDS = List.of(
+            "module", "path",
+            "alias", "calias", "config", "cconfig",
+            "cornerstone", "ccornerstone",
+            "creativetab", "ccreativetab", "enchant", "cenchant",
+            "find", "cfind", "findblock", "cfindblock",
+            "gamemode", "cgamemode", "getdata", "cgetdata",
+            "ghostblock", "cghostblock", "give", "cgive",
+            "glow", "cglow", "hotbar", "chotbar",
+            "kit", "ckit", "look", "clook",
+            "notebook", "cnotebook",
+            "permissionlevel", "cpermissionlevel", "ping", "cping",
+            "pos", "cpos", "relog", "crelog",
+            "time", "ctime", "tp", "ctp", "uuid", "cuuid",
+            "player", "cplayer"
+    );
 
     @Override
     public List<String> suggest(String[] args) {
         if (args.length == 1) {
-            return List.of("module");
+            return SUBCOMMANDS;
         }
         if (args[0].equalsIgnoreCase("module")) {
             if (args.length == 2) {
-                return ModuleManager.getModules().stream().map(Module::getName).toList();
+                return ModuleManager.getVisibleModules().stream().map(Module::getName).toList();
             }
             if (args.length >= 3) {
                 return List.of("on", "off", "toggle");
             }
         }
-        return List.of("module");
+        if (args[0].equalsIgnoreCase("path")) {
+            return PathCommand.INSTANCE.suggest(Arrays.copyOfRange(args, 1, args.length));
+        }
+        // delegate to ported commands
+        Command delegate = resolveDelegate(args[0]);
+        if (delegate != null) {
+            return delegate.suggest(Arrays.copyOfRange(args, 1, args.length));
+        }
+        return List.of("module", "path");
+    }
+
+    private static Command resolveDelegate(String name) {
+        String n = name.toLowerCase(Locale.ROOT);
+        return switch (n) {
+            case "alias", "calias" -> AliasCommand.INSTANCE;
+            case "config", "cconfig" -> ConfigCommand.INSTANCE;
+            case "cornerstone", "ccornerstone" -> CornerstoneCommand.INSTANCE;
+            case "creativetab", "ccreativetab" -> CreativeTabCommand.INSTANCE;
+            case "enchant", "cenchant" -> EnchantCommand.INSTANCE;
+            case "find", "cfind" -> FindCommand.INSTANCE;
+            case "findblock", "cfindblock" -> FindBlockCommand.INSTANCE;
+            case "gamemode", "cgamemode" -> GameModeCommand.INSTANCE;
+            case "getdata", "cgetdata" -> GetDataCommand.INSTANCE;
+            case "ghostblock", "cghostblock" -> GhostBlockCommand.INSTANCE;
+            case "give", "cgive" -> GiveCommand.INSTANCE;
+            case "glow", "cglow" -> GlowCommand.INSTANCE;
+            case "hotbar", "chotbar" -> HotbarCommand.INSTANCE;
+            case "kit", "ckit" -> KitCommand.INSTANCE;
+            case "look", "clook" -> LookCommand.INSTANCE;
+            case "permissionlevel", "cpermissionlevel" -> PermissionLevelCommand.INSTANCE;
+            case "ping", "cping" -> PingCommand.INSTANCE;
+            case "pos", "cpos" -> PosCommand.INSTANCE;
+            case "relog", "crelog" -> RelogCommand.INSTANCE;
+            case "time", "ctime" -> TimeCommand.INSTANCE;
+            case "tp", "ctp" -> TeleportCommand.INSTANCE;
+            case "uuid", "cuuid" -> UuidCommand.INSTANCE;
+            case "player", "cplayer" -> FakePlayerCommand.INSTANCE;
+            case "notebook", "cnotebook" -> NotebookCommand.INSTANCE;
+            default -> null;
+        };
     }
 
     @Override
@@ -42,7 +101,21 @@ public final class ZCommand extends Command {
             module(args);
             return;
         }
-        CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle>]");
+        if (args[0].equalsIgnoreCase("path")) {
+            PathCommand.INSTANCE.execute(Arrays.copyOfRange(args, 1, args.length));
+            return;
+        }
+        Command delegate = resolveDelegate(args[0]);
+        if (delegate != null) {
+            delegate.execute(Arrays.copyOfRange(args, 1, args.length));
+            return;
+        }
+        // try alias execution: .z <alias> [args...]
+        if (AliasCommand.INSTANCE.tryExecuteAlias(args[0], Arrays.copyOfRange(args, 1, args.length))) {
+            return;
+        }
+        CommandManager.sendMessage("Usage: .z [module <name> <on|off|toggle> | path <x> <y> <z> [destructive] | path task mine <block> | notebook [clear]]");
+        CommandManager.sendMessage("Ported: alias, config, cornerstone, creativetab, enchant, find, findblock, gamemode, getdata, ghostblock, give, glow, hotbar, kit, look, notebook, permissionlevel, ping, pos, relog, time, tp, uuid, player (prefix c optional)");
     }
 
     private void diagnostics() {
@@ -52,7 +125,7 @@ public final class ZCommand extends Command {
         CommandManager.sendMessage("Zephyr v" + version()
                 + " | Profile: " + ProfileManager.getActiveProfile());
         CommandManager.sendMessage("Modules: " + ModuleManager.enabledCount() + "/"
-                + ModuleManager.getModules().size() + " enabled | Prefix: " + prefixText);
+                + ModuleManager.getHudModules().size() + " enabled | Prefix: " + prefixText);
     }
 
     private void module(String[] args) {

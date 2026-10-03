@@ -2,6 +2,7 @@ package com.zephyr.client.configplusgui.screen;
 
 import com.zephyr.client.configplusgui.keybind.KeybindManager;
 import com.zephyr.client.configplusgui.module.Category;
+import com.zephyr.client.configplusgui.module.HiddenModules;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
@@ -31,7 +32,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private static final int SETTING_ROW_HEIGHT = 20;
     private static final int LIST_ICON_SIZE = 10;
 
-    private final List<Module> modules = new ArrayList<>(ModuleManager.getModules());
+    private final List<Module> modules = new ArrayList<>(ModuleManager.getVisibleModules());
     private String searchQuery = "";
     private EditBox searchBox;
 
@@ -448,15 +449,19 @@ public final class ClickGuiScreen extends ZephyrScreen {
 
     private List<TabLayout> computeTabLayout() {
         List<TabLayout> tabs = new ArrayList<>();
-        Category[] categories = Category.values();
-        int tabCount = categories.length + 1; // +1 for "All"
+        java.util.List<Category> visibleCategories = new java.util.ArrayList<>();
+        for (Category c : Category.values()) {
+            if (c == Category.HIDDEN && !HiddenModules.shouldShowHidden()) continue;
+            visibleCategories.add(c);
+        }
+        int tabCount = visibleCategories.size() + 1; // +1 for "All"
         int tabWidth = (panelWidth - PADDING * 2) / tabCount;
         int x = panelX + PADDING;
 
         tabs.add(new TabLayout(null, "All", x, x + tabWidth));
         x += tabWidth;
 
-        for (Category category : categories) {
+        for (Category category : visibleCategories) {
             tabs.add(new TabLayout(category, category.getDisplayName(), x, x + tabWidth));
             x += tabWidth;
         }
@@ -469,7 +474,8 @@ public final class ClickGuiScreen extends ZephyrScreen {
         String query = searchQuery.toLowerCase();
         int cursor = listTop;
 
-        for (Module module : modules) {
+        for (Module module : ModuleManager.getVisibleModules()) {
+            if (!HiddenModules.isVisible(module)) continue;
             if (selectedCategory != null && module.getCategory() != selectedCategory) {
                 continue;
             }

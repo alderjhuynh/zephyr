@@ -1,6 +1,6 @@
 # Zephyr
 
-A client-side hacked client / utility mod for **Minecraft 1.21.1**, built on [Fabric](https://fabricmc.net/). Zephyr packs 72 modules into four categories, Movement, Combat, QoL, and Disable, with a fully clickable GUI, a chat command system, configurable keybinds, configurable profiles, and Discord Rich Presence.
+A client-side hacked client / utility mod for **Minecraft 1.21.1**, built on [Fabric](https://fabricmc.net/). Zephyr packs 89 modules into four categories, Movement, Combat, QoL, and Disable, with a fully clickable GUI, a chat command system, configurable keybinds, configurable profiles, and Discord Rich Presence.
 
 > **Use at your own risk.** Zephyr modifies client behavior and may violate the rules of the servers you play on. Use it only on servers where such modifications are allowed.
 
@@ -62,6 +62,22 @@ Zephyr's chat commands give you quick control over the client without opening th
 |--------------------------------------|--------------------------------------------------------------------------------|
 | `.z`                                 | Shows diagnostics: mod version, active profile, enabled/total module count, and the current command prefix |
 | `.z module <name> <on\|off\|toggle>` | Controls a module by name, e.g. `.z module KillAura on`                        |
+| `.z path <x> <y> <z> [destructive]`  | Walks to coordinates via A* (Pathing module); `destructive` mines/bridges     |
+| `.z path stop` / `.z path task mine <block>` | Cancels pathing / walks to the nearest block and mines it            |
+| `.z notebook [clear]`                | Opens the personal client-side notebook                                        |
+| `.z player <name> spawn\|kill\|...`   | Singleplayer fake players for testing (spawn, kill, stop, use, attack, jump, sneak, sprint, look, turn, move, hotbar, drop, mount, shadow, list) |
+| `.z cornerstone <subcommand>`        | Copies areas as setblock/fill commands (select, pos1/pos2, save, run, list, delete, clear, cancel) |
+| `.z kit / .z hotbar / .z alias`      | Item kits, hotbar snapshots, command aliases                                   |
+| `.z find / .z findblock`             | Locates entities / blocks                                                      |
+| `.z ghostblock / .z glow`            | Client-side preview blocks / entity-area highlights                            |
+| `.z look / .z pos / .z tp`           | Precise aiming, Nether coordinate conversion, teleport utilities               |
+| `.z getdata / .z uuid / .z ping`     | Inspection utilities                                                           |
+| `.z gamemode / .z time`              | Client gamemode / time helpers                                                 |
+| `.z give / .z creativetab / .z enchant` | Creative inventory tools                                                    |
+| `.z config / .z relog / .z permissionlevel` | Raw config get/set, quick reconnect, op-level check                     |
+
+- Every subcommand also works with a `c` prefix alias (e.g. `.z cfind ...`).
+- Tab-completion works in the chat box: type the prefix and start typing, and commands and arguments are suggested as you go.
 
 - Tab-completion works in the chat box: type the prefix and start typing, and commands and arguments are suggested as you go.
 - Names or arguments containing spaces can be double-quoted, e.g. `.z module "Anime Protagonist" toggle`.
@@ -98,6 +114,41 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 
 > **Note:** The original mod's preview keybind/locking features are intentionally left out — in Zephyr the preview is simply always shown while the module is enabled. Shulker box colors are rendered using a dedicated Zephyr texture.
 
+## Bots: auto-walk and mining
+
+The **Pathing** module (Movement tab) walks to coordinates with A* pathfinding:
+
+- `.z path <x> <y> <z> [destructive]`: walk there; `destructive` mines through walls and bridges gaps.
+- `.z path stop`: cancel.
+- `.z path task mine <block>`: walk to the nearest matching block and mine it.
+
+The destination, route waypoints, and mine/place targets render as HUD markers while pathing.
+
+## Cornerstone: copy areas as commands
+
+Save a region once, replay it anywhere as `/setblock` + `/fill` commands (singleplayer / creative with permission):
+
+```
+.z cornerstone select            # selection mode: click two corners
+.z cornerstone pos1 <x> <y> <z>  # or set corners manually (~ supported)
+.z cornerstone pos2 <x> <y> <z>
+.z cornerstone save <name> [air] # store it (air = include air)
+.z cornerstone run <name> [here | at <x> <y> <z>]
+.z cornerstone list
+.z cornerstone delete <name>
+.z cornerstone clear
+.z cornerstone cancel
+```
+
+## Fake players (singleplayer only)
+
+Spawn client-side bots for testing farms, combat, or redstone. Works in singleplayer worlds only and never joins real servers:
+
+```
+.z player <name> spawn
+.z player <name> kill | stop | use | attack | jump | sneak | sprint | ...
+```
+
 ## Features
 
 - **Click GUI**: searchable module list with per-category tabs and per-module settings panels
@@ -110,35 +161,48 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 
 ### Movement
 
-| Module        | Description                                                                                      |
-|---------------|--------------------------------------------------------------------------------------------------|
-| Aerodynamics  | Boosts velocity while sprinting                                                                  |
-| Air Jump      | Allows jumping in the air                                                                        |
-| Anti Hunger   | Avoids unnecessary sprint packets                                                                |
-| Elytra Boost  | Accelerates while gliding                                                                        |
-| Flight        | Enables client flight                                                                            |
-| High Jump     | Increases jump height                                                                            |
-| No Fall       | Prevents fall damage packets                                                                     |
-| No Slowdown   | Cancels the movement speed reduction from using items, walking in webs, or pushing through water |
-| Sprint        | Automatically sprints while moving                                                               |
-| Step          | Raises the step height                                                                           |
+| Module                              | Description                                                                                      |
+|-------------------------------------|--------------------------------------------------------------------------------------------------|
+| Aerodynamics                        | Boosts velocity while sprinting                                                                  |
+| Air Jump                            | Allows jumping in the air                                                                        |
+| Anti Hunger                         | Avoids unnecessary sprint packets                                                                |
+| Auto Walk                           | Walks forward automatically without holding W                                                    |
+| Blink                               | Suppresses your position packets while enabled                                                   |
+| Elytra Boost                        | Accelerates while gliding                                                                        |
+| Flight                              | Enables client flight                                                                            |
+| High Jump                           | Increases jump height                                                                            |
+| Ice Speed                           | Stops you from sliding uncontrollably on ice                                                     |
+| Jesus                               | Lets you walk on water as if it were solid ground                                                |
+| No Fall                             | Prevents fall damage packets                                                                     |
+| No Slowdown                         | Cancels the movement speed reduction from using items, walking in webs, or pushing through water |
+| Pathing                             | Walks to coordinates using A* pathfinding (`.z path`)                                           |
+| Scaffold                            | Places a block under your feet while you walk                                                    |
+| Sprint                              | Automatically sprints while moving                                                               |
+| Step                                | Raises the step height                                                                           |
+| Trident Boost                       | Enables dry Riptide boosts                                                                       |
 
 ### Combat
 
 | Module            | Description                                                                                 |
 |-------------------|---------------------------------------------------------------------------------------------|
 | AnchorAura        | Charges a respawn anchor in a target's face and detonates it, shielding yourself behind a glowstone block |
+| Anchor Helper     | Place → charge → shield → detonate flow for respawn anchors                                 |
 | Anime Protagonist | Attempts to teleport behind a hit entity                                                    |
+| Auto Crystal      | Places and detonates end crystals on a target's obsidian support                             |
 | Auto Place        | Automatically places a specified block on a hit entity                                      |
 | Breach Swap       | Enables Breach Swapping under a certain fall distance                                       |
 | Criticals         | Creates falling packets to enable crits and mace slams                                      |
+| Crystal Helper    | Keeps placing + attacking crystals while holding right-click on obsidian                    |
 | Density Swap      | Enables Density Swapping over a certain fall distance                                       |
 | Hit Assist        | Sends the attack packet anyway when you miss, if you were looking close enough to an entity |
 | InstaCart         | Automatically places a rail and TNT minecart to catch your own flaming arrows               |
 | KillAura          | Automatically attacks for you                                                               |
 | Knockback         | Reduces the amount of knockback you take                                    |
+| Pearl Catch       | Catches a thrown Ender Pearl with a Wind Charge                                             |
 | Reach             | Increases reach distance                                                    |
 | Shieldbreaker     | Automatically breaks shields                                                                |
+| Target Strafe     | Orbits around a nearby target while you move                                                |
+| Totem Pop Notifier| Notifies you when nearby players pop their totems                                           |
 | TriggerBot        | Attacks whenever an entity is in your crosshair and your cooldown is full                   |
 | XBowCart          | Places a rail, TNT minecart, and fire to catch your own crossbow arrows                     |
 
@@ -161,6 +225,8 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Inventory Packets   | Skips packets when closing the inventory, letting you use crafting slots as storage                  |
 | Inventory Renderer  | Shows your entire inventory on the HUD with item counts and durability                               |
 | Item Restock        | Swaps a totem or item for a matching one from your inventory                                         |
+| Jade                | In-world tooltip: block state, crop growth, redstone, beehive, horse stats, entity health, mod name  |
+| MouseTweaks         | Right-drag distributing, left-drag crafting, scroll-wheel quick-move in containers                    |
 | Periodic Attack     | Automatically attacks on a fixed interval                                                            |
 | Periodic Use        | Automatically right-clicks on a fixed interval                                                       |
 | Pick Before Place   | Forces a block pick action before placing a block                                                    |
@@ -185,8 +251,11 @@ Enable it from the click-GUI (Category: QoL) or with `.z module ShulkerBoxToolti
 | Disable Block Outline          | Hides the black outline on the targeted block                 |
 | Disable Block Particles        | Hides block breaking particles                                |
 | Disable Bossbar                | Hides bossbars                                                |
+| Disable Damage Tilt            | Removes the camera tilt when you take damage                  |
 | Disable Dead Mob Interaction   | Blocks interactions with dead mobs                            |
 | Disable Dead Mob Rendering     | Hides dead mobs                                               |
+| Disable Explosion Particles    | Hides explosion, explosion emitter, poof, and smoke particles |
+| Disable Fire Rendering         | Hides world fire and burning-entity flames                    |
 | Disable First-Person Fire      | Lowers or removes the first-person fire overlay while on fire |
 | Disable First-Person Particles | Hides your own status particles                               |
 | Disable Fluid Fog              | Removes fog while underwater or in lava for better visibility |

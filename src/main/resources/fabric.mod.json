@@ -3,13 +3,12 @@
 	"id": "zephyr",
 	"version": "${version}",
 	"name": "zephyr",
-	"description": "Hacked client/utility mod",
+	"description": "Feature-rich utility mod",
 	"authors": [
 		"Auraea"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/alderjhuynh/zephyr"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/zephyr/icon.png",

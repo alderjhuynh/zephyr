@@ -3,9 +3,11 @@ package com.zephyr.client.configplusgui.screen;
 import com.zephyr.client.configplusgui.keybind.GlfwKeyNames;
 import com.zephyr.client.configplusgui.keybind.Keybind;
 import com.zephyr.client.configplusgui.keybind.KeybindManager;
+import com.zephyr.client.configplusgui.module.HiddenModules;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 public final class KeybindGuiScreen extends ZephyrScreen {
+    private static final int SEARCH_HEIGHT = 20;
     private static final int ROW_HEIGHT = 24;
     private static final int SECTION_GAP = 6;
     private static final int CLEAR_BOX_SIZE = 12;
@@ -23,6 +26,9 @@ public final class KeybindGuiScreen extends ZephyrScreen {
     private final LinkedHashSet<Integer> captureBuffer = new LinkedHashSet<>();
     private final Set<Integer> currentlyHeld = new java.util.HashSet<>();
     private Object capturingTarget = null; // Module or KeybindManager.SystemAction
+
+    private String searchQuery = "";
+    private EditBox searchBox;
 
     private double scrollOffset = 0;
 
@@ -44,8 +50,32 @@ public final class KeybindGuiScreen extends ZephyrScreen {
     }
 
     @Override
+    protected int headerHeight() {
+        return TITLE_HEIGHT + SEARCH_HEIGHT;
+    }
+
+    @Override
+    protected void initWidgets() {
+        int searchY = panelY + TITLE_HEIGHT + 2;
+        searchBox = new EditBox(this.font, panelX + PADDING, searchY, panelWidth - PADDING * 2, 16,
+                Component.literal("Search"));
+        searchBox.setHint(Component.literal("Search modules..."));
+        searchBox.setBordered(false);
+        searchBox.setResponder(query -> {
+            this.searchQuery = query;
+            this.scrollOffset = 0;
+        });
+        this.addRenderableWidget(searchBox);
+    }
+
+    @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         withPanelSlide(() -> {
+            // The search box's x/y were fixed at init() time; keep it tracking the
+            // panel while a slide-cycle animation is temporarily offsetting panelX.
+            searchBox.setX(panelX + PADDING);
+            searchBox.setY(panelY + TITLE_HEIGHT + 2);
+
             renderChrome(graphics, mouseX, mouseY);
 
             int listTop = panelY + headerHeight();
@@ -193,6 +223,14 @@ public final class KeybindGuiScreen extends ZephyrScreen {
     }
 
     @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        if (capturingTarget != null) {
+            return true;
+        }
+        return super.charTyped(codePoint, modifiers);
+    }
+
+    @Override
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
         if (capturingTarget != null) {
             currentlyHeld.remove(keyCode);
@@ -212,6 +250,7 @@ public final class KeybindGuiScreen extends ZephyrScreen {
 
     private List<Row> computeRows() {
         List<Row> rows = new ArrayList<>();
+        String query = searchQuery.toLowerCase();
         int cursor = panelY + headerHeight();
 
         for (KeybindManager.SystemAction action : KeybindManager.SystemAction.values()) {
@@ -221,7 +260,12 @@ public final class KeybindGuiScreen extends ZephyrScreen {
 
         cursor += SECTION_GAP;
 
-        for (Module module : ModuleManager.getModules()) {
+        for (Module module : ModuleManager.getVisibleModules()) {
+            if (!HiddenModules.isVisible(module)) continue;
+            if (!query.isBlank() && !module.getName().toLowerCase().contains(query)
+                    && !module.getCategory().getDisplayName().toLowerCase().contains(query)) {
+                continue;
+            }
             rows.add(new Row(module, module.getName(), KeybindManager.get(module), cursor));
             cursor += ROW_HEIGHT;
         }

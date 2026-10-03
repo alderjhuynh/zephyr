@@ -19,6 +19,7 @@ public final class Tracer extends Module {
 
     private final NumberSetting range = new NumberSetting("Range", 64, 8, 128, 1);
     private final NumberSetting lineWidth = new NumberSetting("Line Width", 1.5, 0.5, 5.0, 0.5);
+    private final NumberSetting distance = new NumberSetting("Tracer Start Distance", 2, 0, 10, 1);
     private final BooleanSetting throughWalls = new BooleanSetting("Through Walls", true);
 
     private Tracer() {
@@ -26,6 +27,7 @@ public final class Tracer extends Module {
         addSetting(range);
         addSetting(lineWidth);
         addSetting(throughWalls);
+        addSetting(distance);
     }
 
     @Override
@@ -37,7 +39,8 @@ public final class Tracer extends Module {
         float WIDTH = lineWidth.get().floatValue();
         int color = GlobalConfig.accent();
 
-        Vec3 start = player.getEyePosition();
+        Vec3 start = player.getEyePosition()
+                .add(player.getViewVector(1.0F).scale((int) Math.round(distance.get())));
         double rangeSq = (double) RANGE * RANGE;
 
         try (var ignored = Gizmos.collect()) {

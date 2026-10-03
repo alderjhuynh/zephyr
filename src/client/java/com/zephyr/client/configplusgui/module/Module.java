@@ -17,18 +17,24 @@ public abstract class Module {
     private final String description;
     private final Category category;
     private final List<Setting<?>> settings = new ArrayList<>();
+    private final boolean hidden;
 
     private boolean enabled;
 
     protected Module(String name, String description, Category category) {
-        this(name, description, category, false);
+        this(name, description, category, false, false);
     }
 
     protected Module(String name, String description, Category category, boolean enabledByDefault) {
+        this(name, description, category, enabledByDefault, false);
+    }
+
+    protected Module(String name, String description, Category category, boolean enabledByDefault, boolean hidden) {
         this.name = name;
         this.description = description;
         this.category = category;
         this.enabled = enabledByDefault;
+        this.hidden = hidden;
     }
 
     /**
@@ -49,6 +55,10 @@ public abstract class Module {
 
     public final Category getCategory() {
         return category;
+    }
+
+    public final boolean isHidden() {
+        return hidden;
     }
 
     public final List<Setting<?>> getSettings() {

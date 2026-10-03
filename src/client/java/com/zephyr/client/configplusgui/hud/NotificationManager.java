@@ -44,7 +44,12 @@ public final class NotificationManager {
     public static void notify(String moduleName, boolean enabledNow) {
         if (!GlobalConfig.hotkeyPopupsEnabled()) return;
         if (StealthManager.isActive()) return;
-        ACTIVE.add(0, new Toast(moduleName, enabledNow, System.nanoTime()));
+        ACTIVE.add(0, new ModuleToast(moduleName, enabledNow, System.nanoTime()));
+    }
+
+    public static void notifyText(String text, int color) {
+        if (StealthManager.isActive()) return;
+        ACTIVE.add(0, new MessageToast(text, color, System.nanoTime()));
     }
 
     /** Renders and expires active toasts. Safe to call every frame even when none are active. */
@@ -79,18 +84,18 @@ public final class NotificationManager {
     private static void renderToast(GuiGraphics graphics, Font font, Toast toast, int x, int y) {
         graphics.fill(x, y, x + TOAST_WIDTH, y + TOAST_HEIGHT, ZephyrScreen.PANEL_BG);
 
-        int accent = toast.enabledNow() ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
+        int accent = toast.accent();
         if (PartyManager.confetti) {
             accent = PartyManager.confettiAccent(accent);
         }
         graphics.fill(x, y, x + TOAST_WIDTH, y + 2, accent);
 
-        graphics.drawString(font, toast.moduleName(), x + 8, y + 9, ZephyrScreen.TEXT_MAIN, false);
+        graphics.drawString(font, toast.text(), x + 8, y + 9, ZephyrScreen.TEXT_MAIN, false);
 
-        String status = toast.enabledNow() ? "ON" : "OFF";
-        int statusColor = toast.enabledNow() ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
+        String status = toast.status();
+        if (status.isEmpty()) return;
         int statusWidth = font.width(status);
-        graphics.drawString(font, status, x + TOAST_WIDTH - 8 - statusWidth, y + 9, statusColor, false);
+        graphics.drawString(font, status, x + TOAST_WIDTH - 8 - statusWidth, y + 9, accent, false);
     }
 
     private static int slideOffsetPx(long elapsed) {
@@ -111,6 +116,47 @@ public final class NotificationManager {
         return (int) Math.round(eased * (TOAST_WIDTH + MARGIN));
     }
 
-    private record Toast(String moduleName, boolean enabledNow, long createdAtNanos) {
+    private interface Toast {
+        String text();
+
+        int accent();
+
+        String status();
+
+        long createdAtNanos();
+    }
+
+    private record ModuleToast(String moduleName, boolean enabledNow, long createdAtNanos) implements Toast {
+        @Override
+        public String text() {
+            return moduleName;
+        }
+
+        @Override
+        public int accent() {
+            return enabledNow ? ZephyrScreen.accent() : ZephyrScreen.TEXT_DIM;
+        }
+
+        @Override
+        public String status() {
+            return enabledNow ? "ON" : "OFF";
+        }
+    }
+
+    private record MessageToast(String message, int color, long createdAtNanos) implements Toast {
+        @Override
+        public String text() {
+            return message;
+        }
+
+        @Override
+        public int accent() {
+            return color;
+        }
+
+        @Override
+        public String status() {
+            return "";
+        }
     }
 }

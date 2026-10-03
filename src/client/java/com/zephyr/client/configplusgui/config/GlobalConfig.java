@@ -51,6 +51,7 @@ public final class GlobalConfig {
     public static final BooleanSetting keybindConflictWarnings = new BooleanSetting("Keybind Conflict Warnings", true);
     public static final BooleanSetting discordPresence = new BooleanSetting("Discord Presence", true);
     public static final BooleanSetting stealthMode = new BooleanSetting("Stealth Mode", false);
+    public static final BooleanSetting TestMode = new BooleanSetting("TestMode", false);
 
     private GlobalConfig() {
     }
@@ -217,6 +218,20 @@ public final class GlobalConfig {
         StealthManager.setActive(!stealthMode.get());
     }
 
+    public static boolean isTestMode() {
+        return TestMode.get();
+    }
+
+    public static void setTestMode(boolean enabled) {
+        if (TestMode.get() == enabled) return;
+        TestMode.set(enabled);
+        save();
+    }
+
+    public static void toggleTestMode() {
+        setTestMode(!TestMode.get());
+    }
+
     /** Effective accent: the custom color when enabled, otherwise the theme preset. */
     public static int accent() {
         return PartyManager.rainbowAccent(useCustomColor.get() ? customAccent() : themeColor.accent());
@@ -305,6 +320,13 @@ public final class GlobalConfig {
             if (json.has("stealthMode")) {
                 stealthMode.set(json.get("stealthMode").getAsBoolean());
             }
+            if (json.has("TestMode")) {
+                TestMode.set(json.get("TestMode").getAsBoolean());
+            }
+            // also accept lowercase key for forwards compat
+            if (json.has("testMode")) {
+                TestMode.set(json.get("testMode").getAsBoolean());
+            }
             // Stealth is a panic state, not a preference: if it was left on at shutdown
             // there is no live snapshot to restore from, so start fresh next session.
             if (stealthMode.get()) {
@@ -351,6 +373,7 @@ public final class GlobalConfig {
         root.addProperty("keybindConflictWarnings", keybindConflictWarnings.get());
         root.addProperty("discordPresence", discordPresence.get());
         root.addProperty("stealthMode", stealthMode.get());
+        root.addProperty("TestMode", TestMode.get());
 
         try {
             Files.createDirectories(CONFIG_PATH.getParent());

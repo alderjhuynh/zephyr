@@ -124,7 +124,7 @@ public final class HudRenderer {
 
     private static List<String> activeModuleNames() {
         List<String> names = new ArrayList<>();
-        for (Module module : ModuleManager.getModules()) {
+        for (Module module : ModuleManager.getHudModules()) {
             if (module.isEnabled()) {
                 names.add(module.getName());
             }

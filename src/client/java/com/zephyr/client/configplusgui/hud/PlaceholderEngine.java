@@ -27,7 +27,7 @@ public final class PlaceholderEngine {
         result = result.replace("%player%", player());
         result = result.replace("%fps%", String.valueOf(Minecraft.getInstance().getFps()));
         result = result.replace("%modules_on%", String.valueOf(ModuleManager.enabledCount()));
-        result = result.replace("%modules%", String.valueOf(ModuleManager.getModules().size()));
+        result = result.replace("%modules%", String.valueOf(ModuleManager.getHudModules().size()));
         result = result.replace("%theme%", theme());
         result = result.replace("%date%", LocalDate.now().format(DATE_FORMAT));
         result = result.replace("%time%", LocalTime.now().format(TIME_FORMAT));

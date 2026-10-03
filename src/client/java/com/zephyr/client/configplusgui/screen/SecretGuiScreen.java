@@ -1,5 +1,8 @@
 package com.zephyr.client.configplusgui.screen;
 
+import com.zephyr.client.configplusgui.module.HiddenModules;
+import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.configplusgui.secretsettings.bettermovement.BetterMovement;
 import com.zephyr.client.configplusgui.hud.PartyManager;
 import net.minecraft.client.gui.GuiGraphics;
@@ -139,6 +142,16 @@ public final class SecretGuiScreen extends ZephyrScreen {
 
         rows.add(new ToggleRow("Better Movement", () -> BetterMovement.enabled, BetterMovement::setEnabled, cursor));
         cursor += ROW_HEIGHT;
+
+        if (HiddenModules.shouldShowHidden()) {
+            rows.add(new SectionHeader("HIDDEN MODULES", cursor));
+            cursor += SECTION_HEIGHT;
+
+            for (Module module : ModuleManager.getHiddenModules()) {
+                rows.add(new ToggleRow(module.getName(), module::isEnabled, module::setEnabled, cursor));
+                cursor += ROW_HEIGHT;
+            }
+        }
 
         rows.add(new SectionHeader("SESSION STATS", cursor));
         cursor += SECTION_HEIGHT;
