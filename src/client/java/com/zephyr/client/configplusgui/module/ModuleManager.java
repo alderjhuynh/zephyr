@@ -2,7 +2,8 @@ package com.zephyr.client.configplusgui.module;
 
 import com.zephyr.client.configplusgui.config.ConfigManager;
 import com.zephyr.client.configplusgui.config.ProfileManager;
-import com.zephyr.client.module.bots.pathing.Pathing;
+import com.zephyr.client.module.bot.pathing.Pathing;
+import com.zephyr.client.module.bot.SwordBot;
 import com.zephyr.client.module.combat.KillAura.*;
 import com.zephyr.client.module.combat.AnimeProtagonist.*;
 
@@ -20,7 +21,7 @@ import java.util.List;
 
 /**
  * Registry of every module singleton. {@link #init()} instantiates the movement, disable,
- * qol and combat modules from the {@code com.zephyr.client.module} sub-packages and then
+ * qol, combat and bot modules from the {@code com.zephyr.client.module} sub-packages and then
  * restores their persisted state via {@link ConfigManager#load}. The registry drives the
  * click-gui listing, per-tick dispatch of enabled modules, and the enable-count shown in
  * the HUD; the "Default" profile's initial snapshot is built from it via
@@ -51,7 +52,6 @@ public final class ModuleManager {
         register(IceSpeed.INSTANCE);
         register(Jesus.INSTANCE);
         register(Scaffold.INSTANCE);
-        register(Pathing.INSTANCE);
         // disable
         register(disableAxeStripping.INSTANCE);
         register(disableBlockBreakingCooldown.INSTANCE);
@@ -130,6 +130,9 @@ public final class ModuleManager {
         register(TotemPopNotifier.INSTANCE);
         register(TriggerBot.INSTANCE);
         register(XBowCart.INSTANCE);
+        // bot
+        register(Pathing.INSTANCE);
+        register(SwordBot.INSTANCE);
         // hidden
         register(WhatEvenIsThis.INSTANCE);
 

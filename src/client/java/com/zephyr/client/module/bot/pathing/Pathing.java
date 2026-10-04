@@ -1,4 +1,4 @@
-package com.zephyr.client.module.bots.pathing;
+package com.zephyr.client.module.bot.pathing;
 
 import com.zephyr.client.commands.CommandManager;
 import com.zephyr.client.configplusgui.module.Category;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Movement module that walks the player to a set of coordinates using
+ * Bot module that walks the player to a set of coordinates using
  * {@link AStarPathfinder}. Each tick it steers the player toward the next
  * waypoint of the A* route and exposes {@link #wantsJump()} so the pathing
  * {@code KeyboardInput} mixin can force forward movement and jumping. Set the
@@ -66,7 +66,7 @@ public final class Pathing extends Module {
     private BlockPos taskTarget;
 
     private Pathing() {
-        super("Pathing", "Walks to a set of coordinates using A* pathfinding", Category.MOVEMENT);
+        super("Pathing", "Walks to a set of coordinates using A* pathfinding", Category.BOT);
     }
 
     /**

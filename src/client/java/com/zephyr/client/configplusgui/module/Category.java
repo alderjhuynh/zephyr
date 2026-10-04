@@ -1,8 +1,8 @@
 package com.zephyr.client.configplusgui.module;
 
 /**
- * Groups modules for the click-gui's tab bar and per-row tag label. Mirrors the
- * {@code module}/{@code mixin} sub-packages (movement, combat, qol, disable) plus
+ * Groups modules for the click-gui's category filter and per-row tag label. Mirrors the
+ * {@code module}/{@code mixin} sub-packages (movement, combat, qol, disable, bot) plus
  * two general-purpose buckets.
  */
 public enum Category {
@@ -10,6 +10,7 @@ public enum Category {
     DISABLE("Disable"),
     QOL("QoL"),
     COMBAT("Combat"),
+    BOT("Bot"),
     HIDDEN("Hidden");
 
 

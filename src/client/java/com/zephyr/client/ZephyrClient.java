@@ -13,6 +13,7 @@ import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.commands.CommandManager;
 import com.zephyr.client.commands.CommandPrefixHandler;
 import com.zephyr.client.commands.FakePlayerCommand;
+import com.zephyr.client.commands.SwordBotCommand;
 import com.zephyr.client.commands.ZCommand;
 import com.zephyr.client.cornerstone.CornerstoneRunner;
 import com.zephyr.client.cornerstone.CornerstoneSaver;
@@ -21,7 +22,7 @@ import com.zephyr.client.cornerstone.CornerstoneSelectionRenderer;
 import com.zephyr.client.cornerstone.CornerstoneStore;
 import com.zephyr.client.fakeplayer.FakePlayerManager;
 import com.zephyr.client.discord.DiscordPresenceManager;
-import com.zephyr.client.module.bots.pathing.TargetRender;
+import com.zephyr.client.module.bot.pathing.TargetRender;
 import com.zephyr.client.module.qol.jade.JadeRenderer;
 import com.zephyr.client.module.qol.shulkerboxtooltip.ShulkerBoxTooltipProviders;
 import com.zephyr.client.module.qol.shulkerboxtooltip.tooltip.PreviewClientTooltipComponent;
@@ -71,6 +72,7 @@ ZephyrClient implements ClientModInitializer {
 		KeybindManager.init();
 		CommandManager.register(ZCommand.INSTANCE);
 		CommandManager.register(FakePlayerCommand.INSTANCE);
+		CommandManager.register(SwordBotCommand.INSTANCE);
 
 		CornerstoneStore.load();
 		CornerstoneSelection.register();

@@ -1,4 +1,4 @@
-package com.zephyr.client.module.bots.pathing;
+package com.zephyr.client.module.bot.pathing;
 
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.DeltaTracker;

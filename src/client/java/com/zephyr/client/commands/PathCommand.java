@@ -1,8 +1,8 @@
 package com.zephyr.client.commands;
 
-import com.zephyr.client.module.bots.pathing.AStarPathfinder;
-import com.zephyr.client.module.bots.pathing.BlockLocator;
-import com.zephyr.client.module.bots.pathing.Pathing;
+import com.zephyr.client.module.bot.pathing.AStarPathfinder;
+import com.zephyr.client.module.bot.pathing.BlockLocator;
+import com.zephyr.client.module.bot.pathing.Pathing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;

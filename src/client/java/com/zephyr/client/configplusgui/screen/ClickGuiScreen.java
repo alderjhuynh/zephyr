@@ -39,6 +39,10 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private EditBox searchBox;
 
     private Category selectedCategory = null; // null == "All"
+    private boolean categoryDropdownOpen = false;
+    private static final int DROPDOWN_OPTION_HEIGHT = 18;
+    /** Opaque version of {@link ZephyrScreen#PANEL_BG}, used behind the category popup. */
+    private static final int DROPDOWN_BG = PANEL_BG | 0xFF000000;
     private double scrollOffset = 0;
     private Module expandedModule = null;
     private NumberSetting draggingSetting = null;
@@ -79,6 +83,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         searchBox.setResponder(query -> {
             this.searchQuery = query;
             this.scrollOffset = 0;
+            this.categoryDropdownOpen = false;
             clearListEditing();
         });
         this.addRenderableWidget(searchBox);
@@ -94,7 +99,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
             searchBox.setY(panelY + TITLE_HEIGHT + TAB_HEIGHT + 2);
 
             renderChrome(graphics, mouseX, mouseY);
-            renderTabBar(graphics, mouseX, mouseY);
+            renderCategoryButton(graphics, mouseX, mouseY);
 
             int listTop = panelY + headerHeight();
             int listBottom = panelY + panelHeight - PADDING;
@@ -124,25 +129,76 @@ public final class ClickGuiScreen extends ZephyrScreen {
             }
 
             super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+
+            // Drawn last so the popup sits above the translucent module list
+            // and header widgets (e.g. the search box) instead of under them.
+            renderCategoryPopup(graphics, mouseX, mouseY);
         });
     }
 
-    /** Draws the category tabs ("All" plus each {@link Category}), highlighting the selected/hovered one. */
-    private void renderTabBar(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        int tabY = panelY + TITLE_HEIGHT;
-        for (TabLayout tab : computeTabLayout()) {
-            boolean selected = tab.category == selectedCategory;
-            boolean hovered = !selected && mouseX >= tab.left && mouseX < tab.right
-                    && mouseY >= tabY && mouseY < tabY + TAB_HEIGHT - 2;
+    /**
+     * Draws the single category filter button ("Category: All/Bot/..."). A new
+     * {@link Category} only adds one row to the dropdown popup instead of one more
+     * cramped tab, so the header stays one row no matter how many types exist.
+     */
+    private void renderCategoryButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        int buttonTop = panelY + TITLE_HEIGHT;
+        int buttonBottom = buttonTop + TAB_HEIGHT - 2;
+        int left = panelX + PADDING;
+        int right = panelX + panelWidth - PADDING;
 
-            int bg = selected ? accent() : (hovered ? ROW_BG_HOVER : TAB_BG);
-            graphics.fill(tab.left, tabY, tab.right, tabY + TAB_HEIGHT - 2, bg);
+        boolean hovered = !categoryDropdownOpen && mouseX >= left && mouseX < right
+                && mouseY >= buttonTop && mouseY < buttonBottom;
+        graphics.fill(left, buttonTop, right, buttonBottom, categoryDropdownOpen ? accent() : (hovered ? ROW_BG_HOVER : TAB_BG));
 
-            int textColor = selected ? TEXT_ON_ACCENT : TEXT_DIM;
-            int textWidth = this.font.width(tab.label);
-            int textX = tab.left + (tab.right - tab.left - textWidth) / 2;
-            graphics.text(this.font, tab.label, textX, tabY + 4, textColor, false);
+        String label = "Category: " + (selectedCategory == null ? "All" : selectedCategory.getDisplayName());
+        int textColor = categoryDropdownOpen ? TEXT_ON_ACCENT : TEXT_DIM;
+        graphics.text(this.font, label, left + 8, buttonTop + 4, textColor, false);
+
+        String arrow = categoryDropdownOpen ? "▲" : "▼";
+        int arrowWidth = this.font.width(arrow);
+        graphics.text(this.font, arrow, right - arrowWidth - 8, buttonTop + 4, textColor, false);
+    }
+
+    /**
+     * Draws the open category popup on top of the list (no scissor), with one row
+     * per filter option. Rendered after the list so it overlaps it cleanly.
+     */
+    private void renderCategoryPopup(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        if (!categoryDropdownOpen) return;
+        int buttonBottom = panelY + TITLE_HEIGHT + TAB_HEIGHT - 2;
+        int left = panelX + PADDING;
+        int right = panelX + panelWidth - PADDING;
+        int popupTop = buttonBottom + 2;
+
+        List<Category> categories = visibleCategories();
+        int popupHeight = (categories.size() + 1) * DROPDOWN_OPTION_HEIGHT;
+        // Opaque backdrop: both the popup rows and the module list are
+        // translucent, so without this the list bleeds through the popup.
+        graphics.fill(left, popupTop, right, popupTop + popupHeight, DROPDOWN_BG);
+        for (int i = 0; i <= categories.size(); i++) {
+            Category option = i == 0 ? null : categories.get(i - 1);
+            int optionTop = popupTop + i * DROPDOWN_OPTION_HEIGHT;
+            int optionBottom = optionTop + DROPDOWN_OPTION_HEIGHT;
+            boolean isSelected = option == selectedCategory;
+            boolean hovered = !isSelected && mouseX >= left && mouseX < right
+                    && mouseY >= optionTop && mouseY < optionBottom;
+
+            graphics.fill(left, optionTop, right, optionBottom, isSelected ? accent() : (hovered ? ROW_BG_HOVER : ROW_BG));
+            String optionLabel = option == null ? "All" : option.getDisplayName();
+            int textColor = isSelected ? TEXT_ON_ACCENT : TEXT_MAIN;
+            graphics.text(this.font, optionLabel, left + 8, optionTop + 5, textColor, false);
         }
+    }
+
+    /** Every selectable category filter, in enum order, excluding hidden ones unless unlocked. */
+    private List<Category> visibleCategories() {
+        List<Category> visible = new ArrayList<>();
+        for (Category c : Category.values()) {
+            if (c == Category.HIDDEN && !HiddenModules.shouldShowHidden()) continue;
+            visible.add(c);
+        }
+        return visible;
     }
 
     /** Draws one module row (name, category tag, hover/disabled background) and its expanded settings. */
@@ -275,16 +331,34 @@ public final class ClickGuiScreen extends ZephyrScreen {
         double mouseY = event.y();
         int button = event.button();
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
-            int tabY = panelY + TITLE_HEIGHT;
-            if (mouseY >= tabY && mouseY < tabY + TAB_HEIGHT - 2) {
-                for (TabLayout tab : computeTabLayout()) {
-                    if (mouseX >= tab.left && mouseX < tab.right) {
-                        selectedCategory = tab.category;
+            int buttonTop = panelY + TITLE_HEIGHT;
+            int buttonBottom = buttonTop + TAB_HEIGHT - 2;
+            int buttonLeft = panelX + PADDING;
+            int buttonRight = panelX + panelWidth - PADDING;
+
+            if (categoryDropdownOpen) {
+                int popupTop = buttonBottom + 2;
+                List<Category> categories = visibleCategories();
+                for (int i = 0; i <= categories.size(); i++) {
+                    int optionTop = popupTop + i * DROPDOWN_OPTION_HEIGHT;
+                    int optionBottom = optionTop + DROPDOWN_OPTION_HEIGHT;
+                    if (mouseX >= buttonLeft && mouseX < buttonRight
+                            && mouseY >= optionTop && mouseY < optionBottom) {
+                        selectedCategory = i == 0 ? null : categories.get(i - 1);
                         scrollOffset = 0;
                         clearListEditing();
+                        categoryDropdownOpen = false;
                         return true;
                     }
                 }
+                // Click the button again to close, or anywhere else to dismiss
+                // without toggling whatever module row sits underneath.
+                categoryDropdownOpen = false;
+                return true;
+            } else if (mouseY >= buttonTop && mouseY < buttonBottom
+                    && mouseX >= buttonLeft && mouseX < buttonRight) {
+                categoryDropdownOpen = true;
+                return true;
             }
         }
 
@@ -477,29 +551,6 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return true;
     }
 
-    /** Computes the tab bar's horizontal spans, evenly dividing the panel width. */
-    private List<TabLayout> computeTabLayout() {
-        List<TabLayout> tabs = new ArrayList<>();
-        java.util.List<Category> visibleCategories = new java.util.ArrayList<>();
-        for (Category c : Category.values()) {
-            if (c == Category.HIDDEN && !HiddenModules.shouldShowHidden()) continue;
-            visibleCategories.add(c);
-        }
-        int tabCount = visibleCategories.size() + 1; // +1 for "All"
-        int tabWidth = (panelWidth - PADDING * 2) / tabCount;
-        int x = panelX + PADDING;
-
-        tabs.add(new TabLayout(null, "All", x, x + tabWidth));
-        x += tabWidth;
-
-        for (Category category : visibleCategories) {
-            tabs.add(new TabLayout(category, category.getDisplayName(), x, x + tabWidth));
-            x += tabWidth;
-        }
-
-        return tabs;
-    }
-
     /** Builds the visible row layout, filtering by category and search query and expanding settings. */
     private List<RowLayout> computeLayout(int listTop) {
         List<RowLayout> layout = new ArrayList<>();
@@ -538,9 +589,6 @@ public final class ClickGuiScreen extends ZephyrScreen {
             return SETTING_ROW_HEIGHT * (1 + listSetting.get().size() + (listEditing == listSetting ? 1 : 0));
         }
         return SETTING_ROW_HEIGHT;
-    }
-
-    private record TabLayout(Category category, String label, int left, int right) {
     }
 
     private record SettingRowLayout(Setting<?> setting, int height) {

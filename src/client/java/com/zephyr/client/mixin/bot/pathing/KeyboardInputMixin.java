@@ -1,7 +1,7 @@
-package com.zephyr.client.mixin.bots.pathing;
+package com.zephyr.client.mixin.bot.pathing;
 
 import com.zephyr.client.mixin.qol.GuiMove.ClientInputAccessor;
-import com.zephyr.client.module.bots.pathing.Pathing;
+import com.zephyr.client.module.bot.pathing.Pathing;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec2;

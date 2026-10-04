@@ -1,4 +1,4 @@
-package com.zephyr.client.module.bots.pathing;
+package com.zephyr.client.module.bot.pathing;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
