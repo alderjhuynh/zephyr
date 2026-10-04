@@ -1,5 +1,6 @@
 package com.zephyr.client.configplusgui.keybind;
 
+import com.google.gson.JsonArray;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.Arrays;
@@ -82,5 +83,24 @@ public final class Keybind {
     /** Marks whether another bind shares this combo; set by {@link KeybindManager}. */
     public void setConflicted(boolean conflicted) {
         this.conflicted = conflicted;
+    }
+
+    /** Serializes the combo into a JSON array of its key codes in slot order. */
+    public JsonArray toJsonArray() {
+        JsonArray array = new JsonArray();
+        for (int key : keys) {
+            array.add(key);
+        }
+        return array;
+    }
+
+    /** Deserializes a combo from a JSON array of key codes, padding with {@link #UNSET}. */
+    public static Keybind fromJsonArray(JsonArray array) {
+        int[] keys = new int[MAX_KEYS];
+        Arrays.fill(keys, UNSET);
+        for (int i = 0; i < Math.min(MAX_KEYS, array.size()); i++) {
+            keys[i] = array.get(i).getAsInt();
+        }
+        return new Keybind(keys);
     }
 }

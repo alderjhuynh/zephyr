@@ -24,6 +24,7 @@ import com.zephyr.client.fakeplayer.FakePlayerManager;
 import com.zephyr.client.discord.DiscordPresenceManager;
 import com.zephyr.client.module.bot.pathing.TargetRender;
 import com.zephyr.client.module.qol.jade.JadeRenderer;
+import com.zephyr.client.module.qol.auramap.AuraMapController;
 import com.zephyr.client.module.qol.shulkerboxtooltip.ShulkerBoxTooltipProviders;
 import com.zephyr.client.module.qol.shulkerboxtooltip.tooltip.PreviewClientTooltipComponent;
 import com.zephyr.client.module.qol.shulkerboxtooltip.tooltip.PreviewTooltipComponent;
@@ -67,6 +68,7 @@ ZephyrClient implements ClientModInitializer {
 
 
 		GlobalConfig.init();
+		AuraMapController.init();
 		ModuleManager.init();
 		ProfileManager.init();
 		KeybindManager.init();
@@ -113,6 +115,10 @@ ZephyrClient implements ClientModInitializer {
 							client.getWindow().getGuiScaledHeight());
 				});
 
+		HudElementRegistry.attachElementAfter(net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements.CROSSHAIR,
+				Identifier.fromNamespaceAndPath("zephyr", "auramap_minimap"),
+				AuraMapController.minimapRenderer());
+
 		HudElementRegistry.attachElementBefore(net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements.CHAT,
 				Identifier.fromNamespaceAndPath("zephyr", "hud_overlay"),
 				(graphics, tickCounter) -> {
@@ -126,6 +132,9 @@ ZephyrClient implements ClientModInitializer {
 		TargetRender.init();
 
 
-		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ModuleManager.saveAll());
+		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+			AuraMapController.deactivate();
+			ModuleManager.saveAll();
+		});
 	}
 }

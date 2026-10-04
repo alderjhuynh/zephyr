@@ -1,5 +1,7 @@
 package com.zephyr.client.configplusgui.screen;
 
+import com.zephyr.client.configplusgui.keybind.GlfwKeyNames;
+import com.zephyr.client.configplusgui.keybind.Keybind;
 import com.zephyr.client.configplusgui.keybind.KeybindManager;
 import com.zephyr.client.configplusgui.module.Category;
 import com.zephyr.client.configplusgui.module.HiddenModules;
@@ -7,18 +9,22 @@ import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.KeybindSetting;
 import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.configplusgui.setting.Setting;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Lunar-esque click-gui: a blurred, scrollable, searchable list of every registered
@@ -33,6 +39,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private static final int ROW_HEIGHT = 26;
     private static final int SETTING_ROW_HEIGHT = 20;
     private static final int LIST_ICON_SIZE = 10;
+    private static final int CONFLICT_RED = 0xFFE05B5B;
 
     private final List<Module> modules = new ArrayList<>(ModuleManager.getVisibleModules());
     private String searchQuery = "";
@@ -51,6 +58,11 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private ListSetting listEditing = null;
     private EditBox blockInputBox;
     private EditBox colorInputBox;
+
+    /** Keybind setting currently recording a new combo, plus the in-progress capture state. */
+    private KeybindSetting capturingKeybind = null;
+    private final LinkedHashSet<Integer> captureBuffer = new LinkedHashSet<>();
+    private final Set<Integer> currentlyHeld = new java.util.HashSet<>();
 
     /** Opens the click-gui without a slide animation (fresh open via the menu keybind). */
     public ClickGuiScreen() {
@@ -226,7 +238,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
-    /** Draws a single setting row: checkbox for booleans, slider for numbers, value for enums, list UI otherwise. */
+    /** Draws a single setting row: checkbox for booleans, slider for numbers, value for enums, combo for keybinds, list UI otherwise. */
     private void renderSetting(GuiGraphicsExtractor graphics, SettingRowLayout settingRow, int top) {
         int left = panelX + PADDING + 8;
         int right = panelX + panelWidth - PADDING - 8;
@@ -252,6 +264,16 @@ public final class ClickGuiScreen extends ZephyrScreen {
             String value = enumSetting.getDisplayValue();
             int valueWidth = this.font.width(value);
             graphics.text(this.font, value, right - valueWidth, top + 6, accent(), false);
+        } else if (settingRow.setting instanceof KeybindSetting keybindSetting) {
+            graphics.text(this.font, settingRow.setting.getName(), left, top + 6, TEXT_DIM, false);
+
+            Keybind bind = keybindSetting.get() == null ? Keybind.NONE : keybindSetting.get();
+            boolean capturing = keybindSetting == capturingKeybind;
+            String value = capturing ? captureLabel() : bind.getLabel();
+            int valueWidth = this.font.width(value);
+            int valueColor = capturing ? accent()
+                    : (bind.conflicted() ? CONFLICT_RED : (bind.isSet() ? accent() : TEXT_DIM));
+            graphics.text(this.font, value, right - valueWidth, top + 6, valueColor, false);
         } else if (settingRow.setting instanceof ListSetting listSetting) {
             renderListSetting(graphics, listSetting, top, left, right);
         }
@@ -330,6 +352,19 @@ public final class ClickGuiScreen extends ZephyrScreen {
         double mouseX = event.x();
         double mouseY = event.y();
         int button = event.button();
+
+        // While recording a keybind combo, clicks only switch to another keybind
+        // row; everything else is swallowed so no module gets toggled mid-capture.
+        if (capturingKeybind != null) {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
+                KeybindSetting target = findKeybindRowAt(mouseX, mouseY);
+                if (target != null) {
+                    startKeybindCapture(target);
+                }
+            }
+            return true;
+        }
+
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             int buttonTop = panelY + TITLE_HEIGHT;
             int buttonBottom = buttonTop + TAB_HEIGHT - 2;
@@ -408,6 +443,8 @@ public final class ClickGuiScreen extends ZephyrScreen {
             updateSliderFromMouse(numberSetting, mouseX);
         } else if (settingRow.setting instanceof EnumSetting<?> enumSetting) {
             enumSetting.cycle();
+        } else if (settingRow.setting instanceof KeybindSetting keybindSetting) {
+            startKeybindCapture(keybindSetting);
         } else if (settingRow.setting instanceof ListSetting listSetting) {
             handleListSettingClick(listSetting, mouseX, mouseY, settingTop);
         }
@@ -503,14 +540,109 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Whether a keybind combo is currently being recorded (used by {@link KeybindManager} to suppress input). */
+    public boolean isCapturingKeybind() {
+        return capturingKeybind != null;
+    }
+
+    /** Enters combo-recording mode for the given keybind setting. */
+    private void startKeybindCapture(KeybindSetting setting) {
+        clearListEditing();
+        draggingSetting = null;
+        capturingKeybind = setting;
+        captureBuffer.clear();
+        currentlyHeld.clear();
+    }
+
+    /** Exits combo-recording mode without saving, discarding the buffer. */
+    private void cancelKeybindCapture() {
+        capturingKeybind = null;
+        captureBuffer.clear();
+        currentlyHeld.clear();
+    }
+
+    /** Assigns the recorded combo to its setting and exits recording mode. */
+    private void commitKeybindCapture() {
+        if (capturingKeybind != null) {
+            capturingKeybind.set(Keybind.of(new ArrayList<>(captureBuffer)));
+        }
+        cancelKeybindCapture();
+    }
+
+    /** The combo text shown while recording: "Press keys..." or the keys held so far. */
+    private String captureLabel() {
+        if (captureBuffer.isEmpty()) return "Press keys...";
+        StringBuilder builder = new StringBuilder();
+        for (int key : captureBuffer) {
+            if (!builder.isEmpty()) builder.append(" + ");
+            builder.append(GlfwKeyNames.label(key));
+        }
+        return builder.toString();
+    }
+
+    /** Finds the expanded keybind setting row under the mouse, if any. */
+    private KeybindSetting findKeybindRowAt(double mouseX, double mouseY) {
+        if (mouseX < panelX + PADDING || mouseX > panelX + panelWidth - PADDING) return null;
+        int listTop = panelY + headerHeight();
+        List<RowLayout> layout = computeLayout(listTop);
+        int scroll = (int) scrollOffset;
+        for (RowLayout row : layout) {
+            if (!row.expanded) continue;
+            int top = row.top - scroll;
+            int settingTop = top + ROW_HEIGHT + 2;
+            for (SettingRowLayout settingRow : row.settingRows) {
+                if (mouseY >= settingTop && mouseY < settingTop + settingRow.height()
+                        && settingRow.setting() instanceof KeybindSetting keybindSetting) {
+                    return keybindSetting;
+                }
+                settingTop += settingRow.height();
+            }
+        }
+        return null;
+    }
+
     /** Enter/confirm commits the in-progress list entry instead of toggling focus. */
     @Override
     public boolean keyPressed(KeyEvent event) {
+        if (capturingKeybind != null) {
+            int key = event.key();
+            if (key == InputConstants.KEY_ESCAPE) {
+                cancelKeybindCapture();
+                return true;
+            }
+            currentlyHeld.add(key);
+            if (captureBuffer.size() < Keybind.MAX_KEYS) {
+                captureBuffer.add(key);
+            }
+            return true;
+        }
         if (event.isConfirmation() && listEditing != null) {
             commitNewEntry();
             return true;
         }
         return super.keyPressed(event);
+    }
+
+    /** While recording, swallows character input so it never reaches the focused search box. */
+    @Override
+    public boolean charTyped(CharacterEvent event) {
+        if (capturingKeybind != null) {
+            return true;
+        }
+        return super.charTyped(event);
+    }
+
+    /** While recording, commits the combo once every recorded key has been released. */
+    @Override
+    public boolean keyReleased(KeyEvent event) {
+        if (capturingKeybind != null) {
+            currentlyHeld.remove(event.key());
+            if (currentlyHeld.isEmpty() && !captureBuffer.isEmpty()) {
+                commitKeybindCapture();
+            }
+            return true;
+        }
+        return super.keyReleased(event);
     }
 
     /** While dragging with the left button held, moves the active number slider with the mouse. */

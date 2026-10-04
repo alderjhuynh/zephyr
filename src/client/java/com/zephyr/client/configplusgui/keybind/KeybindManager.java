@@ -14,6 +14,8 @@ import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.configplusgui.screen.ClickGuiScreen;
 import com.zephyr.client.configplusgui.screen.KeybindGuiScreen;
 import com.zephyr.client.configplusgui.screen.ZephyrScreen;
+import com.zephyr.client.configplusgui.setting.KeybindSetting;
+import com.zephyr.client.configplusgui.setting.Setting;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
@@ -144,16 +146,14 @@ public final class KeybindManager {
      */
     public static void tick(Minecraft client) {
         Screen screen = client.gui.screen();
-        boolean typing = screen != null && screen.getFocused() instanceof EditBox;
-        boolean capturingBind = screen instanceof KeybindGuiScreen keybindGuiScreen && keybindGuiScreen.isCapturing();
-        boolean suppressed = typing || capturingBind;
+        boolean suppressed = isInputSuppressed(client);
 
         if (!suppressed) {
             tickOpenMenu(client, screen);
             tickStealthMode(client);
         }
 
-        if (screen instanceof ZephyrScreen zephyrScreen && !capturingBind) {
+        if (screen instanceof ZephyrScreen zephyrScreen && !isCapturingBind(screen)) {
             tickCycleScreen(client, zephyrScreen);
         } else {
             SYSTEM_WAS_DOWN.put(SystemAction.CYCLE_SCREEN, false);
@@ -162,6 +162,45 @@ public final class KeybindManager {
         if (screen == null) {
             tickModuleBinds(client);
         }
+
+        refreshSettingBinds();
+    }
+
+    /**
+     * Whether keybind input should be ignored this frame: the player is typing in a
+     * text field, or a bind is being captured in either the keybinds screen or an
+     * expanded module's settings in the click-gui. Polled by
+     * {@link KeybindSetting#isDown()} / {@link KeybindSetting#consumeClick()} so
+     * per-action binds never fire from chat text or while rebinding.
+     */
+    public static boolean isInputSuppressed(Minecraft client) {
+        Screen screen = client.gui.screen();
+        if (screen == null) return false;
+        if (screen.getFocused() instanceof EditBox) return true;
+        return isCapturingBind(screen);
+    }
+
+    /** Whether a bind capture is in progress on the given open screen. */
+    private static boolean isCapturingBind(Screen screen) {
+        if (screen instanceof KeybindGuiScreen keybindGuiScreen && keybindGuiScreen.isCapturing()) return true;
+        return screen instanceof ClickGuiScreen clickGuiScreen && clickGuiScreen.isCapturingKeybind();
+    }
+
+    /**
+     * Housekeeping for per-action {@link KeybindSetting}s, run every tick: re-syncs the
+     * press edge of disabled modules so enabling one mid-press never fires, and
+     * refreshes conflict flags across module toggles, system actions and settings.
+     */
+    private static void refreshSettingBinds() {
+        for (Module module : ModuleManager.getModules()) {
+            if (module.isEnabled()) continue;
+            for (Setting<?> setting : module.getSettings()) {
+                if (setting instanceof KeybindSetting keybindSetting) {
+                    keybindSetting.resetEdge();
+                }
+            }
+        }
+        recomputeConflicts();
     }
 
     /** On the press edge, opens the {@link ClickGuiScreen} or closes the current Zephyr screen. */
@@ -242,6 +281,16 @@ public final class KeybindManager {
         List<Keybind> all = new ArrayList<>(MODULE_BINDS.values());
         for (SystemAction action : SystemAction.values()) {
             all.add(get(action));
+        }
+        for (Module module : ModuleManager.getModules()) {
+            for (Setting<?> setting : module.getSettings()) {
+                if (setting instanceof KeybindSetting keybindSetting) {
+                    Keybind bind = keybindSetting.get();
+                    if (bind != null && bind.isSet()) {
+                        all.add(bind);
+                    }
+                }
+            }
         }
 
         for (Keybind bind : all) {
@@ -349,20 +398,11 @@ public final class KeybindManager {
 
     /** Deserializes a bind from a JSON array of key codes, padding with {@link Keybind#UNSET}. */
     private static Keybind readKeybind(JsonArray array) {
-        int[] keys = new int[Keybind.MAX_KEYS];
-        java.util.Arrays.fill(keys, Keybind.UNSET);
-        for (int i = 0; i < Math.min(Keybind.MAX_KEYS, array.size()); i++) {
-            keys[i] = array.get(i).getAsInt();
-        }
-        return new Keybind(keys);
+        return Keybind.fromJsonArray(array);
     }
 
     /** Serializes a bind into a JSON array of its key codes in slot order. */
     private static JsonArray writeKeybind(Keybind bind) {
-        JsonArray array = new JsonArray();
-        for (int key : bind.keys()) {
-            array.add(key);
-        }
-        return array;
+        return bind.toJsonArray();
     }
 }

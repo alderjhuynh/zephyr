@@ -8,8 +8,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.zephyr.Zephyr;
 import com.zephyr.client.configplusgui.module.Module;
+import com.zephyr.client.configplusgui.keybind.Keybind;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
+import com.zephyr.client.configplusgui.setting.KeybindSetting;
 import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.configplusgui.setting.Setting;
@@ -149,6 +151,8 @@ public final class ConfigManager {
             stringSetting.set(element.getAsString());
         } else if (setting instanceof ListSetting listSetting) {
             applyListValue(listSetting, element.getAsJsonArray());
+        } else if (setting instanceof KeybindSetting keybindSetting) {
+            keybindSetting.set(Keybind.fromJsonArray(element.getAsJsonArray()));
         }
     }
 
@@ -196,6 +200,10 @@ public final class ConfigManager {
                 array.add(object);
             }
             settingsJson.add(setting.getName(), array);
+        } else if (setting instanceof KeybindSetting keybindSetting) {
+            Keybind bind = keybindSetting.get();
+            settingsJson.add(setting.getName(),
+                    bind == null ? Keybind.NONE.toJsonArray() : bind.toJsonArray());
         }
     }
 }

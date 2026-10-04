@@ -3,7 +3,7 @@ package com.zephyr.client.configplusgui.setting;
 /**
  * Base class for a typed, named configuration value owned by a {@link Module}. Concrete
  * subtypes ({@link BooleanSetting}, {@link NumberSetting}, {@link EnumSetting},
- * {@link StringSetting}, {@link ListSetting}) are exposed via
+ * {@link StringSetting}, {@link ListSetting}, {@link KeybindSetting}) are exposed via
  * {@link Module#getSettings()} so the click-gui can render type-appropriate controls, and
  * are (de)serialized by {@link com.zephyr.client.configplusgui.config.ConfigManager}.
  */
