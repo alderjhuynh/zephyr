@@ -1,11 +1,15 @@
 package com.zephyr.client.configplusgui.screen;
 
 import com.zephyr.client.configplusgui.config.GlobalConfig;
+import com.zephyr.client.configplusgui.hud.NotificationManager;
 import com.zephyr.client.configplusgui.hud.PartyManager;
+import com.zephyr.client.configplusgui.module.HiddenModules;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Shared chrome for every Zephyr menu screen (module list, keybinds, profiles, config):
@@ -70,6 +74,15 @@ public abstract class ZephyrScreen extends Screen {
     private final int enterDirection;
     private final boolean slideVertically;
     private final long openedAtNanos = System.nanoTime();
+
+    /** Recent menu visits, used for the hidden TestMode unlock sequence. */
+    private static final List<Nav> MENU_HISTORY = new ArrayList<>();
+    /** Full-loop easter egg: MAIN > CONFIG > PROFILES > KEYBIND > ??? > CREDITS > MAIN. */
+    private static final List<Nav> TESTMODE_UNLOCK_SEQUENCE = List.of(
+            Nav.MAIN, Nav.CONFIG, Nav.PROFILES, Nav.KEYBIND, Nav.SECRET, Nav.CREDITS, Nav.MAIN);
+    /** Resets the history if the player pauses too long mid-sequence. */
+    private static final long SEQUENCE_TIMEOUT_NANOS = 15_000_000_000L;
+    private static long lastNavAtNanos = 0;
 
     protected enum Nav {
         MAIN {
@@ -225,7 +238,44 @@ public abstract class ZephyrScreen extends Screen {
     @Override
     protected final void init() {
         calculateLayout();
+        recordNavVisit();
         initWidgets();
+    }
+
+    /**
+     * Records this screen's {@link Nav} for the hidden TestMode unlock sequence
+     * (MAIN &gt; CONFIG &gt; PROFILES &gt; KEYBIND &gt; ??? &gt; CREDITS &gt; MAIN).
+     * Re-inits from a window resize are ignored so they don't break the chain.
+     */
+    private void recordNavVisit() {
+        Nav current = currentNav();
+        long now = System.nanoTime();
+        if (now - lastNavAtNanos > SEQUENCE_TIMEOUT_NANOS) {
+            MENU_HISTORY.clear();
+        }
+        lastNavAtNanos = now;
+        if (!MENU_HISTORY.isEmpty() && MENU_HISTORY.get(MENU_HISTORY.size() - 1) == current) {
+            return;
+        }
+        MENU_HISTORY.add(current);
+        if (MENU_HISTORY.size() > TESTMODE_UNLOCK_SEQUENCE.size()) {
+            MENU_HISTORY.remove(0);
+        }
+        checkTestModeUnlock();
+    }
+
+    /** Enables TestMode (persisted) when the full-loop sequence was just entered. */
+    private static void checkTestModeUnlock() {
+        if (!MENU_HISTORY.equals(TESTMODE_UNLOCK_SEQUENCE)) {
+            return;
+        }
+        MENU_HISTORY.clear();
+        if (HiddenModules.shouldShowHidden()) {
+            return;
+        }
+        GlobalConfig.setTestMode(true);
+        HiddenModules.TestMode = true;
+        NotificationManager.notifyText("TestMode unlocked", accent());
     }
 
     /** Hook for subclasses to create their widgets after the panel layout is computed. */
