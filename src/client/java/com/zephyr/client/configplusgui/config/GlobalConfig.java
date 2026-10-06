@@ -61,6 +61,7 @@ public final class GlobalConfig {
     public static final BooleanSetting keybindConflictWarnings = new BooleanSetting("Keybind Conflict Warnings", true);
     public static final BooleanSetting discordPresence = new BooleanSetting("Discord Presence", true);
     public static final BooleanSetting stealthMode = new BooleanSetting("Stealth Mode", false);
+    public static final BooleanSetting hideDetectableModules = new BooleanSetting("Hide Detectable Modules", false);
     public static final BooleanSetting TestMode = new BooleanSetting("TestMode", false);
 
     private GlobalConfig() {
@@ -249,6 +250,26 @@ public final class GlobalConfig {
         StealthManager.setActive(!stealthMode.get());
     }
 
+    /** Whether Grim-detectable modules are currently force-disabled and hidden from UI lists. */
+    public static boolean hideDetectableModules() {
+        return hideDetectableModules.get();
+    }
+
+    /**
+     * Enables/disables Hide Detectable Modules. The snapshot/restore of every
+     * Grim-detectable module's state is owned by {@link GrimHidingManager}; this
+     * setter is the single entry point both the config screen and commands use,
+     * and it saves on change like every other setting.
+     */
+    public static void setHideDetectableModules(boolean active) {
+        GrimHidingManager.setActive(active);
+    }
+
+    /** Flips Hide Detectable Modules on/off via {@link GrimHidingManager}. */
+    public static void toggleHideDetectableModules() {
+        GrimHidingManager.setActive(!hideDetectableModules.get());
+    }
+
     /** Whether hidden modules are forcibly shown (e.g. for testing). */
     public static boolean isTestMode() {
         return TestMode.get();
@@ -361,6 +382,9 @@ public final class GlobalConfig {
             if (stealthMode.get()) {
                 stealthMode.set(false);
             }
+            if (json.has("hideDetectableModules")) {
+                hideDetectableModules.set(json.get("hideDetectableModules").getAsBoolean());
+            }
             if (json.has("TestMode")) {
                 TestMode.set(json.get("TestMode").getAsBoolean());
             }
@@ -412,6 +436,7 @@ public final class GlobalConfig {
         root.addProperty("keybindConflictWarnings", keybindConflictWarnings.get());
         root.addProperty("discordPresence", discordPresence.get());
         root.addProperty("stealthMode", stealthMode.get());
+        root.addProperty("hideDetectableModules", hideDetectableModules.get());
         root.addProperty("TestMode", TestMode.get());
 
         try {

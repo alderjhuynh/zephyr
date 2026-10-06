@@ -17,27 +17,41 @@ public abstract class Module {
     private final String description;
     private final Category category;
     private final boolean hidden;
+    private final boolean grimDetectable;
     private final List<Setting<?>> settings = new ArrayList<>();
 
     private boolean enabled;
 
     /** Creates a module that starts disabled. */
     protected Module(String name, String description, Category category) {
-        this(name, description, category, false, false);
+        this(name, description, category, false, false, false);
     }
 
     /** Creates a module with an explicit initial enabled state (e.g. for always-on features). */
     protected Module(String name, String description, Category category, boolean enabledByDefault) {
-        this(name, description, category, enabledByDefault, false);
+        this(name, description, category, enabledByDefault, false, false);
     }
 
     /** Creates a module with hidden flag (hidden modules only shown when {@link HiddenModules#shouldShowHidden()} is true). */
     protected Module(String name, String description, Category category, boolean enabledByDefault, boolean hidden) {
+        this(name, description, category, enabledByDefault, hidden, false);
+    }
+
+    /**
+     * Creates a module with both hidden and Grim-detectable flags.
+     * Grim-detectable modules are force-disabled and filtered from UI lists while
+     * {@code Hide Detectable Modules} is active (see GrimHidingManager). Unlike
+     * {@link #hidden} modules (permanent, UUID-gated, listed on the secret screen),
+     * Grim-hiding is a reversible global panic-style toggle that snapshots and
+     * restores state so profiles are never overwritten.
+     */
+    protected Module(String name, String description, Category category, boolean enabledByDefault, boolean hidden, boolean grimDetectable) {
         this.name = name;
         this.description = description;
         this.category = category;
         this.enabled = enabledByDefault;
         this.hidden = hidden;
+        this.grimDetectable = grimDetectable;
     }
 
     /**
@@ -66,6 +80,16 @@ public abstract class Module {
     /** Whether this module is hidden and only shown when {@link HiddenModules#shouldShowHidden()} is true. */
     public final boolean isHidden() {
         return hidden;
+    }
+
+    /**
+     * Whether Grim anticheat can detect this module's behavior (movement prediction,
+     * combat/aim/rotation, scaffolding, elytra, velocity, badpackets, etc.).
+     * While {@code Hide Detectable Modules} is active these modules are
+     * force-disabled and filtered from UI lists (see GrimHidingManager).
+     */
+    public final boolean isGrimDetectable() {
+        return grimDetectable;
     }
 
     /** The module's exposed settings, read-only; populated via {@link #addSetting}. */

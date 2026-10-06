@@ -12,6 +12,6 @@ public final class Blink extends Module {
     public static final Blink INSTANCE = new Blink();
 
     private Blink() {
-        super("Blink", "Suppresses your position packets while enabled", Category.MOVEMENT);
+        super("Blink", "Suppresses your position packets while enabled", Category.MOVEMENT, false, false, true);
     }
 }

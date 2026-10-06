@@ -14,7 +14,7 @@ import net.minecraft.client.player.LocalPlayer;
 public final class AirJump extends Module {
     public static final AirJump INSTANCE = new AirJump();
     private AirJump() {
-        super("AirJump", "Allows jumping in the air", Category.MOVEMENT);
+        super("AirJump", "Allows jumping in the air", Category.MOVEMENT, false, false, true);
     }
 
     private static boolean wasJumpPressed = false;

@@ -16,7 +16,7 @@ import net.minecraft.world.phys.Vec3;
 public final class ShieldBreaker extends Module {
     public static final ShieldBreaker INSTANCE = new ShieldBreaker();
     private ShieldBreaker() {
-        super("Shieldbreaker", "Automatically breaks shields", Category.COMBAT);
+        super("Shieldbreaker", "Automatically breaks shields", Category.COMBAT, false, false, true);
     }
 
     /**

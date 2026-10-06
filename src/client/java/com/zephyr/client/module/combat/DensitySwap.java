@@ -29,7 +29,7 @@ public final class DensitySwap extends Module {
     public final NumberSetting jitter = new NumberSetting("Jitter", 0.0, 0.0, 6.0, 1.0);
 
     private DensitySwap() {
-        super("Density Swap", "Enables Density Swapping over a certain fall distance", Category.COMBAT);
+        super("Density Swap", "Enables Density Swapping over a certain fall distance", Category.COMBAT, false, false, true);
         addSetting(minFall);
         addSetting(legit);
         addSetting(delay);

@@ -16,7 +16,7 @@ public final class HitAssist extends Module {
     public final NumberSetting angle = new NumberSetting("Angle", 30D, 0D, 90D, 1D);
 
     private HitAssist() {
-        super("Hit Assist", "Sends the attack packet anyway when you miss, if you were looking close enough to an entity", Category.COMBAT);
+        super("Hit Assist", "Sends the attack packet anyway when you miss, if you were looking close enough to an entity", Category.COMBAT, false, false, true);
         addSetting(angle);
     }
 }

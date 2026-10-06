@@ -32,7 +32,7 @@ public final class CrystalHelper extends Module {
     public static final CrystalHelper INSTANCE = new CrystalHelper();
 
     private CrystalHelper() {
-        super("CrystalHelper", "While holding right click on obsidian, crying obsidian or bedrock, continually places and attacks end crystals", Category.COMBAT);
+        super("CrystalHelper", "While holding right click on obsidian, crying obsidian or bedrock, continually places and attacks end crystals", Category.COMBAT, false, false, true);
         addSetting(place);
         addSetting(attack);
         addSetting(actionDelay);

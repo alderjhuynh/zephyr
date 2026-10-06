@@ -20,7 +20,7 @@ public final class Reach extends Module {
     public final NumberSetting entityReach = new NumberSetting("Entity Reach", 1D, 0D, 4.0D, 1D);
 
     private Reach() {
-        super("Reach", "Increases reach distance", Category.COMBAT);
+        super("Reach", "Increases reach distance", Category.COMBAT, false, false, true);
         addSetting(blockReach);
         addSetting(entityReach);
     }

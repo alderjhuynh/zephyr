@@ -15,7 +15,7 @@ public final class IceSpeed extends Module {
     private final NumberSetting friction = new NumberSetting("Friction", 0.6D, 0.1D, 1.0D, 0.1D);
 
     private IceSpeed() {
-        super("Ice Speed", "Stops you from sliding uncontrollably on ice", Category.MOVEMENT);
+        super("Ice Speed", "Stops you from sliding uncontrollably on ice", Category.MOVEMENT, false, false, true);
         addSetting(friction);
     }
 

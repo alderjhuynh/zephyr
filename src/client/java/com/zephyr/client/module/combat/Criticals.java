@@ -17,7 +17,7 @@ public final class Criticals extends Module {
     /** Extra fall height (in blocks) spoofed to the server before each attack. */
     NumberSetting FallDist = new NumberSetting("Fall Distance", 2D, 0.00D, 4.0D, 0.1D);
     private Criticals() {
-        super("Criticals", "Creates falling packets to enable crits and mace slams", Category.COMBAT);
+        super("Criticals", "Creates falling packets to enable crits and mace slams", Category.COMBAT, false, false, true);
         addSetting(FallDist);
     }
 

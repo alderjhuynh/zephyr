@@ -26,12 +26,12 @@ public final class ConfigCommand extends Command {
         if (args.length == 2 && (args[0].equalsIgnoreCase("get") || args[0].equalsIgnoreCase("set"))) {
             return List.of("hotkeyPopups", "useCustomColor", "customHue", "customSaturation", "customValue",
                     "menuAnimationSpeed", "notificationCorner", "notificationLifetime", "hudMode", "autosaveInterval",
-                    "keybindConflictWarnings", "discordPresence", "stealthMode", "themeColor", "TestMode");
+                    "keybindConflictWarnings", "discordPresence", "stealthMode", "hideDetectableModules", "themeColor", "TestMode");
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("set")) {
             String key = args[1].toLowerCase(Locale.ROOT);
             return switch (key) {
-                case "hotkeypopups", "usecustomcolor", "keybindconflictwarnings", "discordpresence", "stealthmode", "testmode" -> List.of("true", "false");
+                case "hotkeypopups", "usecustomcolor", "keybindconflictwarnings", "discordpresence", "stealthmode", "hidedetectablemodules", "testmode" -> List.of("true", "false");
                 case "hudmode" -> List.of("OFF", "LEGACY", "MODERN");
                 case "notificationcorner" -> List.of("TOP_LEFT", "TOP_RIGHT", "BOTTOM_LEFT", "BOTTOM_RIGHT");
                 case "themecolor" -> {
@@ -84,6 +84,7 @@ public final class ConfigCommand extends Command {
                 + ", autosaveInterval=" + GlobalConfig.autosaveInterval.get()
                 + ", discordPresence=" + GlobalConfig.discordPresence.get()
                 + ", stealthMode=" + GlobalConfig.stealthMode.get()
+                + ", hideDetectableModules=" + GlobalConfig.hideDetectableModules.get()
                 + ", TestMode=" + GlobalConfig.TestMode.get());
     }
 
@@ -103,6 +104,7 @@ public final class ConfigCommand extends Command {
             case "keybindconflictwarnings" -> String.valueOf(GlobalConfig.keybindConflictWarnings.get());
             case "discordpresence" -> String.valueOf(GlobalConfig.discordPresence.get());
             case "stealthmode" -> String.valueOf(GlobalConfig.stealthMode.get());
+            case "hidedetectablemodules" -> String.valueOf(GlobalConfig.hideDetectableModules.get());
             case "testmode" -> String.valueOf(GlobalConfig.TestMode.get());
             case "themecolor" -> String.valueOf(GlobalConfig.themeColor());
             default -> null;
@@ -128,6 +130,7 @@ public final class ConfigCommand extends Command {
                 case "keybindconflictwarnings" -> GlobalConfig.setKeybindConflictWarningsEnabled(parseBool(value));
                 case "discordpresence" -> GlobalConfig.setDiscordPresence(parseBool(value));
                 case "stealthmode" -> GlobalConfig.setStealthMode(parseBool(value));
+                case "hidedetectablemodules" -> GlobalConfig.setHideDetectableModules(parseBool(value));
                 case "testmode" -> GlobalConfig.setTestMode(parseBool(value));
                 case "themecolor" -> GlobalConfig.setThemeColor(ThemeColor.valueOf(value.toUpperCase(Locale.ROOT)));
                 default -> { CommandManager.sendMessage("Unknown config key: " + key); return; }

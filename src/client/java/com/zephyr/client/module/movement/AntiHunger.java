@@ -23,7 +23,7 @@ public final class AntiHunger extends Module {
     private static boolean ignoreNextMovePacket;
 
     private AntiHunger() {
-        super("Anti Hunger", "Avoids unnecessary sprint packets", Category.MOVEMENT);
+        super("Anti Hunger", "Avoids unnecessary sprint packets", Category.MOVEMENT, false, false, true);
     }
 
     /**

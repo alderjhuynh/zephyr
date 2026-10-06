@@ -11,5 +11,5 @@ import com.zephyr.client.configplusgui.module.Module;
  */
 public final class disableBlockBreakingCooldown extends Module {
     public static final disableBlockBreakingCooldown INSTANCE = new disableBlockBreakingCooldown();
-    private disableBlockBreakingCooldown() { super("Disable Block Cooldown", "Removes block breaking cooldown", Category.DISABLE); }
+    private disableBlockBreakingCooldown() { super("Disable Block Cooldown", "Removes block breaking cooldown", Category.DISABLE, false, false, true); }
 }

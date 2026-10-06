@@ -51,7 +51,7 @@ public final class InstaCart extends Module {
     private final Set<Integer> cartPending = new HashSet<>();
 
     private InstaCart() {
-        super("InstaCart", "Automatically places a rail and TNT minecart to catch your own flaming arrows", Category.COMBAT);
+        super("InstaCart", "Automatically places a rail and TNT minecart to catch your own flaming arrows", Category.COMBAT, false, false, true);
         addSetting(legit);
         addSetting(placementDelay);
     }

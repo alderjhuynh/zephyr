@@ -15,7 +15,7 @@ public final class PearlCatch extends Module {
 
     public static final PearlCatch INSTANCE = new PearlCatch();
     private PearlCatch() {
-        super("Pearl Catch","Catches a thrown Ender Pearl with a Wind Charge.", Category.COMBAT);
+        super("Pearl Catch","Catches a thrown Ender Pearl with a Wind Charge.", Category.COMBAT, false, false, true);
         addSetting(legit);
         addSetting(delay);
     }

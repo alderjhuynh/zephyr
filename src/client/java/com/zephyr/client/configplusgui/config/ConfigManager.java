@@ -116,11 +116,26 @@ public final class ConfigManager {
         }
     }
 
-    /** Snapshots every module's enabled state and setting values into a {@code {moduleName: {enabled, settings}}} object. */
+    /**
+     * Snapshots every module's enabled state and setting values into a
+     * {@code {moduleName: {enabled, settings}}} object. While
+     * {@link GrimHidingManager} is active, Grim-detectable modules are persisted
+     * from the pre-hide snapshot instead of their forced-disabled live state, so
+     * autosaves and profile captures never overwrite anarchy profiles with the
+     * temporary QoL-safe state.
+     */
     static JsonObject writeModuleStates(List<Module> modules) {
         JsonObject root = new JsonObject();
+        JsonObject grimSnapshot = GrimHidingManager.snapshotOrNull();
+        boolean grimActive = GlobalConfig.hideDetectableModules.get() && grimSnapshot != null;
 
         for (Module module : modules) {
+            // While hiding, persist the snapshot's pre-hide entry for detectables.
+            if (grimActive && module.isGrimDetectable() && grimSnapshot.has(module.getName())) {
+                root.add(module.getName(), grimSnapshot.getAsJsonObject(module.getName()).deepCopy());
+                continue;
+            }
+
             JsonObject data = new JsonObject();
             data.addProperty("enabled", module.isEnabled());
 

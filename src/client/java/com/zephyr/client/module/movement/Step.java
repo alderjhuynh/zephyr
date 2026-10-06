@@ -20,7 +20,7 @@ public final class Step extends Module {
     private Double previousHeight;
 
     private Step() {
-        super("Step", "Raises the step height", Category.MOVEMENT);
+        super("Step", "Raises the step height", Category.MOVEMENT, false, false, true);
         addSetting(height);
     }
 

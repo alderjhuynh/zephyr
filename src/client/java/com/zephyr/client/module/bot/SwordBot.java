@@ -42,7 +42,7 @@ public final class SwordBot extends Module {
     private final NumberSetting autoTargetRange = new NumberSetting("Auto Target Range", 100.0, 4.0, 256.0, 1.0);
 
     private SwordBot() {
-        super("SwordBot", "Client-side PvP combat bot (swordbot-v3 port)", Category.BOT);
+        super("SwordBot", "Client-side PvP combat bot (swordbot-v3 port)", Category.BOT, false, false, true);
         addSetting(skill);
         addSetting(style);
         addSetting(allowBow);

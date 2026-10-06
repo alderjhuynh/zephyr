@@ -23,7 +23,7 @@ public final class FastUse extends Module {
 
     public static final FastUse INSTANCE = new FastUse();
     private FastUse() {
-        super("Fast Use", "Simulates use actions multiple times per tick", Category.QOL);
+        super("Fast Use", "Simulates use actions multiple times per tick", Category.QOL, false, false, true);
     }
 
     private final NumberSetting TimesPerTick =

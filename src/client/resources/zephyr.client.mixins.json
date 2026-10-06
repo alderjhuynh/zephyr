@@ -14,6 +14,7 @@
 		"disable.BlockBreakingCooldown.BlockBreakingCooldownMixin",
 		"disable.BlockBreakingParticles.BlockParticleMixin",
 		"disable.ExplosionParticles.ExplosionParticleMixin",
+		"disable.Particles.ParticlesMixin",
 		"disable.BlockOutline.LevelRendererMixin",
 		"disable.Bossbar.HudMixin",
 		"disable.DeadMobRendering.DeadMobRenderingMixin",

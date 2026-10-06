@@ -23,7 +23,7 @@ public final class TridentBoost extends Module {
     private static final float UPWARD_BOOST = 1.2F;
 
     private TridentBoost() {
-        super("Trident Boost", "Enables dry riptide boosts", Category.MOVEMENT);
+        super("Trident Boost", "Enables dry riptide boosts", Category.MOVEMENT, false, false, true);
     }
 
     /**

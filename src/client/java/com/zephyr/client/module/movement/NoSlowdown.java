@@ -16,6 +16,6 @@ public final class NoSlowdown extends Module {
 
     private NoSlowdown() {
         super("No Slowdown", "Cancels the movement speed reduction from using items, walking in webs, or pushing through water",
-                Category.MOVEMENT);
+                Category.MOVEMENT, false, false, true);
     }
 }

@@ -66,7 +66,7 @@ public final class Pathing extends Module {
     private BlockPos taskTarget;
 
     private Pathing() {
-        super("Pathing", "Walks to a set of coordinates using A* pathfinding", Category.BOT);
+        super("Pathing", "Walks to a set of coordinates using A* pathfinding", Category.BOT, false, false, true);
     }
 
     /**

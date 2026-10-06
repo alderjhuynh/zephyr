@@ -93,7 +93,10 @@ public final class ProfileManager {
     /**
      * Saves the current module state into the active profile, then applies the named
      * profile's snapshot to the live modules (firing onEnable/onDisable side effects)
-     * and switches the active profile.
+     * and switches the active profile. While Hide Detectable Modules is active,
+     * Grim-detectable entries are applied into the hiding snapshot instead of live
+     * (live stays force-disabled) so switching to an anarchy profile never leaks
+     * detectable behavior, and unhiding later restores the newly selected profile.
      *
      * @return true if the profile existed and was applied
      */
@@ -104,6 +107,9 @@ public final class ProfileManager {
 
         JsonObject snapshot = PROFILES.get(name);
         ConfigManager.applyModuleStates(snapshot, ModuleManager.getModules(), true);
+        if (GlobalConfig.hideDetectableModules.get()) {
+            GrimHidingManager.refreshSnapshotFromProfile(snapshot);
+        }
         activeProfile = name;
         save();
         return true;

@@ -1,6 +1,7 @@
 package com.zephyr.client.configplusgui.module;
 
 import com.zephyr.client.configplusgui.config.ConfigManager;
+import com.zephyr.client.configplusgui.config.GrimHidingManager;
 import com.zephyr.client.configplusgui.config.ProfileManager;
 import com.zephyr.client.module.bot.pathing.Pathing;
 import com.zephyr.client.module.bot.SwordBot;
@@ -74,6 +75,7 @@ public final class ModuleManager {
         register(disableTotemAnimation.INSTANCE);
         register(disableDamageTilt.INSTANCE);
         register(disableExplosionParticles.INSTANCE);
+        register(disableParticles.INSTANCE);
         // qol
         register(AppleSkin.INSTANCE);
         register(ArmorRenderer.INSTANCE);
@@ -138,6 +140,8 @@ public final class ModuleManager {
         register(WhatEvenIsThis.INSTANCE);
 
         ConfigManager.load(MODULES);
+        // If "Hide Detectable Modules" persisted as ON, snapshot loaded states and force-disable detectables.
+        GrimHidingManager.reapplyAfterLoad();
     }
 
     /** Adds a module to the registry; called from {@link #init()} in display order. */
@@ -150,21 +154,38 @@ public final class ModuleManager {
         return Collections.unmodifiableList(MODULES);
     }
 
-    /** Returns only the modules visible to the current player/mode (hidden modules filtered when not allowed). */
+    /**
+     * Returns only the modules visible to the current player/mode (hidden modules
+     * filtered when not allowed, Grim-detectable modules filtered while
+     * {@code Hide Detectable Modules} is active).
+     */
     public static List<Module> getVisibleModules() {
-        return HiddenModules.filterVisible(MODULES);
+        List<Module> visible = HiddenModules.filterVisible(MODULES);
+        if (!GrimHidingManager.isActive()) {
+            return visible;
+        }
+        List<Module> out = new ArrayList<>();
+        for (Module module : visible) {
+            if (!module.isGrimDetectable()) {
+                out.add(module);
+            }
+        }
+        return Collections.unmodifiableList(out);
     }
 
     /**
      * Returns the modules rendered in the main HUD. Hidden modules are never included here,
      * even when they are unlocked — they are listed on the secret screen instead.
+     * Grim-detectable modules are also excluded while {@code Hide Detectable Modules}
+     * is active (they are force-disabled, so this mostly matters for consistency).
      */
     public static List<Module> getHudModules() {
         List<Module> hud = new ArrayList<>();
+        boolean grimActive = GrimHidingManager.isActive();
         for (Module module : MODULES) {
-            if (!module.isHidden()) {
-                hud.add(module);
-            }
+            if (module.isHidden()) continue;
+            if (grimActive && module.isGrimDetectable()) continue;
+            hud.add(module);
         }
         return Collections.unmodifiableList(hud);
     }
@@ -206,12 +227,29 @@ public final class ModuleManager {
         return count;
     }
 
-    /** Forwards the client tick to every enabled module. */
-    public static void tick(Minecraft client) {
+    /** Returns every Grim-detectable module, regardless of the hiding toggle. */
+    public static List<Module> getGrimDetectableModules() {
+        List<Module> out = new ArrayList<>();
         for (Module module : MODULES) {
-            if (module.isEnabled()) {
-                module.tick(client);
+            if (module.isGrimDetectable()) {
+                out.add(module);
             }
+        }
+        return Collections.unmodifiableList(out);
+    }
+
+    /** Whether the given module is currently suppressed by Hide Detectable Modules. */
+    public static boolean isGrimHidden(Module module) {
+        return GrimHidingManager.isHidden(module);
+    }
+
+    /** Forwards the client tick to every enabled module (skipping Grim-suppressed ones as a safety net). */
+    public static void tick(Minecraft client) {
+        boolean grimActive = GrimHidingManager.isActive();
+        for (Module module : MODULES) {
+            if (!module.isEnabled()) continue;
+            if (grimActive && module.isGrimDetectable()) continue;
+            module.tick(client);
         }
     }
 

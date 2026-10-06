@@ -23,7 +23,7 @@ public final class LungeSwap extends Module {
     public final NumberSetting placementDelay = delay;
 
     private LungeSwap() {
-        super("Lunge Swap", "Automatically attempts a Lunge Swap when attacking without a target", Category.COMBAT);
+        super("Lunge Swap", "Automatically attempts a Lunge Swap when attacking without a target", Category.COMBAT, false, false, true);
         addSetting(legit);
         addSetting(delay);
     }

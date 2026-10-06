@@ -78,7 +78,7 @@ public final class XBowCart extends Module {
     private int sequenceSlot;
 
     private XBowCart() {
-        super("XBowCart", "Places a rail, TNT minecart, and fire to catch your own crossbow arrows", Category.COMBAT);
+        super("XBowCart", "Places a rail, TNT minecart, and fire to catch your own crossbow arrows", Category.COMBAT, false, false, true);
         addSetting(legit);
         addSetting(placementDelay);
         addSetting(jitter);

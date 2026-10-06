@@ -53,13 +53,15 @@ public final class KeybindManager {
 
     /**
      * Non-module actions that can be bound to a key: opening/closing the click-gui menu,
-     * cycling between Zephyr screens, toggling Stealth Mode and typing the command prefix.
+     * cycling between Zephyr screens, toggling Stealth Mode, toggling Hide Detectable
+     * Modules and typing the command prefix.
      * Each carries a human-readable label and a default bind.
      */
     public enum SystemAction {
         OPEN_MENU("Open Menu", new Keybind(InputConstants.KEY_L, InputConstants.KEY_RETURN, Keybind.UNSET)),
         CYCLE_SCREEN("Cycle Screen", new Keybind(InputConstants.KEY_TAB, Keybind.UNSET, Keybind.UNSET)),
         STEALTH_MODE("Stealth Mode", new Keybind(InputConstants.KEY_F6, Keybind.UNSET, Keybind.UNSET)),
+        HIDE_DETECTABLE("Hide Detectable", new Keybind(InputConstants.KEY_F7, Keybind.UNSET, Keybind.UNSET)),
         COMMAND_PREFIX("Command Prefix", new Keybind(InputConstants.KEY_PERIOD, Keybind.UNSET, Keybind.UNSET));
 
         public final String label;
@@ -151,6 +153,7 @@ public final class KeybindManager {
         if (!suppressed) {
             tickOpenMenu(client, screen);
             tickStealthMode(client);
+            tickHideDetectable(client);
         }
 
         if (screen instanceof ZephyrScreen zephyrScreen && !isCapturingBind(screen)) {
@@ -227,6 +230,17 @@ public final class KeybindManager {
             GlobalConfig.toggleStealthMode();
         }
         SYSTEM_WAS_DOWN.put(SystemAction.STEALTH_MODE, down);
+    }
+
+    /** On the press edge, toggles Hide Detectable Modules via {@link GlobalConfig#toggleHideDetectableModules()}. */
+    private static void tickHideDetectable(Minecraft client) {
+        boolean down = isDown(client, get(SystemAction.HIDE_DETECTABLE));
+        boolean wasDown = SYSTEM_WAS_DOWN.getOrDefault(SystemAction.HIDE_DETECTABLE, false);
+
+        if (down && !wasDown) {
+            GlobalConfig.toggleHideDetectableModules();
+        }
+        SYSTEM_WAS_DOWN.put(SystemAction.HIDE_DETECTABLE, down);
     }
 
     /** On the press edge, advances the current Zephyr screen; held arrows pick the target and direction. */

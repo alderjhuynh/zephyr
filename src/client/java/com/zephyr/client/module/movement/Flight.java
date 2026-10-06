@@ -14,7 +14,7 @@ public final class Flight extends Module {
     public static final Flight INSTANCE = new Flight();
 
     private Flight() {
-        super("Flight", "Enables client flight", Category.MOVEMENT);
+        super("Flight", "Enables client flight", Category.MOVEMENT, false, false, true);
     }
 
     /**

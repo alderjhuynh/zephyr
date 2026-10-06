@@ -20,7 +20,7 @@ public final class Aerodynamics extends Module {
             new NumberSetting("Acceleration", 0.04D, 0.00D, 2.0D, 0.01D);
 
     private Aerodynamics() {
-        super("Aerodynamics", "Boosts velocity while sprinting", Category.MOVEMENT);
+        super("Aerodynamics", "Boosts velocity while sprinting", Category.MOVEMENT, false, false, true);
         addSetting(acceleration);
     }
 

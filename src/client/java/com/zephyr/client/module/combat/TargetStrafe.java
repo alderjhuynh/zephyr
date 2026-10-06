@@ -27,7 +27,7 @@ public final class TargetStrafe extends Module {
     private final EnumSetting<OrbitDirection> direction = new EnumSetting<>("Orbit Direction", OrbitDirection.LEFT);
 
     private TargetStrafe() {
-        super("Target Strafe", "Orbits around a nearby target while you move", Category.COMBAT);
+        super("Target Strafe", "Orbits around a nearby target while you move", Category.COMBAT, false, false, true);
         addSetting(playersOnly);
         addSetting(onlyWhileAttacking);
         addSetting(direction);

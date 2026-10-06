@@ -23,7 +23,7 @@ public final class FastAttack extends Module {
 
     public static final FastAttack INSTANCE = new FastAttack();
     private FastAttack() {
-        super("Fast Attack", "Simulates attack actions multiple times per tick", Category.QOL);
+        super("Fast Attack", "Simulates attack actions multiple times per tick", Category.QOL, false, false, true);
     }
 
     private final NumberSetting TimesPerTick =

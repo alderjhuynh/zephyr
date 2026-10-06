@@ -13,7 +13,7 @@ import net.minecraft.client.Minecraft;
 public final class AutoPlace extends Module {
     public static final AutoPlace INSTANCE = new AutoPlace();
     private AutoPlace() {
-        super("Auto Place", "Automatically places a specified block on a hit entity", Category.COMBAT);
+        super("Auto Place", "Automatically places a specified block on a hit entity", Category.COMBAT, false, false, true);
         addSetting(mode);
     }
     private final EnumSetting<AutoPlace.Mode> mode = new EnumSetting<>("Mode", AutoPlace.Mode.WEB);

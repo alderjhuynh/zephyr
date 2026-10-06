@@ -174,6 +174,12 @@ public final class ZCommand extends Command {
             return;
         }
 
+        if (ModuleManager.isGrimHidden(module)
+                && (state.equalsIgnoreCase("on") || state.equalsIgnoreCase("toggle") && !module.isEnabled())) {
+            CommandManager.sendMessage(module.getName() + " is hidden by Hide Detectable Modules and cannot be enabled.");
+            return;
+        }
+
         switch (state.toLowerCase(Locale.ROOT)) {
             case "on" -> module.setEnabled(true);
             case "off" -> module.setEnabled(false);

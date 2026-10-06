@@ -24,7 +24,7 @@ public final class Jesus extends Module {
     private final BooleanSetting particles = new BooleanSetting("Particles", true);
 
     private Jesus() {
-        super("Jesus", "Lets you walk on water as if it were solid ground", Category.MOVEMENT);
+        super("Jesus", "Lets you walk on water as if it were solid ground", Category.MOVEMENT, false, false, true);
         addSetting(particles);
     }
 

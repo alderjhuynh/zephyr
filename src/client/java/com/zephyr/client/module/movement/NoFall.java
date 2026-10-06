@@ -15,7 +15,7 @@ public final class NoFall extends Module {
     public static final NoFall INSTANCE = new NoFall();
 
     private NoFall() {
-        super("No Fall", "Prevents fall damage packets", Category.MOVEMENT);
+        super("No Fall", "Prevents fall damage packets", Category.MOVEMENT, false, false, true);
     }
 
     /**

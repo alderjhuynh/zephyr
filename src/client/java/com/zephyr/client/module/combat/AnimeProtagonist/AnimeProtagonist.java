@@ -27,7 +27,7 @@ public final class AnimeProtagonist extends Module {
         DIRECT
     }
     private AnimeProtagonist() {
-        super("Anime Protagonist", "Attempts to teleport behind a hit entity", Category.COMBAT);
+        super("Anime Protagonist", "Attempts to teleport behind a hit entity", Category.COMBAT, false, false, true);
         addSetting(mode);
     }
 

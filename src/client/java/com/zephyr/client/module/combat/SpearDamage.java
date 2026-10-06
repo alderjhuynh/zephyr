@@ -27,7 +27,7 @@ public final class SpearDamage extends Module {
     private final NumberSetting blink = new NumberSetting("Blink", 9D, 1D, 9D, 1D);
 
     private SpearDamage() {
-        super("Spear Damage", "Spoofs speed for massive spear stabs without moving", Category.COMBAT);
+        super("Spear Damage", "Spoofs speed for massive spear stabs without moving", Category.COMBAT, false, false, true);
         addSetting(blink);
     }
 

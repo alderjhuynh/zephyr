@@ -29,7 +29,7 @@ public final class BreachSwap extends Module {
     public final NumberSetting jitter = new NumberSetting("Jitter", 0.0, 0.0, 6.0, 1.0);
 
     private BreachSwap() {
-        super("Breach Swap", "Enables Breach Swapping under a certain fall distance", Category.COMBAT);
+        super("Breach Swap", "Enables Breach Swapping under a certain fall distance", Category.COMBAT, false, false, true);
         addSetting(maxFall);
         addSetting(legit);
         addSetting(delay);

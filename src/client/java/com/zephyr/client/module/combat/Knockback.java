@@ -16,7 +16,7 @@ public final class Knockback extends Module {
     public final NumberSetting amount = new NumberSetting("Amount", 0.5D, 0D, 1D, 0.05D);
 
     private Knockback() {
-        super("Knockback", "Reduces the amount of knockback you take", Category.COMBAT);
+        super("Knockback", "Reduces the amount of knockback you take", Category.COMBAT, false, false, true);
         addSetting(amount);
     }
 }

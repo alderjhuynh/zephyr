@@ -17,7 +17,7 @@ public final class ElytraBoost extends Module {
     private final NumberSetting acceleration = new NumberSetting("Acceleration", 0.1D, 0.01D, 1.0D, 0.01D);
 
     private ElytraBoost() {
-        super("Elytra Boost", "Accelerates while gliding", Category.MOVEMENT);
+        super("Elytra Boost", "Accelerates while gliding", Category.MOVEMENT, false, false, true);
         addSetting(acceleration);
     }
 

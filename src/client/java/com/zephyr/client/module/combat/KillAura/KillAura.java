@@ -25,7 +25,7 @@ import net.minecraft.world.entity.player.Player;
 public final class KillAura extends Module {
     public static final KillAura INSTANCE = new KillAura();
     private KillAura() {
-        super("KillAura", "Automatically attacks for you", Category.COMBAT);
+        super("KillAura", "Automatically attacks for you", Category.COMBAT, false, false, true);
         addSetting(mode);
         addSetting(playersOnly);
         addSetting(distanceMult);

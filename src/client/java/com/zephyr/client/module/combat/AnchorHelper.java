@@ -73,7 +73,7 @@ public final class AnchorHelper extends Module {
     private int sequenceSlot;
 
     private AnchorHelper() {
-        super("AnchorHelper", "Places a respawn anchor, charges it with glowstone, shields with glowstone, and detonates to catch your own crossbow arrows", Category.COMBAT);
+        super("AnchorHelper", "Places a respawn anchor, charges it with glowstone, shields with glowstone, and detonates to catch your own crossbow arrows", Category.COMBAT, false, false, true);
         addSetting(legit);
         addSetting(placementDelay);
         addSetting(jitter);

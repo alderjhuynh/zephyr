@@ -54,7 +54,7 @@ public final class FreeCam extends Module {
     private CameraType rememberedF5;
 
     private FreeCam() {
-        super("FreeCam", "Detaches the camera to fly freely while your player stays in place", Category.QOL);
+        super("FreeCam", "Detaches the camera to fly freely while your player stays in place", Category.QOL, false, false, true);
         addSetting(flightMode);
         addSetting(horizontalSpeed);
         addSetting(verticalSpeed);

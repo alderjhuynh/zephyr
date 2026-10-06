@@ -29,7 +29,7 @@ public final class Scaffold extends Module {
     private final BooleanSetting swing = new BooleanSetting("Swing", true);
 
     private Scaffold() {
-        super("Scaffold", "Places a block under your feet while you walk", Category.MOVEMENT);
+        super("Scaffold", "Places a block under your feet while you walk", Category.MOVEMENT, false, false, true);
         addSetting(onlyWhenAirBelow);
         addSetting(swing);
     }

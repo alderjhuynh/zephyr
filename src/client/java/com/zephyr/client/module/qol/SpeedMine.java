@@ -46,7 +46,7 @@ public final class SpeedMine extends Module {
     private Mode lastTickedMode = mode.get();
 
     private SpeedMine() {
-        super("Speed Mine", "Speeds up block breaking via synthetic Haste or predicted damage packets", Category.QOL);
+        super("Speed Mine", "Speeds up block breaking via synthetic Haste or predicted damage packets", Category.QOL, false, false, true);
         addSetting(mode);
     }
 

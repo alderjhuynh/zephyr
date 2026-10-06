@@ -19,7 +19,7 @@ public final class TriggerBot extends Module {
     public static final TriggerBot INSTANCE = new TriggerBot();
 
     private TriggerBot() {
-        super("TriggerBot", "Attacks whenever an entity is in your crosshair and your cooldown is full", Category.COMBAT);
+        super("TriggerBot", "Attacks whenever an entity is in your crosshair and your cooldown is full", Category.COMBAT, false, false, true);
     }
 
     /** Attacks the crosshair entity each tick once it is in range and the cooldown is ready. */

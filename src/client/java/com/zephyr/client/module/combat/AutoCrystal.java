@@ -46,7 +46,7 @@ public final class AutoCrystal extends Module {
     private int waitTicks;
 
     private AutoCrystal() {
-        super("Auto Crystal", "Places and detonates end crystals on a target's obsidian support", Category.COMBAT);
+        super("Auto Crystal", "Places and detonates end crystals on a target's obsidian support", Category.COMBAT, false, false, true);
         addSetting(playersOnly);
         addSetting(placeObsidian);
         addSetting(avoidSelfDamage);

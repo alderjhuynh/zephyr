@@ -30,7 +30,7 @@ public final class AnchorAura extends Module {
     public static final AnchorAura INSTANCE = new AnchorAura();
 
     private AnchorAura() {
-        super("AnchorAura", "Charges a respawn anchor in a target's face and detonates it, shielding yourself behind a glowstone block", Category.COMBAT);
+        super("AnchorAura", "Charges a respawn anchor in a target's face and detonates it, shielding yourself behind a glowstone block", Category.COMBAT, false, false, true);
         addSetting(playersOnly);
     }
 

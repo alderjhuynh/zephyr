@@ -13,7 +13,7 @@ public final class Sprint extends Module {
     public static final Sprint INSTANCE = new Sprint();
 
     private Sprint() {
-        super("Sprint", "Automatically sprints while moving", Category.MOVEMENT);
+        super("Sprint", "Automatically sprints while moving", Category.MOVEMENT, false, false, true);
     }
 
     /**

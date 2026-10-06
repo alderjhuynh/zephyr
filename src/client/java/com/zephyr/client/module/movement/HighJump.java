@@ -16,7 +16,7 @@ public final class HighJump extends Module {
     private final NumberSetting multiplier = new NumberSetting("Multiplier", 1.5D, 1.0D, 5.0D, 0.1D);
 
     private HighJump() {
-        super("High Jump", "Increases jump height", Category.MOVEMENT);
+        super("High Jump", "Increases jump height", Category.MOVEMENT, false, false, true);
         addSetting(multiplier);
     }
 
