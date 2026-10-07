@@ -55,48 +55,52 @@ Type `.z` alone for version, active profile, enabled-module count, and prefix di
 
 Helpers for crystals, anchors, maces, carts, and targeting. Open each module in the GUI for range / delay / safety settings.
 
-- **Anchor Aura**: charges a respawn anchor in a target's face and detonates it, shielding you behind glowstone.
-- **Anchor Helper**: place → charge → shield → detonate flow.
-- **Anime Protagonist**: automated combo fighter with its own target manager.
-- **Auto Crystal**: places and detonates end crystals on a target's obsidian support.
-- **Auto Place**: automatically places a chosen block on a hit entity.
-- **Breach Swap / Density Swap**: weapon-swap helpers keyed to fall distance / attack state for mace tech.
-- **Lunge Swap**: lunge with the spear.
-- **Criticals**: sends falling packets to force crits / mace slams.
-- **Crystal Helper**: while holding right-click on obsidian, keeps placing + attacking crystals.
-- **Hit Assist**: still sends the attack when you barely miss.
-- **Insta Cart**: places rail + TNT minecart to catch your own flaming arrows.
-- **Kill Aura**: automatic melee with target manager.
-- **Knockback**: reduces knockback taken.
-- **Pearl Catch**: catches a thrown Ender Pearl with a Wind Charge.
-- **Reach**: extends attack reach.
-- **Shield Breaker**: breaks shields automatically.
-- **Spear Damage**: spoofs speed for spear damage without moving.
-- **Target Strafe**: orbits your current target while you move.
-- **Totem Pop Notifier**: chat/toast when nearby players pop totems.
-- **Trigger Bot**: attacks whenever your crosshair is on an entity and cooldown is ready.
-- **XBow Cart**: places rail + TNT minecart + fire to catch crossbow arrows.
+| Module | Description |
+|---|---|
+| Anchor Aura | Charges a respawn anchor in a target's face and detonates it, shielding you behind glowstone. |
+| Anchor Helper | Place → charge → shield → detonate flow. |
+| Anime Protagonist | Automated combo fighter with its own target manager. |
+| Auto Crystal | Places and detonates end crystals on a target's obsidian support. |
+| Auto Place | Automatically places a chosen block on a hit entity. |
+| Breach Swap / Density Swap | Weapon-swap helpers keyed to fall distance / attack state for mace tech. |
+| Lunge Swap | Lunge with the spear. |
+| Criticals | Sends falling packets to force crits / mace slams. |
+| Crystal Helper | While holding right-click on obsidian, keeps placing + attacking crystals. |
+| Hit Assist | Still sends the attack when you barely miss. |
+| Insta Cart | Places rail + TNT minecart to catch your own flaming arrows. |
+| Kill Aura | Automatic melee with target manager. |
+| Knockback | Reduces knockback taken. |
+| Pearl Catch | Catches a thrown Ender Pearl with a Wind Charge. |
+| Reach | Extends attack reach. |
+| Shield Breaker | Breaks shields automatically. |
+| Spear Damage | Spoofs speed for spear damage without moving. |
+| Target Strafe | Orbits your current target while you move. |
+| Totem Pop Notifier | Chat/toast when nearby players pop totems. |
+| Trigger Bot | Attacks whenever your crosshair is on an entity and cooldown is ready. |
+| XBow Cart | Places rail + TNT minecart + fire to catch crossbow arrows. |
 
 ---
 
 ## Movement
 
-- **Aerodynamics**: extra air acceleration while sprinting.
-- **Air Jump / Double Jump**: jump again mid-air.
-- **Anti Hunger**: skips unnecessary sprint packets.
-- **Auto Walk**: walk forward without holding `W`.
-- **Blink**: holds back your position packets until disabled.
-- **Elytra Boost**: accelerate while gliding.
-- **Flight**: creative-style fly with speed settings.
-- **High Jump**: jump higher.
-- **Ice Speed**: no more uncontrolled sliding on ice.
-- **Jesus**: walk on water.
-- **No Fall**: blocks fall-damage packets.
-- **No Slowdown**: ignore slow from using items, webs, water.
-- **Scaffold**: places a block under you as you walk.
-- **Sprint**: auto-sprint.
-- **Step**: step up full blocks.
-- **Trident Boost**: dry Riptide boosts.
+| Module | Description |
+|---|---|
+| Aerodynamics | Extra air acceleration while sprinting. |
+| Air Jump / Double Jump | Jump again mid-air. |
+| Anti Hunger | Skips unnecessary sprint packets. |
+| Auto Walk | Walk forward without holding `W`. |
+| Blink | Holds back your position packets until disabled. |
+| Elytra Boost | Accelerate while gliding. |
+| Flight | Creative-style fly with speed settings. |
+| High Jump | Jump higher. |
+| Ice Speed | No more uncontrolled sliding on ice. |
+| Jesus | Walk on water. |
+| No Fall | Blocks fall-damage packets. |
+| No Slowdown | Ignore slow from using items, webs, water. |
+| Scaffold | Places a block under you as you walk. |
+| Sprint | Auto-sprint. |
+| Step | Step up full blocks. |
+| Trident Boost | Dry Riptide boosts. |
 
 ---
 
@@ -104,28 +108,30 @@ Helpers for crystals, anchors, maces, carts, and targeting. Open each module in 
 
 Everyday helpers, HUD widgets, and visual tools:
 
-- **AppleSkin**: hunger / saturation / exhaustion + predicted food healing on the HUD.
-- **Armor Renderer / Inventory Renderer**: armor, held items + durability, and full inventory on the HUD.
-- **Auto Tool**: swaps to the right tool as you mine.
-- **Container ESP / Player ESP / Tracers**: outlines for chests/shulkers, glowing players (including invisible ones with Render Invisibility), and lines to nearby players.
-- **Durability Swap**: stops you mining with an almost-broken tool.
-- **Fast Attack / Fast Use / Hold Attack / Hold Use / Periodic Attack / Periodic Use**: repeat clicks for you, either as fast as possible or on a timer.
-- **FreeCam**: detach the camera and fly while your body stays put.
-- **FullBright**: full brightness anywhere.
-- **Gui Move**: keep moving while a GUI is open.
-- **Inventory Packets**: use crafting slots as extra storage by skipping close packets.
-- **Item Restock**: refills totems / items from your inventory.
-- **Jade**: in-world tooltip (block state, crop growth, redstone, beehive, horse stats, entity health, mod name…).
-- **Mouse Tweaks**: RMB dragging, LMB dragging, scroll-wheel quick-move.
-- **Pick Before Place**: pick-block automatically before placing.
-- **Potion Saver**: tries to stretch potion durations.
-- **Safe Walk**: no walking off edges until you jump.
-- **Shulker Box Tooltip**: full inventory preview on hover, with merged counts.
-- **Sneak**: auto-sneak.
-- **Speed Mine**: faster breaking via Haste / predicted damage.
-- **Time Changer**: client-side time of day.
-- **Xray**: outline chosen ores/blocks through walls (with a bypass-friendly mode).
-- **Zoom**: smooth FOV zoom while held.
+| Module | Description |
+|---|---|
+| AppleSkin | Hunger / saturation / exhaustion + predicted food healing on the HUD. |
+| Armor Renderer / Inventory Renderer | Armor, held items + durability, and full inventory on the HUD. |
+| Auto Tool | Swaps to the right tool as you mine. |
+| Container ESP / Player ESP / Tracers | Outlines for chests/shulkers, glowing players (including invisible ones with Render Invisibility), and lines to nearby players. |
+| Durability Swap | Stops you mining with an almost-broken tool. |
+| Fast Attack / Fast Use / Hold Attack / Hold Use / Periodic Attack / Periodic Use | Repeat clicks for you, either as fast as possible or on a timer. |
+| FreeCam | Detach the camera and fly while your body stays put. |
+| FullBright | Full brightness anywhere. |
+| Gui Move | Keep moving while a GUI is open. |
+| Inventory Packets | Use crafting slots as extra storage by skipping close packets. |
+| Item Restock | Refills totems / items from your inventory. |
+| Jade | In-world tooltip (block state, crop growth, redstone, beehive, horse stats, entity health, mod name…). |
+| Mouse Tweaks | RMB dragging, LMB dragging, scroll-wheel quick-move. |
+| Pick Before Place | Pick-block automatically before placing. |
+| Potion Saver | Tries to stretch potion durations. |
+| Safe Walk | No walking off edges until you jump. |
+| Shulker Box Tooltip | Full inventory preview on hover, with merged counts. |
+| Sneak | Auto-sneak. |
+| Speed Mine | Faster breaking via Haste / predicted damage. |
+| Time Changer | Client-side time of day. |
+| Xray | Outline chosen ores/blocks through walls (with a bypass-friendly mode). |
+| Zoom | Smooth FOV zoom while held. |
 
 ---
 
@@ -133,7 +139,27 @@ Everyday helpers, HUD widgets, and visual tools:
 
 One toggle each, all in the **Disable** tab. Great for FPS, recording, or focus:
 
-No axe stripping, no shovel pathing, no block-breaking cooldown, no block-breaking particles, no block outline, no bossbar, no scoreboard, no damage tilt, no dead-mob rendering or interaction, no explosion particles, no fire (first-person and world), no first-person potion particles, no fluid fog, no distance fog, no nausea overlay, no rain effects, no nether-portal sound, no totem animation, and portals no longer close your GUI.
+| Disabled |
+|---|
+| No axe stripping |
+| No shovel pathing |
+| No block-breaking cooldown |
+| No block-breaking particles |
+| No block outline |
+| No bossbar |
+| No scoreboard |
+| No damage tilt |
+| No dead-mob rendering or interaction |
+| No explosion particles |
+| No fire (first-person and world) |
+| No first-person potion particles |
+| No fluid fog |
+| No distance fog |
+| No nausea overlay |
+| No rain effects |
+| No nether-portal sound |
+| No totem animation |
+| Portals no longer close your GUI |
 
 ---
 
