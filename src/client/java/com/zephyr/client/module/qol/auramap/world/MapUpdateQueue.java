@@ -9,6 +9,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +50,18 @@ public final class MapUpdateQueue {
     private final Map<Long, int[]> lastCavePixels = new ConcurrentHashMap<>();
     private static final int LAST_CAP = 1024;
 
+    /**
+     * Chunks with a snapshot task currently queued/running on {@link #writer}.
+     * Prevents the drain loop from resubmitting the same chunk every tick while
+     * its task is still waiting in the writer queue (which previously caused
+     * duplicate pile-up and starved farther chunks of budget).
+     */
+    private final Set<Long> inFlight = ConcurrentHashMap.newKeySet();
+    /** Earliest {@link System#nanoTime()} at which a chunk may be retried after a miss/failure. */
+    private final Map<Long, Long> retryAfterNanos = new ConcurrentHashMap<>();
+    private static final long UNLOADED_COOLDOWN_NANOS = 2_000_000_000L;
+    private static final long SNAPSHOT_RETRY_COOLDOWN_NANOS = 5_000_000_000L;
+
     public void setStorage(RegionFileStorage s) {
         RegionFileStorage old = this.storage;
         if (old != null) {
@@ -59,11 +72,13 @@ public final class MapUpdateQueue {
         }
         this.storage = s;
         pendingDirty.clear();
+        retryAfterNanos.clear();
     }
 
     public void setMinimapStore(MinimapDataStore minimapStore) {
         this.minimapStore = minimapStore;
         pendingDirty.clear();
+        retryAfterNanos.clear();
     }
 
     public void setCaveStorage(RegionFileStorage s) {
@@ -76,6 +91,7 @@ public final class MapUpdateQueue {
         }
         this.caveStorage = s;
         lastCavePixels.clear();
+        retryAfterNanos.clear();
         lastCaveBand = 0;
         lastCaveActive = false;
     }
@@ -144,13 +160,25 @@ public final class MapUpdateQueue {
             if (Math.max(Math.abs(cx - playerChunkX), Math.abs(cz - playerChunkZ)) > radius) {
                 continue;
             }
+            Long retryAfter = retryAfterNanos.get(key);
+            if (retryAfter != null) {
+                if (System.nanoTime() < retryAfter) {
+                    continue;
+                }
+                retryAfterNanos.remove(key, retryAfter);
+            }
             boolean dirty = ChunkDirtyTracker.consumeDirty(cx, cz) || pendingDirty.containsKey(key) || !last.containsKey(key);
             if (!dirty) {
                 pendingDirty.remove(key);
                 continue;
             }
+            if (!inFlight.add(key)) {
+                continue;
+            }
             var chunk = level.getChunkSource().getChunk(cx, cz, false);
             if (!(chunk instanceof LevelChunk lc)) {
+                inFlight.remove(key);
+                retryAfterNanos.put(key, System.nanoTime() + UNLOADED_COOLDOWN_NANOS);
                 continue;
             }
             pendingDirty.remove(key);
@@ -177,6 +205,9 @@ public final class MapUpdateQueue {
                     if (mm != null) mm.putChunkTile(tile.chunkX(), tile.chunkZ(), tile.pixels(), caveTile);
                 } catch (Exception e) {
                     AuraMapBridge.LOGGER.warn("[auramap] snapshot failed for chunk {},{}", cx, cz, e);
+                    retryAfterNanos.put(key, System.nanoTime() + SNAPSHOT_RETRY_COOLDOWN_NANOS);
+                } finally {
+                    inFlight.remove(key);
                 }
             });
             done++;

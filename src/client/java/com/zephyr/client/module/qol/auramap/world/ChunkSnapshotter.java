@@ -193,6 +193,7 @@ public final class ChunkSnapshotter {
     private static final int FOLIAGE_TINT = 2;
 
    private static int tintKind(BlockState state) {
+        if (state.is(Blocks.CHERRY_LEAVES)) return NO_TINT;
         if (state.is(Blocks.GRASS_BLOCK)) return GRASS_TINT;
         if (state.is(Blocks.SHORT_GRASS) || state.is(Blocks.TALL_GRASS)
                 || state.is(Blocks.FERN) || state.is(Blocks.LARGE_FERN)

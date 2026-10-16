@@ -93,6 +93,7 @@ public final class ModuleManager {
         register(InventoryRenderer.INSTANCE);
         register(ItemRestock.INSTANCE);
         register(Jade.INSTANCE);
+        register(KeybindFix.INSTANCE);
         register(PeriodicAttack.INSTANCE);
         register(PeriodicUse.INSTANCE);
         register(PickBeforePlace.INSTANCE);

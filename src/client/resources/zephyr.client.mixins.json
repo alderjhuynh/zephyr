@@ -125,6 +125,9 @@
 		"combat.PearlCatch.EnderPearlItemMixin",
 		"qol.MouseTweaks.AbstractContainerScreenAccessor",
 		"qol.MouseTweaks.AbstractContainerScreenMixin",
+		"qol.KeybindFix.InputTypeMixin",
+		"qol.KeybindFix.KeyMappingMixin",
+		"qol.KeybindFix.KeyDisplayMixin",
 		"qol.auramap.LevelChunkHookMixin"
 	],
 	"injectors": {
