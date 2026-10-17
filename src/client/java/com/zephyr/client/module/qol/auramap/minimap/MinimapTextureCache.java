@@ -14,6 +14,7 @@ public final class MinimapTextureCache {
     private static final int TEX_SIZE = MinimapChunkData.SIZE;
 
     private final MinimapDataStore store;
+    private final boolean caveLayer;
 
     private static final class Entry {
         final DynamicTexture texture;
@@ -24,8 +25,9 @@ public final class MinimapTextureCache {
     private final Map<MinimapChunkKey, Entry> entries = new HashMap<>();
     private int uploadsThisFrame;
 
-    public MinimapTextureCache(MinimapDataStore store) {
+    public MinimapTextureCache(MinimapDataStore store, boolean caveLayer) {
         this.store = store;
+        this.caveLayer = caveLayer;
     }
 
     public void beginFrame() {
@@ -33,7 +35,7 @@ public final class MinimapTextureCache {
     }
 
     public Identifier getOrUpload(MinimapChunkKey key) {
-        MinimapChunkData data = store.getIfPresent(key);
+        MinimapChunkData data = store.getIfPresent(key, caveLayer);
         Entry e = entries.get(key);
         if (data == null) return e != null ? e.id : null;
         if (!data.hasSomething()) return e != null ? e.id : null;
@@ -101,7 +103,7 @@ public final class MinimapTextureCache {
             }
             tex.upload();
         } catch (Exception ex) {
-            AuraMapBridge.LOGGER.warn("[auramap] minimap chunk upload failed", ex);
+            AuraMapBridge.LOGGER.warn("minimap chunk upload failed", ex);
         }
     }
 

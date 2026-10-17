@@ -21,8 +21,8 @@ public final class MinimapDataStore {
         return caveActive ? cave : surface;
     }
 
-    public MinimapChunkData getIfPresent(MinimapChunkKey key) {
-        return active().get(key);
+    public MinimapChunkData getIfPresent(MinimapChunkKey key, boolean caveLayer) {
+        return (caveLayer ? cave : surface).get(key);
     }
 
     public MinimapChunkData getOrCreate(MinimapChunkKey key) {

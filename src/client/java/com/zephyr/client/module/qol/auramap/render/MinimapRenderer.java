@@ -17,9 +17,9 @@ public final class MinimapRenderer implements HudElement {
     private static final int UNEXPLORED = 0xFF14181D;
 
     private final MinimapProcessor processor = new MinimapProcessor();
-    private MinimapTextureCache textures;
+    private MinimapTextureCache surfaceTextures;
+    private MinimapTextureCache caveTextures;
     private boolean firstFrame = true;
-    private boolean lastCaveMode;
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, DeltaTracker deltaTracker) {
@@ -33,15 +33,12 @@ public final class MinimapRenderer implements HudElement {
             if (AuraMapController.currentStorage() == null) return;
             if (AuraMapController.minimapStore() == null) return;
 
-            if (textures == null) {
-                textures = new MinimapTextureCache(AuraMapController.minimapStore());
-                lastCaveMode = AuraMapController.CAVE.isCave();
+            if (surfaceTextures == null) {
+                surfaceTextures = new MinimapTextureCache(AuraMapController.minimapStore(), false);
+                caveTextures = new MinimapTextureCache(AuraMapController.minimapStore(), true);
             }
             boolean caveMode = AuraMapController.CAVE.isCave();
-            if (caveMode != lastCaveMode) {
-                textures.clear();
-                lastCaveMode = caveMode;
-            }
+            MinimapTextureCache textures = caveMode ? caveTextures : surfaceTextures;
 
             int size = Math.max(64, Math.min(256, config.minimapSize));
             float partial = deltaTracker.getGameTimeDeltaPartialTick(false);
@@ -96,7 +93,7 @@ public final class MinimapRenderer implements HudElement {
                             g.blit(RenderPipelines.GUI_TEXTURED, texId,
                                     relX, relZ, 0.0f, 0.0f, 64, 64, 64, 64, 64, 64);
                         } catch (Throwable t) {
-                            AuraMapBridge.LOGGER.warn("[auramap] minimap chunk blit failed", t);
+                            AuraMapBridge.LOGGER.warn("minimap chunk blit failed", t);
                         }
                     }
                 }
@@ -125,14 +122,18 @@ public final class MinimapRenderer implements HudElement {
                 processor.snapZoom(zoom);
             }
         } catch (Throwable t) {
-            AuraMapBridge.LOGGER.warn("[auramap] minimap render failed", t);
+            AuraMapBridge.LOGGER.warn("minimap render failed", t);
         }
     }
 
     public void close() {
-        if (textures != null) {
-            try { textures.clear(); } catch (Exception ignored) {}
-            textures = null;
+        if (surfaceTextures != null) {
+            try { surfaceTextures.clear(); } catch (Exception ignored) {}
+            surfaceTextures = null;
+        }
+        if (caveTextures != null) {
+            try { caveTextures.clear(); } catch (Exception ignored) {}
+            caveTextures = null;
         }
         firstFrame = true;
     }

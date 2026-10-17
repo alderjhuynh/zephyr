@@ -50,7 +50,7 @@ public final class AuraMapController {
         CONFIG = AuraMapConfig.load();
         WaypointWorldRenderer.register();
         UPDATE_QUEUE.setMinimapStore(MINIMAP_STORE);
-        AuraMapBridge.LOGGER.info("[auramap] ported controller init (zephyr qol module)");
+        AuraMapBridge.LOGGER.info("ported controller init (zephyr qol module)");
     }
 
     /** Called by the AuraMap module's onEnable/onDisable to gate renderers and input. */
@@ -141,7 +141,7 @@ public final class AuraMapController {
         try {
             CAVE.tick(mc.level, mc.player.getX(), mc.player.getY(), mc.player.getZ(), CONFIG);
         } catch (Exception e) {
-            AuraMapBridge.LOGGER.warn("[auramap] cave detection failed", e);
+            AuraMapBridge.LOGGER.warn("cave detection failed", e);
             CAVE.reset();
         }
         int depth = CONFIG != null ? Math.max(1, Math.min(64, CONFIG.caveModeDepth)) : 30;
@@ -183,7 +183,7 @@ public final class AuraMapController {
             UPDATE_QUEUE.setCaveStorage(currentCaveStorage);
         }
         if (currentStorage == null) {
-            AuraMapBridge.LOGGER.warn("[auramap] no storage available to open map");
+            AuraMapBridge.LOGGER.warn("no storage available to open map");
             return;
         }
         UPDATE_QUEUE.flushAsync();

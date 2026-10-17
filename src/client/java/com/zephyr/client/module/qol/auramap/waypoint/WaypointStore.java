@@ -51,7 +51,7 @@ public final class WaypointStore {
                     }
                 }
             } catch (Exception e) {
-                AuraMapBridge.LOGGER.warn("[auramap] failed to load waypoints {}", f, e);
+                AuraMapBridge.LOGGER.warn("failed to load waypoints {}", f, e);
             }
         }
         if (sets.isEmpty()) {
@@ -99,7 +99,7 @@ public final class WaypointStore {
             Files.move(tmp, fileFor(dimRoot), java.nio.file.StandardCopyOption.REPLACE_EXISTING,
                     java.nio.file.StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
-            AuraMapBridge.LOGGER.warn("[auramap] failed to save waypoints to {}", dimRoot, e);
+            AuraMapBridge.LOGGER.warn("failed to save waypoints to {}", dimRoot, e);
         }
     }
 

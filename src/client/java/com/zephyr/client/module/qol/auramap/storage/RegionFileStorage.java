@@ -113,13 +113,13 @@ public final class RegionFileStorage {
         Path bin = binPath(pos);
         if (Files.exists(bin)) {
             try { return loadBinary(bin, pos); } catch (IOException e) {
-                AuraMapBridge.LOGGER.warn("[auramap] failed to load bin {}", bin, e);
+                AuraMapBridge.LOGGER.warn("failed to load bin {}", bin, e);
             }
         }
         Path png = pngPath(pos);
         if (Files.exists(png)) {
             try { return loadPng(png, pos); } catch (IOException e) {
-                AuraMapBridge.LOGGER.warn("[auramap] failed to load png {}", png, e);
+                AuraMapBridge.LOGGER.warn("failed to load png {}", png, e);
             }
         }
         return null;
@@ -147,7 +147,7 @@ public final class RegionFileStorage {
         BufferedImage img = ImageIO.read(file.toFile());
         if (img == null) throw new IOException("ImageIO null");
         if (img.getWidth() != REGION_SIZE || img.getHeight() != REGION_SIZE) {
-            AuraMapBridge.LOGGER.warn("[auramap] unexpected png size {}x{} {}", img.getWidth(), img.getHeight(), file);
+            AuraMapBridge.LOGGER.warn("unexpected png size {}x{} {}", img.getWidth(), img.getHeight(), file);
             throw new IOException("bad png size");
         }
         int[] pixels = new int[PIXEL_COUNT];
@@ -181,7 +181,7 @@ public final class RegionFileStorage {
                 try { Files.deleteIfExists(legacyPng); } catch (IOException ignored) {}
             }
         } catch (IOException e) {
-            AuraMapBridge.LOGGER.warn("[auramap] failed to save bin {}", file, e);
+            AuraMapBridge.LOGGER.warn("failed to save bin {}", file, e);
             try { Files.deleteIfExists(tmp); } catch (IOException ignored) {}
         }
     }

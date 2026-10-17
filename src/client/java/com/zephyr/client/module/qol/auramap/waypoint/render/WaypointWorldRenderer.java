@@ -100,7 +100,7 @@ public final class WaypointWorldRenderer {
             int visible = WaypointManager.get().visible().size();
             if (visible > 0) {
                 com.zephyr.client.module.qol.auramap.AuraMapBridge.LOGGER.info(
-                        "[auramap] waypoints submit: visible={} drawn={} cam=({},{},{})",
+                        "waypoints submit: visible={} drawn={} cam=({},{},{})",
                         visible, out.size(),
                         String.format("%.1f", camX), String.format("%.1f", camY),
                         String.format("%.1f", camZ));

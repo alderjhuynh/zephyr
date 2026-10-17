@@ -67,7 +67,7 @@ public final class MapUpdateQueue {
         if (old != null) {
             final RegionFileStorage toFlush = old;
             io.execute(() -> {
-                try { toFlush.flushDirtyForced(); } catch (Exception e) { AuraMapBridge.LOGGER.warn("[auramap] flush failed", e); }
+                try { toFlush.flushDirtyForced(); } catch (Exception e) { AuraMapBridge.LOGGER.warn("flush failed", e); }
             });
         }
         this.storage = s;
@@ -86,7 +86,7 @@ public final class MapUpdateQueue {
         if (old != null && old != s) {
             final RegionFileStorage toFlush = old;
             io.execute(() -> {
-                try { toFlush.flushDirtyForced(); } catch (Exception e) { AuraMapBridge.LOGGER.warn("[auramap] flush failed", e); }
+                try { toFlush.flushDirtyForced(); } catch (Exception e) { AuraMapBridge.LOGGER.warn("flush failed", e); }
             });
         }
         this.caveStorage = s;
@@ -204,7 +204,7 @@ public final class MapUpdateQueue {
                     fs.putChunkTile(tile.chunkX(), tile.chunkZ(), tile.pixels());
                     if (mm != null) mm.putChunkTile(tile.chunkX(), tile.chunkZ(), tile.pixels(), caveTile);
                 } catch (Exception e) {
-                    AuraMapBridge.LOGGER.warn("[auramap] snapshot failed for chunk {},{}", cx, cz, e);
+                    AuraMapBridge.LOGGER.warn("snapshot failed for chunk {},{}", cx, cz, e);
                     retryAfterNanos.put(key, System.nanoTime() + SNAPSHOT_RETRY_COOLDOWN_NANOS);
                 } finally {
                     inFlight.remove(key);
@@ -223,7 +223,7 @@ public final class MapUpdateQueue {
     public void flushAsync() {
         RegionFileStorage s = storage;
         if (s != null) io.execute(() -> {
-            try { s.flushDirty(); } catch (Exception e) { AuraMapBridge.LOGGER.warn("[auramap] flush failed", e); }
+            try { s.flushDirty(); } catch (Exception e) { AuraMapBridge.LOGGER.warn("flush failed", e); }
         });
     }
 
@@ -234,7 +234,7 @@ public final class MapUpdateQueue {
             try {
                 if (s != null) s.flushDirtyForced();
                 if (cs != null && cs != s) cs.flushDirtyForced();
-            } catch (Exception e) { AuraMapBridge.LOGGER.warn("[auramap] flush failed", e); }
+            } catch (Exception e) { AuraMapBridge.LOGGER.warn("flush failed", e); }
         });
     }
 
@@ -243,7 +243,7 @@ public final class MapUpdateQueue {
             try {
                 cb.accept(s.getOrLoad(pos));
             } catch (Exception e) {
-                AuraMapBridge.LOGGER.warn("[auramap] async region load failed {}", pos, e);
+                AuraMapBridge.LOGGER.warn("async region load failed {}", pos, e);
             }
         });
     }

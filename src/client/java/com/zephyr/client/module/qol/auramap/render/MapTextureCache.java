@@ -150,7 +150,7 @@ public final class MapTextureCache {
             }
             tex.upload();
         } catch (Exception ex) {
-            AuraMapBridge.LOGGER.warn("[auramap] tile update failed", ex);
+            AuraMapBridge.LOGGER.warn("tile update failed", ex);
         }
     }
 
@@ -166,7 +166,7 @@ public final class MapTextureCache {
             }
             tex.upload();
         } catch (Exception ex) {
-            AuraMapBridge.LOGGER.warn("[auramap] texture update failed", ex);
+            AuraMapBridge.LOGGER.warn("texture update failed", ex);
         }
     }
 

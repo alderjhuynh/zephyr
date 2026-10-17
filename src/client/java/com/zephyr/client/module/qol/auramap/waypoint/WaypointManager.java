@@ -224,7 +224,7 @@ public final class WaypointManager {
         death.setVisibility(Waypoint.Visibility.GLOBAL);
         set.addFirst(death);
         saveNow();
-        AuraMapBridge.LOGGER.info("[auramap] death waypoint at {}, {}, {}", x, y, z);
+        AuraMapBridge.LOGGER.info("death waypoint at {}, {}, {}", x, y, z);
     }
 
     public synchronized Waypoint findById(String id) {

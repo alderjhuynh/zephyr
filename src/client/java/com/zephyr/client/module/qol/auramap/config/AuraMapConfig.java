@@ -79,7 +79,7 @@ public final class AuraMapConfig {
                     return loaded;
                 }
             } catch (IOException e) {
-                AuraMapBridge.LOGGER.warn("[auramap] failed to read config, using defaults", e);
+                AuraMapBridge.LOGGER.warn("failed to read config, using defaults", e);
             }
         }
         cfg.save();
@@ -92,7 +92,7 @@ public final class AuraMapConfig {
             Files.createDirectories(file.getParent());
             Files.writeString(file, GSON.toJson(this));
         } catch (IOException e) {
-            AuraMapBridge.LOGGER.warn("[auramap] failed to write config", e);
+            AuraMapBridge.LOGGER.warn("failed to write config", e);
         }
     }
 
