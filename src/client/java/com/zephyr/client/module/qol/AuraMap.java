@@ -33,6 +33,8 @@ public final class AuraMap extends Module {
     private final BooleanSetting worldLabels = new BooleanSetting("World Labels", true);
     private final BooleanSetting deathpoints = new BooleanSetting("Deathpoints", true);
     private final BooleanSetting caveMode = new BooleanSetting("Cave Mode", true);
+    private final NumberSetting caveRefreshThreshold =
+            new NumberSetting("Cave Refresh Threshold (blocks)", 8.0, 1.0, 64.0, 1.0);
     private final BooleanSetting mapLighting = new BooleanSetting("Map Lighting", true);
     private final BooleanSetting terrainShading = new BooleanSetting("Terrain Shading", true);
     private final NumberSetting mapWritingDistance =
@@ -54,6 +56,7 @@ public final class AuraMap extends Module {
         addSetting(worldLabels);
         addSetting(deathpoints);
         addSetting(caveMode);
+        addSetting(caveRefreshThreshold);
         addSetting(mapLighting);
         addSetting(terrainShading);
         addSetting(mapWritingDistance);
@@ -82,6 +85,7 @@ public final class AuraMap extends Module {
         worldLabels.set(cfg.waypointWorldLabels);
         deathpoints.set(cfg.waypointDeathpoints);
         caveMode.set(cfg.caveModeAllowed);
+        caveRefreshThreshold.set(cfg.caveRefreshThreshold);
         mapLighting.set(cfg.lighting);
         terrainShading.set(cfg.terrainShading);
         mapWritingDistance.set(cfg.mapWritingDistance);
@@ -99,6 +103,7 @@ public final class AuraMap extends Module {
         cfg.waypointWorldLabels = worldLabels.get();
         cfg.waypointDeathpoints = deathpoints.get();
         cfg.caveModeAllowed = caveMode.get();
+        cfg.caveRefreshThreshold = (int) Math.round(caveRefreshThreshold.get());
         cfg.lighting = mapLighting.get();
         cfg.terrainShading = terrainShading.get();
         cfg.mapWritingDistance = (int) Math.round(mapWritingDistance.get());

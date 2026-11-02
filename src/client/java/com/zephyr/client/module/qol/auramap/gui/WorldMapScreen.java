@@ -1,5 +1,6 @@
 package com.zephyr.client.module.qol.auramap.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.zephyr.client.module.qol.auramap.config.AuraMapConfig;
 import com.zephyr.client.module.qol.auramap.render.MapTextureCache;
 import com.zephyr.client.module.qol.auramap.storage.RegionFileStorage;
@@ -26,8 +27,11 @@ public class WorldMapScreen extends Screen {
     private double centerZ;
     private double zoom = 1.0;
 
-    private static final double MIN_ZOOM = 0.25;
+    private static final double MIN_ZOOM = 0;
     private static final double MAX_ZOOM = 8.0;
+
+    private static final int KP_PLUS = 87;
+    private static final int KP_MINUS = 89;
 
     private double dragStartX, dragStartZ;
     private double dragMouseX, dragMouseY;
@@ -191,7 +195,7 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean bl) {
-        if (event.button() == 1) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
             double blockX = centerX + (event.x() - width / 2.0) / zoom;
             double blockZ = centerZ + (event.y() - height / 2.0) / zoom;
             var mc = Minecraft.getInstance();
@@ -200,7 +204,7 @@ public class WorldMapScreen extends Screen {
                     this, null, (int) Math.floor(blockX), y, (int) Math.floor(blockZ)));
             return true;
         }
-        if (event.button() == 2) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_MIDDLE) {
             double blockX = centerX + (event.x() - width / 2.0) / zoom;
             double blockZ = centerZ + (event.y() - height / 2.0) / zoom;
             var mc = Minecraft.getInstance();
@@ -209,7 +213,7 @@ public class WorldMapScreen extends Screen {
                     .setTemporary((int) Math.floor(blockX), y, (int) Math.floor(blockZ), false);
             return true;
         }
-        if (event.button() == 0) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             dragging = true;
             dragStartX = centerX;
             dragStartZ = centerZ;
@@ -222,7 +226,7 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (event.button() == 0) dragging = false;
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) dragging = false;
         return super.mouseReleased(event);
     }
 
@@ -253,25 +257,27 @@ public class WorldMapScreen extends Screen {
     @Override
     public boolean keyPressed(KeyEvent event) {
         int code = event.key();
-        if (code == 256 || code == 259) {
+        if (code == InputConstants.KEY_ESCAPE || code == InputConstants.KEY_BACKSPACE) {
             onClose();
             return true;
         }
-        if (code == 93 || code == 61 || code == 334) { zoomIn(); return true; }
-        if (code == 47 || code == 45 || code == 333) { zoomOut(); return true; }
-        if (code == 66) {
+        if (code == InputConstants.KEY_RBRACKET || code == InputConstants.KEY_EQUALS || code == InputConstants.KEY_ADD
+                || code == KP_PLUS) { zoomIn(); return true; }
+        if (code == InputConstants.KEY_LBRACKET || code == InputConstants.KEY_MINUS || code == InputConstants.KEY_SLASH
+                || code == KP_MINUS) { zoomOut(); return true; }
+        if (code == InputConstants.KEY_B) {
             Minecraft.getInstance().setScreenAndShow(
                     new com.zephyr.client.module.qol.auramap.waypoint.gui.WaypointsScreen(this));
             return true;
         }
-        if (code == 78) {
+        if (code == InputConstants.KEY_N) {
             var mc = Minecraft.getInstance();
             int y = mc.player != null ? (int) mc.player.getY() : 64;
             mc.setScreenAndShow(new com.zephyr.client.module.qol.auramap.waypoint.gui.WaypointEditScreen(
                     this, null, (int) Math.floor(centerX), y, (int) Math.floor(centerZ)));
             return true;
         }
-        if (code == 84 || code == 88) {
+        if (code == InputConstants.KEY_T || code == InputConstants.KEY_X) {
             com.zephyr.client.module.qol.auramap.waypoint.WaypointManager.get().clearTemporary();
             return true;
         }

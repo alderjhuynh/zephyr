@@ -1,6 +1,7 @@
 package com.zephyr.client.mixin.qol.Seedcracker;
 
 import com.zephyr.client.module.qol.Seedcracker;
+import com.zephyr.client.module.qol.SeedMap;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
@@ -56,6 +57,7 @@ public abstract class ClientLevelMixin extends Level {
     @Inject(method = "disconnect", at = @At("HEAD"))
     private void disconnect(Component reason, CallbackInfo ci) {
         Seedcracker.get().reset();
+        SeedMap.get().clearSeed();
     }
 
     /**

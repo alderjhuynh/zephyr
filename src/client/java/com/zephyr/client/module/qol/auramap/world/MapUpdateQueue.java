@@ -43,7 +43,17 @@ public final class MapUpdateQueue {
 
     private volatile CaveState caveState = CaveState.SURFACE;
     private boolean lastCaveActive;
-    private int lastCaveBand;
+    /**
+     * The cave ceiling start each tracked chunk's cave tile was last captured
+     * at. Cave rendering depends on the elevation the player was at while the
+     * snapshot was taken; once the live view start drifts away from the value
+     * recorded here, the tile is considered stale and gets re-queued so the map
+     * converges to a single consistent elevation instead of a patchwork of
+     * views taken at different heights.
+     */
+    private final Map<Long, Integer> caveCapturedStart = new ConcurrentHashMap<>();
+    /** Cave start at which the last staleness sweep ran. */
+    private int lastSweptCaveStart = Integer.MIN_VALUE;
 
     private final Map<Long, long[]> pendingDirty = new ConcurrentHashMap<>();
     private final Map<Long, int[]> lastSurfacePixels = new ConcurrentHashMap<>();
@@ -91,13 +101,47 @@ public final class MapUpdateQueue {
         }
         this.caveStorage = s;
         lastCavePixels.clear();
+        caveCapturedStart.clear();
         retryAfterNanos.clear();
-        lastCaveBand = 0;
+        lastSweptCaveStart = Integer.MIN_VALUE;
         lastCaveActive = false;
     }
 
     public void setCaveState(CaveState caveState) {
         this.caveState = caveState != null ? caveState : CaveState.SURFACE;
+    }
+
+    /**
+     * The live cave start changed since the last drain; queue every tracked
+     * cave tile whose recorded capture start drifted from the current view by
+     * at least the configured threshold, so the budgeted pipeline re-renders
+     * them at the new elevation.
+     *
+     * <p>This keeps the cave map spatially consistent with the player's current
+     * elevation (previously captured chunks used to keep whatever view they
+     * were rendered at, garbling the map once surrounding tiles were captured
+     * at a different height). Cost is bounded: only bookkeeping happens here,
+     * actual re-rendering goes through the distance-sorted, throttled snapshot
+     * pipeline below, and tiles captured within the threshold of the current
+     * start are considered close enough to stay.
+     */
+    private void sweepStaleCaveTiles(int currentStart) {
+        int threshold = refreshThreshold();
+        for (long key : lastCavePixels.keySet()) {
+            Integer recorded = caveCapturedStart.get(key);
+            // Unknown capture elevation can only happen for tiles carried over
+            // a cleanup boundary that also lost their metadata; treat them as
+            // stale so they get re-rendered instead of lingering forever.
+            if (recorded != null && Math.abs(currentStart - recorded) < threshold) continue;
+            if (pendingDirty.containsKey(key)) continue;
+            var pos = ChunkPos.unpack(key);
+            pendingDirty.put(key, new long[]{pos.x(), pos.z()});
+        }
+    }
+
+    private static int refreshThreshold() {
+        var cfg = com.zephyr.client.module.qol.auramap.AuraMapController.CONFIG;
+        return cfg != null ? Math.max(1, Math.min(64, cfg.caveRefreshThreshold)) : 8;
     }
 
     public void markDirty(int chunkX, int chunkZ) {
@@ -120,13 +164,15 @@ public final class MapUpdateQueue {
 
         if (useCave != lastCaveActive) {
             last.clear();
+            caveCapturedStart.clear();
             lastCaveActive = useCave;
+            lastSweptCaveStart = Integer.MIN_VALUE;
         }
         if (useCave) {
-            int band = cave.start() >> 4;
-            if (band != lastCaveBand) {
-                lastCavePixels.clear();
-                lastCaveBand = band;
+            int start = cave.start();
+            if (start != lastSweptCaveStart) {
+                sweepStaleCaveTiles(start);
+                lastSweptCaveStart = start;
             }
         }
 
@@ -193,6 +239,12 @@ public final class MapUpdateQueue {
                             ? ChunkSnapshotter.snapshotCave(lc, caveStart, caveDepth)
                             : ChunkSnapshotter.snapshot(lc);
                     int[] prev = lastForTile.get(key);
+                    if (caveTile) {
+                        // Record which elevation this tile was rendered at, even
+                        // when the pixels end up identical to the old ones, so the
+                        // staleness sweep knows the tile is current.
+                        caveCapturedStart.put(key, caveStart);
+                    }
                     if (prev != null && java.util.Arrays.equals(prev, tile.pixels())) {
                         return;
                     }

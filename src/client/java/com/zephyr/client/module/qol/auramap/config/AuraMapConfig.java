@@ -40,6 +40,13 @@ public final class AuraMapConfig {
     public double waypointLookAngleVerticalDeg = 8.0;
     public boolean waypointKeepNames = false;
     public float caveToggleSeconds = 1.0f;
+    /**
+     * How far the cave view's ceiling start may drift (in blocks) before cave
+     * tiles captured at an older elevation get re-rendered. Lower values keep
+     * the cave map fresher when the player changes height, but re-scan more
+     * loaded chunks in the background.
+     */
+    public int caveRefreshThreshold = 8;
     public int mapWritingDistance = -1;
     public boolean openingAnimation = false;
     public boolean displayZoom = true;
@@ -63,6 +70,7 @@ public final class AuraMapConfig {
 
                     loaded.caveModeDepth = clamp(loaded.caveModeDepth, 1, 64);
                     loaded.caveToggleSeconds = clamp(loaded.caveToggleSeconds, 0f, 10f);
+                    loaded.caveRefreshThreshold = clamp(loaded.caveRefreshThreshold, 1, 64);
                     loaded.waypointsScale = clamp(loaded.waypointsScale, 0.5, 5.0);
                     loaded.waypointMaxDistance = clamp(loaded.waypointMaxDistance, 0, 100000);
                     loaded.minimapSize = clamp(loaded.minimapSize, 64, 256);
