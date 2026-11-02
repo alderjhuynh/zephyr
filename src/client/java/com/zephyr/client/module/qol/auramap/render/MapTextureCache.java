@@ -18,6 +18,18 @@ import java.util.Set;
 public final class MapTextureCache {
     private static final int MAX_FULL_UPLOADS_PER_FRAME = 2;
     private static final int MAX_TILE_UPLOADS_PER_FRAME = 8;
+    /**
+     * Single-threaded loader for region files. Previously every region got its
+     * own raw thread; far zoom-out views could request thousands of regions at
+     * once, which spawned thousands of threads and froze the game.
+     */
+    private static final java.util.concurrent.ExecutorService LOADER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                var t = new Thread(r, "auramap-region-loader");
+                t.setDaemon(true);
+                t.setPriority(Thread.NORM_PRIORITY - 1);
+                return t;
+            });
 
     private final RegionFileStorage storage;
     private final String namespace;
@@ -30,6 +42,7 @@ public final class MapTextureCache {
     private static class Entry {
         final DynamicTexture texture;
         final Identifier id;
+        long lastSeen;
         Entry(DynamicTexture t, Identifier id) { this.texture = t; this.id = id; }
     }
 
@@ -44,8 +57,13 @@ public final class MapTextureCache {
 
     public Identifier getOrUpload(RegionPos pos) {
         Entry e = entries.get(pos);
+        if (e != null) e.lastSeen = frameId;
         MapRegionData data = storage.getIfCached(pos);
         if (data == null) {
+            // Regions with no file on disk are permanently unexplored; consulting
+            // the in-memory region index avoids re-spawning loader work for them
+            // every frame when zoomed out.
+            if (!storage.isKnownRegion(pos.rx(), pos.rz())) return null;
             requestLoadAsync(pos);
             if (e != null) return e.id;
             return null;
@@ -87,13 +105,31 @@ public final class MapTextureCache {
         fullUploadsThisFrame = 0;
         tileUploadsThisFrame = 0;
         frameId++;
+        evictStaleEntries();
+    }
+
+    /**
+     * Bounds GPU memory: each cached region texture is 512x512 (1 MB), and at
+     * low zoom hundreds can be requested at once. Entries not rendered for a
+     * while get released; they reload on demand if a pan brings them back.
+     */
+    private void evictStaleEntries() {
+        if (entries.size() <= 256) return;
+        var tm = Minecraft.getInstance().getTextureManager();
+        entries.entrySet().removeIf(en -> {
+            if (frameId - en.getValue().lastSeen <= 300) return false;
+            var e = en.getValue();
+            try { tm.release(e.id); } catch (Exception ignored) {}
+            try { e.texture.close(); } catch (Exception ignored) {}
+            return true;
+        });
     }
 
     private void requestLoadAsync(RegionPos pos) {
         synchronized (pendingLoad) {
             if (!pendingLoad.add(pos)) return;
         }
-        Thread t = new Thread(() -> {
+        LOADER.execute(() -> {
             try {
                 storage.getOrLoad(pos);
             } finally {
@@ -101,9 +137,7 @@ public final class MapTextureCache {
                     pendingLoad.remove(pos);
                 }
             }
-        }, "auramap-region-loader");
-        t.setDaemon(true);
-        t.start();
+        });
     }
 
     public void close() {
