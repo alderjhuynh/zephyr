@@ -13,6 +13,7 @@ import com.zephyr.client.configplusgui.setting.KeybindSetting;
 import com.zephyr.client.configplusgui.setting.ListSetting;
 import com.zephyr.client.configplusgui.setting.NumberSetting;
 import com.zephyr.client.configplusgui.setting.Setting;
+import com.zephyr.client.configplusgui.setting.StringSetting;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
@@ -59,6 +60,10 @@ public final class ClickGuiScreen extends ZephyrScreen {
     private EditBox blockInputBox;
     private EditBox colorInputBox;
 
+    /** String setting being edited inline, plus its text input. */
+    private StringSetting stringEditing = null;
+    private EditBox stringInputBox;
+
     /** Keybind setting currently recording a new combo, plus the in-progress capture state. */
     private KeybindSetting capturingKeybind = null;
     private final LinkedHashSet<Integer> captureBuffer = new LinkedHashSet<>();
@@ -97,6 +102,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
             this.scrollOffset = 0;
             this.categoryDropdownOpen = false;
             clearListEditing();
+            closeStringEditing(true);
         });
         this.addRenderableWidget(searchBox);
     }
@@ -121,6 +127,13 @@ public final class ClickGuiScreen extends ZephyrScreen {
                     : (layout.get(layout.size() - 1).bottom() - listTop);
             int maxScroll = Math.max(0, contentHeight - (listBottom - listTop));
             scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
+
+            // If the string editor's row vanished (module collapsed, filtered out),
+            // commit and close so no orphaned input box lingers on screen.
+            if (stringEditing != null && layout.stream().flatMap(row -> row.settingRows().stream())
+                    .noneMatch(settingRow -> settingRow.setting() == stringEditing)) {
+                closeStringEditing(true);
+            }
 
             graphics.enableScissor(panelX, listTop, panelX + panelWidth, listBottom);
             for (RowLayout row : layout) {
@@ -274,6 +287,22 @@ public final class ClickGuiScreen extends ZephyrScreen {
             int valueColor = capturing ? accent()
                     : (bind.conflicted() ? CONFLICT_RED : (bind.isSet() ? accent() : TEXT_DIM));
             graphics.text(this.font, value, right - valueWidth, top + 6, valueColor, false);
+        } else if (settingRow.setting instanceof StringSetting stringSetting) {
+            graphics.text(this.font, settingRow.setting.getName(), left, top + 6, TEXT_DIM, false);
+            if (stringEditing == stringSetting && stringInputBox != null) {
+                // Editing: the label row stays, and an inline input row appears below it.
+                graphics.fill(panelX + PADDING, top + SETTING_ROW_HEIGHT,
+                        panelX + panelWidth - PADDING, top + SETTING_ROW_HEIGHT * 2, ROW_BG_HOVER);
+                stringInputBox.setX(left);
+                stringInputBox.setY(top + SETTING_ROW_HEIGHT + 4);
+                stringInputBox.setWidth(right - left);
+            } else {
+                String value = stringSetting.get();
+                if (!value.isEmpty()) {
+                    int valueWidth = this.font.width(value);
+                    graphics.text(this.font, value, right - valueWidth, top + 6, accent(), false);
+                }
+            }
         } else if (settingRow.setting instanceof ListSetting listSetting) {
             renderListSetting(graphics, listSetting, top, left, right);
         }
@@ -401,6 +430,15 @@ public final class ClickGuiScreen extends ZephyrScreen {
             return true;
         }
 
+        // Clicking anywhere outside the open string editor commits its text.
+        if (stringEditing != null && stringInputBox != null) {
+            boolean insideBox = mouseX >= stringInputBox.getX() - 2 && mouseX < stringInputBox.getX() + stringInputBox.getWidth() + 2
+                    && mouseY >= stringInputBox.getY() - 2 && mouseY < stringInputBox.getY() + stringInputBox.getHeight() + 2;
+            if (!insideBox) {
+                closeStringEditing(true);
+            }
+        }
+
         int listTop = panelY + headerHeight();
         List<RowLayout> layout = computeLayout(listTop);
         int scroll = (int) scrollOffset;
@@ -447,6 +485,8 @@ public final class ClickGuiScreen extends ZephyrScreen {
             startKeybindCapture(keybindSetting);
         } else if (settingRow.setting instanceof ListSetting listSetting) {
             handleListSettingClick(listSetting, mouseX, mouseY, settingTop);
+        } else if (settingRow.setting instanceof StringSetting stringSetting) {
+            startStringEditing(stringSetting);
         }
     }
 
@@ -540,6 +580,42 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
     }
 
+    /** Opens the inline text input for editing a string setting's value. */
+    private void startStringEditing(StringSetting setting) {
+        clearListEditing();
+        if (stringEditing == setting) {
+            return;
+        }
+        closeStringEditing(true);
+        stringEditing = setting;
+        stringInputBox = new EditBox(this.font, 0, 0, 100, 12, Component.literal(setting.getName()));
+        stringInputBox.setBordered(false);
+        stringInputBox.setMaxLength(64);
+        stringInputBox.setValue(setting.get());
+        stringInputBox.setCursorPosition(stringInputBox.getValue().length());
+        addRenderableWidget(stringInputBox);
+        stringInputBox.setFocused(true);
+        setFocused(stringInputBox);
+    }
+
+    /** Writes the editor's text into the setting (when committing) and tears the editor down. */
+    private void closeStringEditing(boolean commit) {
+        if (stringEditing == null) {
+            return;
+        }
+        if (commit && stringInputBox != null) {
+            stringEditing.set(stringInputBox.getValue().trim());
+        }
+        if (stringInputBox != null) {
+            if (getFocused() == stringInputBox) {
+                setFocused(null);
+            }
+            removeWidget(stringInputBox);
+        }
+        stringInputBox = null;
+        stringEditing = null;
+    }
+
     /** Whether a keybind combo is currently being recorded (used by {@link KeybindManager} to suppress input). */
     public boolean isCapturingKeybind() {
         return capturingKeybind != null;
@@ -548,6 +624,7 @@ public final class ClickGuiScreen extends ZephyrScreen {
     /** Enters combo-recording mode for the given keybind setting. */
     private void startKeybindCapture(KeybindSetting setting) {
         clearListEditing();
+        closeStringEditing(true);
         draggingSetting = null;
         capturingKeybind = setting;
         captureBuffer.clear();
@@ -618,6 +695,16 @@ public final class ClickGuiScreen extends ZephyrScreen {
         }
         if (event.isConfirmation() && listEditing != null) {
             commitNewEntry();
+            return true;
+        }
+        if (stringEditing != null) {
+            if (event.isConfirmation()) {
+                closeStringEditing(true);
+            } else if (event.key() == InputConstants.KEY_ESCAPE) {
+                closeStringEditing(false);
+            } else {
+                return super.keyPressed(event);
+            }
             return true;
         }
         return super.keyPressed(event);
@@ -715,10 +802,13 @@ public final class ClickGuiScreen extends ZephyrScreen {
         return layout;
     }
 
-    /** The rendered height of a setting row; list settings grow with their entries. */
+    /** The rendered height of a setting row; list settings grow with their entries, string settings gain an input row while editing. */
     private int settingHeight(Setting<?> setting) {
         if (setting instanceof ListSetting listSetting) {
             return SETTING_ROW_HEIGHT * (1 + listSetting.get().size() + (listEditing == listSetting ? 1 : 0));
+        }
+        if (setting instanceof StringSetting stringSetting) {
+            return SETTING_ROW_HEIGHT * (stringEditing == stringSetting ? 2 : 1);
         }
         return SETTING_ROW_HEIGHT;
     }
