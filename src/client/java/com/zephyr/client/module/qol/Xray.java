@@ -24,9 +24,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.feature.AbstractOreFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 import java.util.ArrayList;
@@ -475,12 +477,17 @@ public final class Xray extends Module {
                         if (pos.getY() < minY || pos.getY() > maxY) {
                             continue;
                         }
-                        // Hide mined/carved positions: prediction output is culled against
-                        // the live world, so outlines only show still-existing ore.
-                        Block live = client.level.getBlockState(pos).getBlock();
-                        Integer color = colors.get(live);
+                        // Cull against the live world, but keep air positions: antixray
+                        // plugins hide blocks as small air pockets, so a predicted ore
+                        // reading as air is likely the real ore under plugin concealment.
+                        // Mined or carved cells still have no counterpart and are dropped.
+                        BlockState live = client.level.getBlockState(pos);
+                        Integer color = colors.get(live.getBlock());
                         if (color == null) {
-                            continue;
+                            if (!live.isAir()) {
+                                continue;
+                            }
+                            color = predictedColor(prediction, colors);
                         }
                         Gizmos.cuboid(pos, GizmoStyle.stroke(color)).setAlwaysOnTop();
                     }
@@ -536,9 +543,24 @@ public final class Xray extends Module {
     }
 
     /** Resolves the BlockType's placed features from the synced registry. */
+    /**
+     * The preset color for a predicted feature's own ore block — used when the live
+     * block at a predicted position is air (plugin air pocket), since the real ore
+     * block can't be read from the world in that case.
+     */
+    private static Integer predictedColor(OrePredictor.Prediction prediction, Map<Block, Integer> colors) {
+        if (prediction.feature().value().feature().value() instanceof AbstractOreFeature ore
+                && !ore.targetStates().isEmpty()) {
+            Integer color = colors.get(ore.targetStates().get(0).state().getBlock());
+            if (color != null) {
+                return color;
+            }
+        }
+        return colors.values().iterator().next();
+    }
+
     /** Chunk radius offsets sorted by manhattan distance (the player's chunk first). */
-    private static List<int[]> buildOffsets(int radius) {
-        List<int[]> offsets = new ArrayList<>();
+    private static List<int[]> buildOffsets(int radius) {        List<int[]> offsets = new ArrayList<>();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 offsets.add(new int[]{dx, dz});

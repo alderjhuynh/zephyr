@@ -25,7 +25,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.RandomSupport;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
@@ -80,9 +79,6 @@ import java.util.stream.Collectors;
  */
 public final class OrePredictor {
 
-    /** Vanilla Decoration.UNDERGROUND_ORES — every regular ore feature's step. */
-    static final GenerationStep.Decoration ORE_STEP = GenerationStep.Decoration.UNDERGROUND_ORES;
-
     /** Reason for the most recent failed {@link #create} attempt (diagnostics). */
     private static String lastFailure = "not attempted yet";
 
@@ -96,8 +92,8 @@ public final class OrePredictor {
 
     private final GenAccess view;
     private final StubChunkGenerator generator;
-    /** PlacedFeature (by identity) -> global feature index inside the ore step. */
-    private final Map<PlacedFeature, Integer> featureIndexes;
+    /** PlacedFeature (by identity) -> its decoration step and index within that step. */
+    private final Map<PlacedFeature, FeatureSlot> featureSlots;
     private final boolean overworldStyle;
     /**
      * The biome lookup the feature graph was built from: synced registry when the
@@ -110,13 +106,13 @@ public final class OrePredictor {
     /** Placed-feature ids that could not be resolved in {@link #featureLookup} (logged once). */
     private final Set<String> missingFeatures = new LinkedHashSet<>();
 
-    OrePredictor(GenAccess view, Map<PlacedFeature, Integer> featureIndexes, boolean overworldStyle,
+    OrePredictor(GenAccess view, Map<PlacedFeature, FeatureSlot> featureSlots, boolean overworldStyle,
                  HolderLookup<Biome> biomeLookup, HolderLookup<PlacedFeature> featureLookup) {
         this.view = view;
         this.biomeLookup = biomeLookup;
         this.featureLookup = featureLookup;
         this.generator = new StubChunkGenerator(view, this::sourceBiome);
-        this.featureIndexes = featureIndexes;
+        this.featureSlots = featureSlots;
         this.overworldStyle = overworldStyle;
     }
 
@@ -184,21 +180,32 @@ public final class OrePredictor {
         }
         List<FeatureSorter.StepFeatureData> perStep =
                 FeatureSorter.buildFeaturesPerStep(possibleBiomes, b -> b.value().getGenerationSettings().features(), true);
-        if (ORE_STEP.ordinal() >= perStep.size()) {
-            lastFailure = "feature graph has only " + perStep.size() + " decoration steps; ore step "
-                    + ORE_STEP.ordinal() + " missing (" + source.name() + ")";
+        // Map every feature to its actual (decoration step, index within step). The
+        // step layout is NOT uniform across dimensions: 26.3 removed the AIR step
+        // (shifting overworld ores to ordinal 6) but the nether biome data still
+        // carries its ores at index 7 — so a hardcoded ore step reads an empty step
+        // in the nether. The decoration seed consumes both values per feature.
+        Map<PlacedFeature, FeatureSlot> slots = new IdentityHashMap<>();
+        for (int step = 0; step < perStep.size(); step++) {
+            FeatureSorter.StepFeatureData stepData = perStep.get(step);
+            for (int index = 0; index < stepData.features().size(); index++) {
+                slots.putIfAbsent(stepData.features().get(index), new FeatureSlot(step, index));
+            }
+        }
+        if (slots.isEmpty()) {
+            lastFailure = "feature graph resolved to zero features (" + source.name() + ")";
             Zephyr.LOGGER.warn("[Xray/Seed] predictor unavailable: {} (dimension={}, biomes={})",
                     lastFailure, dimension, possibleBiomes.size());
             return null;
         }
-        FeatureSorter.StepFeatureData oreStep = perStep.get(ORE_STEP.ordinal());
-        Map<PlacedFeature, Integer> indexes = oreStep.features().stream().collect(
-                Collectors.toMap(java.util.function.Function.identity(), oreStep.indexMapping()::applyAsInt, (a, b) -> a, IdentityHashMap::new)
-        );
         lastFailure = "not attempted yet";
-        Zephyr.LOGGER.info("[Xray/Seed] predictor ready: dimension={}, overworldStyle={}, source={}, biomes={}, oreStepFeatures={}",
-                dimension, overworldStyle, source.name(), possibleBiomes.size(), oreStep.features().size());
-        return new OrePredictor(view, indexes, overworldStyle, source.biomes(), source.features());
+        Zephyr.LOGGER.info("[Xray/Seed] predictor ready: dimension={}, overworldStyle={}, source={}, biomes={}, features={}, steps={}",
+                dimension, overworldStyle, source.name(), possibleBiomes.size(), slots.size(), perStep.size());
+        return new OrePredictor(view, slots, overworldStyle, source.biomes(), source.features());
+    }
+
+    /** A feature's decoration step and index within that step, as consumed by the decoration seed. */
+    private record FeatureSlot(int step, int index) {
     }
 
     /** One consistent worldgen view: everything from a single registry access. */
@@ -306,21 +313,29 @@ public final class OrePredictor {
         WorldgenRandom random = new WorldgenRandom(new XoroshiroRandomSource(RandomSupport.generateUniqueSeed()));
         Map<PlacedFeature, Prediction> predictions = new LinkedHashMap<>();
         LongOpenHashSet predicted = new LongOpenHashSet();
-        // Consumes features in global index order, mirroring applyBiomeDecoration's
+        // Consumes features in (step, index) order, mirroring applyBiomeDecoration's
         // sorted iteration (needed so overlapping veins resolve first-write-wins).
         List<Holder<PlacedFeature>> ordered = new ArrayList<>(wantedFeatures);
-        ordered.sort((a, b) -> index(this.featureIndexes, a) - index(this.featureIndexes, b));
+        ordered.sort((a, b) -> {
+            FeatureSlot slotA = this.featureSlots.get(a.value());
+            FeatureSlot slotB = this.featureSlots.get(b.value());
+            if (slotA == null || slotB == null) {
+                return slotA == slotB ? 0 : (slotA == null ? 1 : -1);
+            }
+            int byStep = Integer.compare(slotA.step(), slotB.step());
+            return byStep != 0 ? byStep : Integer.compare(slotA.index(), slotB.index());
+        });
         for (Holder<PlacedFeature> featureHolder : ordered) {
             PlacedFeature placedFeature = featureHolder.value();
-            Integer globalIndex = this.featureIndexes.get(placedFeature);
-            if (globalIndex == null) {
+            FeatureSlot slot = this.featureSlots.get(placedFeature);
+            if (slot == null) {
                 continue;
             }
-            if (checkBiomes && !this.anyBiomeRuns(areaBiomes, featureHolder)) {
+            if (checkBiomes && !this.anyBiomeRuns(areaBiomes, featureHolder, slot.step())) {
                 continue;
             }
             List<BlockPos> positions = new ArrayList<>();
-            random.setFeatureSeed(decorationSeed, globalIndex, ORE_STEP.ordinal());
+            random.setFeatureSeed(decorationSeed, slot.index(), slot.step());
             this.replayPlacements(placedFeature, random, origin, chunkX, chunkZ,
                     pos -> {
                         if (predicted.add(pos.asLong())) {
@@ -334,15 +349,10 @@ public final class OrePredictor {
         return new ArrayList<>(predictions.values());
     }
 
-    private static int index(Map<PlacedFeature, Integer> indexes, Holder<PlacedFeature> holder) {
-        Integer i = indexes.get(holder.value());
-        return i == null ? Integer.MAX_VALUE : i;
-    }
-
-    private boolean anyBiomeRuns(Set<Holder<Biome>> biomes, Holder<PlacedFeature> feature) {
+    private boolean anyBiomeRuns(Set<Holder<Biome>> biomes, Holder<PlacedFeature> feature, int step) {
         for (Holder<Biome> biome : biomes) {
             var steps = biome.value().getGenerationSettings().features();
-            if (ORE_STEP.ordinal() < steps.size() && steps.get(ORE_STEP.ordinal()).contains(feature)) {
+            if (step < steps.size() && steps.get(step).contains(feature)) {
                 return true;
             }
         }
@@ -620,10 +630,17 @@ public final class OrePredictor {
      */
     private boolean canPlaceOre(BlockPos pos, AbstractOreFeature feature, RandomSource random) {
         BlockState state = this.view.getBlockState(pos);
-        if (state.isAir() || !state.getFluidState().isEmpty()) {
-            // Fresh generation could never place into a carver gap or fluid, and a
-            // mined-away cell has no present counterpart. Rejecting here consumes no
-            // random values, keeping the run's random stream aligned.
+        if (!state.getFluidState().isEmpty()) {
+            // Fresh generation could never place into a fluid, and a mined-away cell
+            // has no present counterpart. Rejecting here consumes no random values,
+            // keeping the run's random stream aligned.
+            return false;
+        }
+        // Air is ambiguous on antixray servers: it is either real carved cave air
+        // (vanilla never places ore there) or a small plugin air pocket hiding what
+        // was solid terrain at decoration time. Genuine cave air is surrounded by
+        // more air than solid; pockets sit inside solid terrain and stay predictable.
+        if (state.isAir() && this.isCaveLikeAir(pos)) {
             return false;
         }
         // The live world cannot answer "was this stone at decoration time": on a
@@ -637,12 +654,27 @@ public final class OrePredictor {
         return skipAirCheck || !this.isAdjacentToAir(pos);
     }
 
-    /** Replicates {@code AbstractOreFeature#isAdjacentToAir}/{@code #checkNeighbors} against the live terrain. */
+    /**
+     * Whether an air block looks like real carved cave air rather than a small
+     * antixray air pocket: cave air is surrounded by more air than solid, while a
+     * plugin air pocket sits inside solid terrain.
+     */
+    private boolean isCaveLikeAir(BlockPos pos) {
+        int airNeighbors = 0;
+        for (Direction direction : Direction.values()) {
+            if (this.view.getBlockState(pos.relative(direction)).isAir()) {
+                airNeighbors++;
+            }
+        }
+        return airNeighbors >= 3;
+    }
+
+    /** Replicates {@code AbstractOreFeature#isAdjacentToAir}/{@code #checkNeighbors}, counting only cave-like air. */
     private boolean isAdjacentToAir(BlockPos pos) {
         BlockPos.MutableBlockPos neighborPos = new BlockPos.MutableBlockPos();
         for (Direction direction : Direction.values()) {
             neighborPos.setWithOffset(pos, direction);
-            if (this.view.getBlockState(neighborPos).isAir()) {
+            if (this.view.getBlockState(neighborPos).isAir() && this.isCaveLikeAir(neighborPos)) {
                 return true;
             }
         }
