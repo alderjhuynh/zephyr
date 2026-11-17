@@ -1,5 +1,6 @@
 package com.zephyr.client.configplusgui.module;
 
+import com.zephyr.client.api.ZephyrEvents;
 import com.zephyr.client.configplusgui.setting.Setting;
 import net.minecraft.client.Minecraft;
 
@@ -114,6 +115,7 @@ public abstract class Module {
         } else {
             onDisable();
         }
+        ZephyrEvents.fireModuleToggled(this, enabled);
     }
 
     /**

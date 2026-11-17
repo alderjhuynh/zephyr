@@ -8,6 +8,8 @@ import com.zephyr.client.configplusgui.module.HiddenModules;
 import com.zephyr.client.configplusgui.module.Module;
 import com.zephyr.client.configplusgui.module.ModuleManager;
 import com.zephyr.client.configplusgui.setting.BooleanSetting;
+import com.zephyr.client.configplusgui.setting.ButtonSetting;
+import com.zephyr.client.configplusgui.setting.ClickableSetting;
 import com.zephyr.client.configplusgui.setting.EnumSetting;
 import com.zephyr.client.configplusgui.setting.KeybindSetting;
 import com.zephyr.client.configplusgui.setting.ListSetting;
@@ -305,6 +307,13 @@ public final class ClickGuiScreen extends ZephyrScreen {
             }
         } else if (settingRow.setting instanceof ListSetting listSetting) {
             renderListSetting(graphics, listSetting, top, left, right);
+        } else if (settingRow.setting instanceof ClickableSetting clickableSetting) {
+            graphics.text(this.font, settingRow.setting.getName(), left, top + 6, TEXT_DIM, false);
+            String value = clickableSetting.getDisplayValue();
+            if (!value.isEmpty()) {
+                int valueWidth = this.font.width(value);
+                graphics.text(this.font, value, right - valueWidth, top + 6, accent(), false);
+            }
         }
     }
 
@@ -487,6 +496,8 @@ public final class ClickGuiScreen extends ZephyrScreen {
             handleListSettingClick(listSetting, mouseX, mouseY, settingTop);
         } else if (settingRow.setting instanceof StringSetting stringSetting) {
             startStringEditing(stringSetting);
+        } else if (settingRow.setting instanceof ClickableSetting clickableSetting) {
+            clickableSetting.onClick(mouseX, mouseY);
         }
     }
 

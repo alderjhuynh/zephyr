@@ -64,6 +64,28 @@ public final class ConfigManager {
     }
 
     /**
+     * Restores a single module's persisted state from {@code modules.json}, used when
+     * an addon registers a module after the initial {@link #load(List)} pass. Missing
+     * files and malformed data silently fall back to defaults; a module with no saved
+     * entry keeps its constructor defaults.
+     *
+     * @param module the module to restore state onto
+     */
+    public static void loadFor(Module module) {
+        if (!Files.exists(CONFIG_PATH)) {
+            return;
+        }
+
+        try (Reader reader = Files.newBufferedReader(CONFIG_PATH, StandardCharsets.UTF_8)) {
+            JsonElement root = JsonParser.parseReader(reader);
+            if (!root.isJsonObject()) return;
+            applyModuleStates(root.getAsJsonObject(), List.of(module), false);
+        } catch (IOException | RuntimeException e) {
+            Zephyr.LOGGER.warn("[Zephyr] Failed to load persisted state for module '{}'.", module.getName(), e);
+        }
+    }
+
+    /**
      * Snapshots the given modules' state and writes it to {@code modules.json}.
      *
      * @param modules the registered modules to persist

@@ -9,7 +9,10 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Shared chrome for every Zephyr menu screen (module list, keybinds, profiles, config):
@@ -144,28 +147,6 @@ public abstract class ZephyrScreen extends Screen {
 
         abstract Screen create(int direction, boolean slideVertically);
 
-        Nav next() {
-            Nav[] values = values();
-            Nav result = values[(ordinal() + 1) % values.length];
-            // The secret and credits screens are hidden easter eggs: the normal Tab
-            // cycle skips over them entirely (Tab inside either returns straight to
-            // the module list via next() -> MAIN).
-            while (result == SECRET || result == CREDITS) {
-                result = values[(result.ordinal() + 1) % values.length];
-            }
-            return result;
-        }
-
-        /** Previous screen in the normal cycle, skipping the hidden easter-egg screens. */
-        Nav previous() {
-            Nav[] values = values();
-            Nav result = values[(ordinal() - 1 + values.length) % values.length];
-            while (result == SECRET || result == CREDITS) {
-                result = values[(result.ordinal() - 1 + values.length) % values.length];
-            }
-            return result;
-        }
-
         /**
          * Next screen in the hidden three-screen cycle (main -> ??? -> credits). Any
          * regular screen hops straight into the cycle at ???.
@@ -207,9 +188,93 @@ public abstract class ZephyrScreen extends Screen {
     /** The {@link Nav} entry this screen represents, used for Tab-cycle navigation. */
     protected abstract Nav currentNav();
 
-    /** The next screen in the normal cycle ({@link Nav#next()}), sliding in horizontally. */
+    /** The normal Tab cycle's built-in screens: main, keybinds, profiles, config. */
+    private static final int CYCLE_BUILTINS = 4;
+
+    /** Addon screens appended to the Tab cycle after the built-ins, in registration order. */
+    private static final List<AddonCycleEntry> ADDON_CYCLE = new ArrayList<>();
+
+    private record AddonCycleEntry(String id, Supplier<Screen> factory) {
+    }
+
+    /** Memoized factory product classes, so cycle-position lookup doesn't re-create screens. */
+    private static final Map<String, Class<?>> ADDON_CYCLE_CLASSES = new HashMap<>();
+
+    /**
+     * Registers an addon screen into the Tab cycle, appended after the built-in screens
+     * (main, keybinds, profiles, config). The factory is invoked every time the screen
+     * is entered, and re-registering the same id is a no-op. Addon screens are plain
+     * {@link Screen}s: to keep cycling from inside one, handle the cycle key there and
+     * call {@code ZephyrApi.cycleNext()} / {@code cyclePrevious()}.
+     *
+     * @param id      a unique id for the entry, e.g. your mod id
+     * @param factory creates a fresh screen instance when the cycle reaches this entry
+     */
+    public static void registerCycleScreen(String id, Supplier<Screen> factory) {
+        if (id == null || factory == null) return;
+        for (AddonCycleEntry entry : ADDON_CYCLE) {
+            if (entry.id().equals(id)) return;
+        }
+        ADDON_CYCLE.add(new AddonCycleEntry(id, factory));
+    }
+
+    /** The Tab-cycle position of the given open screen, or -1 when it isn't part of the cycle. */
+    private static int cycleIndex(Screen screen) {
+        if (screen instanceof ZephyrScreen zephyrScreen) {
+            return builtinCycleIndex(zephyrScreen.currentNav());
+        }
+        Class<? extends Screen> screenClass = screen.getClass();
+        for (int i = 0; i < ADDON_CYCLE.size(); i++) {
+            if (productClass(ADDON_CYCLE.get(i)) == screenClass) {
+                return CYCLE_BUILTINS + i;
+            }
+        }
+        return -1;
+    }
+
+    /** The cycle index of a built-in screen's Nav; hidden easter-egg screens aren't in the cycle. */
+    private static int builtinCycleIndex(Nav nav) {
+        return nav.ordinal() < CYCLE_BUILTINS ? nav.ordinal() : -1;
+    }
+
+    /** The class an addon cycle entry's factory produces, memoized after the first resolution. */
+    private static Class<?> productClass(AddonCycleEntry entry) {
+        synchronized (ADDON_CYCLE_CLASSES) {
+            return ADDON_CYCLE_CLASSES.computeIfAbsent(entry.id(), key -> {
+                try {
+                    return entry.factory().get().getClass();
+                } catch (Throwable t) {
+                    return Void.class;
+                }
+            });
+        }
+    }
+
+    /** Creates the screen at the given cycle index, wrapping into range; direction sets the slide. */
+    private static Screen cycleAt(int index, int direction) {
+        int count = CYCLE_BUILTINS + ADDON_CYCLE.size();
+        int wrapped = ((index % count) + count) % count;
+        if (wrapped < CYCLE_BUILTINS) {
+            return Nav.values()[wrapped].create(direction, false);
+        }
+        Screen screen = ADDON_CYCLE.get(wrapped - CYCLE_BUILTINS).factory().get();
+        return screen;
+    }
+
+    /**
+     * Returns the screen {@code step} positions from the given screen in the Tab cycle,
+     * or {@code null} when the screen isn't part of the cycle. Used both internally and
+     * by addon screens via the API ({@code ZephyrApi.cycleNext}).
+     */
+    public static Screen cycleNeighbor(Screen current, int step) {
+        int index = cycleIndex(current);
+        if (index < 0) return null;
+        return cycleAt(index + step, step >= 0 ? 1 : -1);
+    }
+
+    /** The next screen in the normal cycle, sliding in horizontally. */
     public final Screen next() {
-        return currentNav().next().create(1, false);
+        return cycleAt(builtinCycleIndex(currentNav()) + 1, 1);
     }
 
     /**
@@ -230,7 +295,7 @@ public abstract class ZephyrScreen extends Screen {
             return currentNav().backward().create(-1, true);
         }
         if (holdingLeft) {
-            return currentNav().previous().create(-1, false);
+            return cycleNeighbor(this, -1);
         }
         return next();
     }

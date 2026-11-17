@@ -30,6 +30,10 @@ import java.util.List;
  */
 public final class ModuleManager {
     private static final List<Module> MODULES = new ArrayList<>();
+    /** Modules registered by addons before {@link #init()} has run; drained at the end of init. */
+    private static final List<Module> PENDING = new ArrayList<>();
+    /** Whether the built-in registration pass and the initial config load have completed. */
+    private static boolean initialized = false;
 
     private ModuleManager() {
     }
@@ -143,11 +147,53 @@ public final class ModuleManager {
         ConfigManager.load(MODULES);
         // If "Hide Detectable Modules" persisted as ON, snapshot loaded states and force-disable detectables.
         GrimHidingManager.reapplyAfterLoad();
+
+        // Addons may register modules from their own client initializers, which can run
+        // before or after Zephyr's; queue early ones and drain them now that config is loaded.
+        initialized = true;
+        if (!PENDING.isEmpty()) {
+            List<Module> pending = new ArrayList<>(PENDING);
+            PENDING.clear();
+            for (Module module : pending) {
+                registerModule(module);
+            }
+        }
     }
 
-    /** Adds a module to the registry; called from {@link #init()} in display order. */
+    /**
+     * Adds a module to the registry; called from {@link #init()} in display order.
+     * Unlike {@link #registerModule(Module)} this never queues or loads config - it
+     * is purely for the built-in registration pass.
+     */
     private static void register(Module module) {
         MODULES.add(module);
+    }
+
+    /**
+     * Registers a module (typically from an addon) so it shows up in the click-gui,
+     * gets persisted, receives ticks and gets a keybind slot.
+     * <p>
+     * Safe to call at any point during client initialization: calls made before
+     * Zephyr's initial config load are queued and applied at the end of
+     * {@link #init()}; calls made afterwards take effect immediately and have the
+     * module's persisted state restored from {@code modules.json}. Registering the
+     * same instance twice is a no-op.
+     *
+     * @param module the module singleton to register
+     */
+    public static void registerModule(Module module) {
+        if (module == null || MODULES.contains(module)) {
+            return;
+        }
+        if (!initialized) {
+            PENDING.add(module);
+            return;
+        }
+        MODULES.add(module);
+        ConfigManager.loadFor(module);
+        if (GrimHidingManager.isActive() && module.isGrimDetectable()) {
+            module.setEnabledSilently(false);
+        }
     }
 
     /** Returns all registered modules in registration order, read-only. */

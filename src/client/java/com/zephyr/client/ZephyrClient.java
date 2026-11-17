@@ -1,5 +1,6 @@
 package com.zephyr.client;
 
+import com.zephyr.Zephyr;
 import com.zephyr.client.TickScheduler;
 import com.zephyr.client.configplusgui.secretsettings.bettermovement.BetterMovement;
 import com.zephyr.client.configplusgui.config.GlobalConfig;
@@ -34,8 +35,11 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
+import com.zephyr.client.api.ZephyrAddon;
+import com.zephyr.client.api.ZephyrEvents;
 
 /**
  * Zephyr's client-side entry point (Fabric {@link ClientModInitializer}).
@@ -60,10 +64,14 @@ ZephyrClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> DiscordPresenceManager.initialize());
 		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> DiscordPresenceManager.shutdown());
-		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> DiscordPresenceManager.onWorldTransition());
+		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+			DiscordPresenceManager.onWorldTransition();
+			ZephyrEvents.fireWorldJoin(client);
+		});
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			DiscordPresenceManager.onWorldTransition();
 			FakePlayerManager.onDisconnect();
+			ZephyrEvents.fireWorldDisconnect(client);
 		});
 
 
@@ -93,6 +101,7 @@ ZephyrClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			TickScheduler.tick();
+			ZephyrEvents.fireClientTick(client);
 			guiKeybindHandler.tick(client);
 			CommandPrefixHandler.tick(client);
 			ModuleManager.tick(client);
@@ -136,5 +145,24 @@ ZephyrClient implements ClientModInitializer {
 			AuraMapController.deactivate();
 			ModuleManager.saveAll();
 		});
+
+		invokeAddonEntrypoints();
+	}
+
+	/**
+	 * Runs every {@link ZephyrAddon} declared under the {@code "zephyr"} entrypoint key,
+	 * after all of Zephyr's subsystems are initialized so addons can immediately
+	 * register modules, categories, commands, screens and event listeners. A failing
+	 * addon is logged and skipped without breaking the other addons.
+	 */
+	private static void invokeAddonEntrypoints() {
+		for (var container : FabricLoader.getInstance().getEntrypointContainers("zephyr", ZephyrAddon.class)) {
+			String modId = container.getProvider().getMetadata().getId();
+			try {
+				container.getEntrypoint().onInitializeZephyr();
+			} catch (Throwable t) {
+				Zephyr.LOGGER.error("[Zephyr] Addon '{}' failed to initialize.", modId, t);
+			}
+		}
 	}
 }

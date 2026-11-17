@@ -1,5 +1,7 @@
 package com.zephyr.client.configplusgui.setting;
 
+import com.zephyr.client.api.ZephyrEvents;
+
 /**
  * Base class for a typed, named configuration value owned by a {@link Module}. Concrete
  * subtypes ({@link BooleanSetting}, {@link NumberSetting}, {@link EnumSetting},
@@ -27,8 +29,9 @@ public abstract class Setting<T> {
         return value;
     }
 
-    /** Writes the value without any subtype-specific validation or clamping. */
+    /** Writes the value without any subtype-specific validation or clamping, and fires the setting-changed event. */
     protected void setValue(T value) {
         this.value = value;
+        ZephyrEvents.fireSettingChanged(this);
     }
 }
